@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "cobaltrails",
+	"version": "${version}",
+	"name": "Cobalt Rails",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/cobaltrails/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.fernando.cobaltrails.CobaltRails"
+		],
+		"fabric-datagen": [
+			"net.fernando.cobaltrails.CobaltRailsDataGenerator"
+		],
+        "client": [
+            "net.fernando.cobaltrails.CobaltRailsClient"
+        ]
+	},
+	"mixins": [
+		"cobaltrails.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.2",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
