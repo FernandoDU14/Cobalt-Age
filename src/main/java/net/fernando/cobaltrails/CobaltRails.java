@@ -2,6 +2,8 @@ package net.fernando.cobaltrails;
 
 import net.fabricmc.api.ModInitializer;
 
+import net.fernando.cobaltrails.block.ModBlocks;
+import net.fernando.cobaltrails.item.ModItems;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,5 +14,7 @@ public class CobaltRails implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+        ModItems.registerModItems();
+        ModBlocks.registerModBlocks();
 	}
 }
