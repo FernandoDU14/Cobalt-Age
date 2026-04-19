@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import net.minecraft.server.world.ServerWorld;
 
 @Mixin(AbstractMinecartEntity.class)
 public abstract class AbstractMinecartEntityMixin {
@@ -16,18 +17,26 @@ public abstract class AbstractMinecartEntityMixin {
     @Inject(method = "getMaxSpeed", at = @At("HEAD"), cancellable = true)
     protected void onGetMaxSpeed(CallbackInfoReturnable<Double> cir) {
         AbstractMinecartEntity entity = (AbstractMinecartEntity) (Object) this;
-        BlockState state = entity.getWorld().getBlockState(entity.getBlockPos());
+        BlockState state = entity.getEntityWorld().getBlockState(entity.getBlockPos());
 
         // Check if the minecart is on a Cobalt Rail
         if (state.isOf(ModBlocks.COBALT_RAIL)) {
             // Get value from GameRule and convert BPS to Tick velocity
-            float speedBps = entity.getWorld().getGameRules().getInt(CobaltRailsGameRules.MAX_MINECART_SPEED_COBALT);
-            cir.setReturnValue((double) (speedBps / 20.0F));
+
+            // Otteniamo il mondo dall'entità, controlliamo se è un ServerWorld e leggiamo la regola
+            if (entity.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                float speedBps = (float) serverWorld.getGameRules().getValue(CobaltRailsGameRules.MAX_MINECART_SPEED_COBALT);
+                cir.setReturnValue((double) (speedBps / 20.0F));
+            }
+
         }
         // Check if the minecart is on a Powered Rail (Gold)
         else if (state.isOf(Blocks.POWERED_RAIL)) {
-            float speedBps = entity.getWorld().getGameRules().getInt(CobaltRailsGameRules.MAX_MINECART_SPEED_GOLD);
-            cir.setReturnValue((double) (speedBps / 20.0F));
+
+            if (entity.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                float speedBps = (float) serverWorld.getGameRules().getValue(CobaltRailsGameRules.MAX_MINECART_SPEED_GOLD);
+                cir.setReturnValue((double) (speedBps / 20.0F));
+            }
         }
     }
 }

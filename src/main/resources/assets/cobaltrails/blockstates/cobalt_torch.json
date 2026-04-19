@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "cobaltrails:block/cobalt_torch_off"
+    },
+    "lit=true": {
+      "model": "cobaltrails:block/cobalt_torch"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/template_redstone_torch_wall",
+  "textures": {
+    "torch": "cobaltrails:block/cobalt_torch"
+  }
+}

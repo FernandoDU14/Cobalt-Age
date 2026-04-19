@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "cobaltrails:block/cobalt_block"
+    }
+  }
+}

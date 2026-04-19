@@ -25,4 +25,8 @@ public class CobaltRailsGameRules {
         MAX_MINECART_SPEED_GOLD = createRailGamerule("max_minecart_speed_gold", CobaltRailsConfig.GOLD_SPEED_BPS);
         MAX_MINECART_SPEED_COBALT = createRailGamerule("max_minecart_speed_cobalt", CobaltRailsConfig.COBALT_SPEED_BPS);
     }
+
+    public static void registerGameRules() {
+        CobaltRails.LOGGER.info("Registering GameRules for " + CobaltRails.MOD_ID);
+    }
 }

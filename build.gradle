@@ -34,6 +34,9 @@ dependencies {
 processResources {
 	inputs.property "version", project.version
 
+	// Aggiungi questa riga per risolvere il conflitto dei duplicati
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
 	filesMatching("fabric.mod.json") {
 		expand "version": inputs.properties.version
 	}
