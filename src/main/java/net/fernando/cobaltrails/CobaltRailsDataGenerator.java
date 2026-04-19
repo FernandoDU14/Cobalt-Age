@@ -5,7 +5,6 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fernando.cobaltrails.datagen.*;
 import net.fernando.cobaltrails.world.ModConfiguredFeatures;
 import net.fernando.cobaltrails.world.ModPlacedFeatures;
-import net.minecraft.data.client.ModelProvider;
 import net.minecraft.registry.RegistryBuilder;
 import net.minecraft.registry.RegistryKeys;
 
