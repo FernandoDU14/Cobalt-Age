@@ -4,9 +4,7 @@
   "cookingtime": 100,
   "experience": 1.0,
   "group": "cobalt_ingot",
-  "ingredient": {
-    "item": "cobaltrails:cobalt_ore"
-  },
+  "ingredient": "cobaltrails:cobalt_ore",
   "result": {
     "id": "cobaltrails:cobalt_ingot"
   }

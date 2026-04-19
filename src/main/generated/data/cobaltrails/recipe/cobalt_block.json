@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "#": {
-      "item": "cobaltrails:cobalt_ingot"
-    }
+    "#": "cobaltrails:cobalt_ingot"
   },
   "pattern": [
     "###",

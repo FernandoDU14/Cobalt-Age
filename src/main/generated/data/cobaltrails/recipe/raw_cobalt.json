@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "cobaltrails:raw_cobalt_block"
-    }
+    "cobaltrails:raw_cobalt_block"
   ],
   "result": {
     "count": 9,

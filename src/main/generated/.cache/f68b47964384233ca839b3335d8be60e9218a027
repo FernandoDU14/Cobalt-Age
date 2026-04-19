@@ -1,4 +1,4 @@
-// 1.21.1	2026-04-19T15:13:12.6581577	Cobalt Rails/Model Definitions
+// 1.21.3	2026-04-19T16:29:22.5863273	Cobalt Rails/Model Definitions
 a61d46d3bc2414babbe323310a05bfd7911aa757 assets\cobaltrails\blockstates\raw_cobalt_block.json
 197b4bc694731b4c04fb16e37e130169f4253461 assets\cobaltrails\models\item\cobalt_nugget.json
 d2c95db91302c13c1ecd31fc26623efd4ce852cb assets\cobaltrails\blockstates\cobalt_block.json
@@ -14,11 +14,11 @@ f10ae976a70deec523ddf41b7c211ed48ad0d15c assets\cobaltrails\models\item\cobalt_i
 6d52e8f9b515dbbde4e324876f84820c70e165e0 assets\cobaltrails\models\block\deepslate_cobalt_ore.json
 5c73337b6110e175f092c637eaa12eb3cb4d8914 assets\cobaltrails\models\item\cobalt_block.json
 94fdd6eb71aa7f8795466938e54f36886d4e9251 assets\cobaltrails\blockstates\deepslate_cobalt_ore.json
-7783acf60cea0e38df8f3b6f0656d66b68fbf7da assets\cobaltrails\models\block\cobalt_rail_raised_ne.json
 8a53953083c64d961d6f05bfb1b2b48e462806ec assets\cobaltrails\blockstates\cobalt_rail.json
+7783acf60cea0e38df8f3b6f0656d66b68fbf7da assets\cobaltrails\models\block\cobalt_rail_raised_ne.json
 ca6c8cc884704e74d5ccf48ba3b56930330be417 assets\cobaltrails\models\item\raw_cobalt.json
-4f106c52e22ef947a161b2a3bed85639a901d6fe assets\cobaltrails\models\block\cobalt_rail_raised_sw.json
 4dd07452fbec51092c6f23193b89ce622d7b5068 assets\cobaltrails\models\item\cobalt_ore.json
+4f106c52e22ef947a161b2a3bed85639a901d6fe assets\cobaltrails\models\block\cobalt_rail_raised_sw.json
 a96dab185ac5c4c306f8471809c42d642ee788af assets\cobaltrails\models\item\raw_cobalt_block.json
 5ec80b4f2a53e0452a8df11fe7400e67ae782862 assets\cobaltrails\models\item\deepslate_cobalt_ore.json
 2e941cb68fa1592e4d102bce94accfe6b1120b3b assets\cobaltrails\models\block\cobalt_rail.json

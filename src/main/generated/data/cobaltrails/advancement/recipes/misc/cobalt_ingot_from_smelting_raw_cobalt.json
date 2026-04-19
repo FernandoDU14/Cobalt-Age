@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "cobaltrails:cobalt_ingot_from_smelting_raw_cobalt"
+        "recipe": "minecraft:cobalt_ingot_from_smelting_raw_cobalt"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "cobaltrails:cobalt_ingot_from_smelting_raw_cobalt"
+      "minecraft:cobalt_ingot_from_smelting_raw_cobalt"
     ]
   }
 }

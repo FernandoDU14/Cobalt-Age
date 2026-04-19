@@ -2,10 +2,10 @@
   "item.cobaltrails.cobalt_ingot": "Lingote de cobalto",
   "item.cobaltrails.cobalt_nugget": "Pepita de cobalto",
   "item.cobaltrails.raw_cobalt": "Cobalto en bruto",
+  "item.cobaltrails.cobalt_rail": "Raíl de cobalto",
 
   "block.cobaltrails.deepslate_cobalt_ore": "Mena de pizarra profunda de cobalto",
   "block.cobaltrails.cobalt_ore": "Mena de cobalto",
-  "block.cobaltrails.cobalt_rail": "Raíl de cobalto",
   "block.cobaltrails.cobalt_block": "Bloque de cobalto",
   "block.cobaltrails.raw_cobalt_block": "Bloque de cobalto crudo"
 }

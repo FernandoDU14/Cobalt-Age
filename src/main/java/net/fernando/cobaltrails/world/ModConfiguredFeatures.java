@@ -27,7 +27,7 @@ public class ModConfiguredFeatures {
                 List.of(OreFeatureConfig.createTarget(stoneReplaceables, ModBlocks.COBALT_ORE.getDefaultState()),
                         OreFeatureConfig.createTarget(deepslateReplaceables, ModBlocks.DEEPSLATE_COBALT_ORE.getDefaultState()));
 
-        register(context, COBALT_ORE_KEY, Feature.ORE, new OreFeatureConfig(overworldPinkGarnetOres, 8));
+        register(context, COBALT_ORE_KEY, Feature.ORE, new OreFeatureConfig(overworldPinkGarnetOres, 6));
 
     }
 
