@@ -20,13 +20,15 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.COBALT_BLOCK)
                 .add(ModBlocks.RAW_COBALT_BLOCK)
                 .add(ModBlocks.COBALT_ORE)
-                .add(ModBlocks.DEEPSLATE_COBALT_ORE)
-                .add(ModBlocks.COBALT_RAIL);
+                .add(ModBlocks.DEEPSLATE_COBALT_ORE);
 
         getOrCreateTagBuilder(BlockTags.NEEDS_IRON_TOOL)
                 .add(ModBlocks.COBALT_BLOCK)
                 .add(ModBlocks.RAW_COBALT_BLOCK)
                 .add(ModBlocks.COBALT_ORE)
                 .add(ModBlocks.DEEPSLATE_COBALT_ORE);
+
+        getOrCreateTagBuilder(BlockTags.RAILS)
+                .add(ModBlocks.COBALT_RAIL);
     }
 }
