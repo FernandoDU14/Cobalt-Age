@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "cobaltrails:cobalt_block"
+    }
+  ],
+  "result": {
+    "count": 9,
+    "id": "cobaltrails:cobalt_ingot"
+  }
+}

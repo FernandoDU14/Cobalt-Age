@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:blasting",
+  "category": "blocks",
+  "cookingtime": 100,
+  "experience": 1.0,
+  "group": "cobalt_block",
+  "ingredient": {
+    "item": "cobaltrails:raw_cobalt_block"
+  },
+  "result": {
+    "id": "cobaltrails:cobalt_block"
+  }
+}
