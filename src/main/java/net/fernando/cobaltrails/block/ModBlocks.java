@@ -35,7 +35,7 @@ public class ModBlocks {
                     .strength(4.0F, 6.0F).sounds(BlockSoundGroup.METAL)));
 
     public static final Block COBALT_RAIL = registerBlock("cobalt_rail",
-            new PoweredRailBlock(AbstractBlock.Settings.copy(Blocks.POWERED_RAIL)));
+            new PoweredRailBlock(AbstractBlock.Settings.create().noCollision().strength(0.7F).sounds(BlockSoundGroup.METAL)));
 
 
 
