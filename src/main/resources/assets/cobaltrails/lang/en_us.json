@@ -4,8 +4,8 @@
   "item.cobaltrails.raw_cobalt": "Raw Cobalt",
   "item.cobaltrails.cobalt_rail": "Cobalt Rail",
 
-  "block.cobaltrails.deepslate_cobalt_ore": "Deepslate Cobalt Ore",
-  "block.cobaltrails.cobalt_ore": "Cobalt Ore",
-  "block.cobaltrails.cobalt_block": "Block of Cobalt",
-  "block.cobaltrails.raw_cobalt_block": "Block of Raw Cobalt"
+  "item.cobaltrails.deepslate_cobalt_ore": "Deepslate Cobalt Ore",
+  "item.cobaltrails.cobalt_ore": "Cobalt Ore",
+  "item.cobaltrails.cobalt_block": "Block of Cobalt",
+  "item.cobaltrails.raw_cobalt_block": "Block of Raw Cobalt"
 }
