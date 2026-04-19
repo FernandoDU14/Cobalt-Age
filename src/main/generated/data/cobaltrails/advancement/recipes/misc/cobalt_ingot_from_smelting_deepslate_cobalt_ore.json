@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:cobalt_ingot_from_smelting_deepslate_cobalt_ore"
+        "recipe": "cobaltrails:cobalt_ingot_from_smelting_deepslate_cobalt_ore"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:cobalt_ingot_from_smelting_deepslate_cobalt_ore"
+      "cobaltrails:cobalt_ingot_from_smelting_deepslate_cobalt_ore"
     ]
   }
 }

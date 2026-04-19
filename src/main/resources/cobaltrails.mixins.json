@@ -3,7 +3,8 @@
 	"package": "net.fernando.cobaltrails.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin"
+		"ExampleMixin",
+        "AbstractMinecartEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

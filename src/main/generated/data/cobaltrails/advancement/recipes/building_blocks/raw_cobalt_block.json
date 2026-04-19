@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:raw_cobalt_block"
+        "recipe": "cobaltrails:raw_cobalt_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:raw_cobalt_block"
+      "cobaltrails:raw_cobalt_block"
     ]
   }
 }
