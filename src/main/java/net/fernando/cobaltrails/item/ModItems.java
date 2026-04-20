@@ -12,7 +12,6 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
-
 import java.util.function.Function;
 
 import static net.fernando.cobaltrails.block.ModBlocks.COBALT_DUST;
@@ -33,11 +32,11 @@ public class ModItems {
         // Creiamo l'item e lo registriamo con la stessa chiave
         return Registry.register(Registries.ITEM, key, function.apply(settings));
     }
-    /*
+
     // Nella registrazione della polvere
     public static final Item COBALT_DUST = registerItem("cobalt_dust",
             settings -> new BlockItem(ModBlocks.COBALT_DUST, settings));
-*/
+
     public static void registerModItems(){
         CobaltRails.LOGGER.info("Regiestering mod items for " + CobaltRails.MOD_ID);
 
@@ -48,7 +47,7 @@ public class ModItems {
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(entries -> {
-            entries.addAfter(Items.REDSTONE, COBALT_DUST);
+            entries.addAfter(Items.REDSTONE, ModItems.COBALT_DUST);
         });
     }
 }

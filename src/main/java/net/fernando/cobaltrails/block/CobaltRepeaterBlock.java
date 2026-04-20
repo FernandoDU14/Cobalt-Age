@@ -1,8 +1,10 @@
 package net.fernando.cobaltrails.block;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.RepeaterBlock;
 import net.minecraft.particle.DustParticleEffect;
+import net.minecraft.state.StateManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
@@ -29,4 +31,11 @@ public class CobaltRepeaterBlock extends RepeaterBlock {
             world.addParticleClient(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
         }
     }
+
+    // In CobaltRepeaterBlock.java
+    @Override
+    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+        builder.add(FACING, DELAY, LOCKED, POWERED); // Tutti quelli che hai nel JSON!
+    }
+
 }

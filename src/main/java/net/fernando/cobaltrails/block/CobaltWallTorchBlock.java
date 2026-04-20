@@ -1,12 +1,16 @@
 package net.fernando.cobaltrails.block;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.RedstoneTorchBlock;
 import net.minecraft.particle.DustParticleEffect;
+import net.minecraft.state.StateManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
+
+import static net.minecraft.block.WallRedstoneTorchBlock.FACING;
 
 public class CobaltWallTorchBlock extends RedstoneTorchBlock {
     public CobaltWallTorchBlock(Settings settings) {
@@ -26,4 +30,13 @@ public class CobaltWallTorchBlock extends RedstoneTorchBlock {
             world.addParticleClient(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
         }
     }
+
+    @Override
+    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+        // Le torce da muro DEVONO avere FACING.
+        // I repeater DEVONO avere FACING e DELAY.
+        // I comparator DEVONO avere FACING, MODE e POWERED.
+        builder.add(FACING, LIT);
+    }
+
 }

@@ -35,7 +35,7 @@ processResources {
 	inputs.property "version", project.version
 
 	// Aggiungi questa riga per risolvere il conflitto dei duplicati
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+	// duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
 	filesMatching("fabric.mod.json") {
 		expand "version": inputs.properties.version
@@ -79,4 +79,8 @@ publishing {
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
 	}
+}
+
+tasks.named("runClient") {
+	jvmArgs "-Dfabric.log.level=debug", "-Dminecraft.debugModels=true"
 }

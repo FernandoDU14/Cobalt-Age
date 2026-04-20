@@ -19,7 +19,6 @@ public class RedstoneWireConnectionMixin {
     private static void cobalt$canConnectTo(BlockState state, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         if (state.isOf(ModBlocks.COBALT_DUST) ||
                 state.isOf(ModBlocks.COBALT_REPEATER) ||
-                state.isOf(ModBlocks.COBALT_TORCH) ||
                 state.isOf(ModBlocks.COBALT_WALL_TORCH) ||
                 state.isOf(ModBlocks.COBALT_COMPARATOR)) {
             cir.setReturnValue(true);
