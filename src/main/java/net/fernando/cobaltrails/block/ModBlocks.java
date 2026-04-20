@@ -14,6 +14,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.intprovider.ConstantIntProvider;
 
@@ -43,31 +44,26 @@ public class ModBlocks {
     public static final Block COBALT_RAIL = registerBlock("cobalt_rail",
             settings -> new PoweredRailBlock(settings.noCollision().strength(0.7F).sounds(BlockSoundGroup.METAL)));
 
-    public static final Block COBALT_DUST = registerBlockWithoutItem("cobalt_dust",
-            new CobaltDustBlock(AbstractBlock.Settings.create().registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(CobaltRails.MOD_ID, "cobalt_dust")))
-                    .noCollision().breakInstantly().nonOpaque().pistonBehavior(PistonBehavior.DESTROY).sounds(BlockSoundGroup.STONE)));
-
-    // Method to register blocks what don't have an item (AliasedBlockItem)
+    // Method to register blocks which "don't have an item"
     private static Block registerBlockWithoutItem(String name, Block block) {
         return Registry.register(Registries.BLOCK, Identifier.of(CobaltRails.MOD_ID, name), block);
     }
 
     private static Block registerBlock(String name, Function<AbstractBlock.Settings, Block> function) {
-        // 1. Creiamo l'ID e la Chiave
+        // 1 We create the ID and the Key
         Identifier id = Identifier.of(CobaltRails.MOD_ID, name);
         RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, id);
 
-        // 2. Creiamo i settings e INIETTIAMO la chiave SUBITO
-        // Senza questo .registryKey(blockKey), il costruttore del Repeater crasha
+        // 2. We inject directly the Key
         AbstractBlock.Settings settings = AbstractBlock.Settings.create().registryKey(blockKey);
 
-        // 3. Creiamo l'istanza del blocco usando i settings con la chiave
+        // 3. We create the instance of the Block with his settings
         Block block = function.apply(settings);
 
-        // 4. Registriamo il blocco
+        // 4. We register the Block
         Block registeredBlock = Registry.register(Registries.BLOCK, blockKey, block);
 
-        // 5. Registriamo l'item (che ora troverà il blocco già registrato)
+        // 5. We register the Item related to the Block
         registerBlockItem(name, registeredBlock);
 
         return registeredBlock;
@@ -89,14 +85,26 @@ public class ModBlocks {
             settings -> new CobaltComparatorBlock(AbstractBlock.Settings.copy(Blocks.COMPARATOR)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(CobaltRails.MOD_ID, "cobalt_comparator")))));
 
-    // Torce (Verticale e Wall)
-    public static final Block COBALT_TORCH = registerBlock("cobalt_torch",
-            settings -> new CobaltTorchBlock(AbstractBlock.Settings.copy(Blocks.REDSTONE_TORCH)
+
+    public static final Block COBALT_DUST = registerBlockWithoutItem("cobalt_dust",
+            new CobaltDustBlock(AbstractBlock.Settings.create().registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(CobaltRails.MOD_ID, "cobalt_dust")))
+                    .noCollision().breakInstantly().nonOpaque().pistonBehavior(PistonBehavior.DESTROY).sounds(BlockSoundGroup.STONE)));
+
+
+    // La torcia verticale può restare così (ma usa registerBlockWithoutItem se vuoi gestire l'item in ModItems)
+    public static final Block COBALT_TORCH = registerBlockWithoutItem("cobalt_torch",
+            new CobaltTorchBlock(AbstractBlock.Settings.copy(Blocks.REDSTONE_TORCH)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(CobaltRails.MOD_ID, "cobalt_torch")))));
 
-    public static final Block COBALT_WALL_TORCH = registerBlock("cobalt_wall_torch",
-            settings -> new CobaltWallTorchBlock(AbstractBlock.Settings.copy(Blocks.REDSTONE_WALL_TORCH)
-                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(CobaltRails.MOD_ID, "cobalt_wall_torch")))));
+    // La Wall Torch deve SEMPRE essere senza item
+    public static final Block COBALT_WALL_TORCH = registerBlockWithoutItem("cobalt_wall_torch",
+            new CobaltWallTorchBlock(AbstractBlock.Settings.create()
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(CobaltRails.MOD_ID, "cobalt_wall_torch")))
+                    .noCollision()
+                    .breakInstantly()
+                    .luminance(state -> state.contains(Properties.LIT) && state.get(Properties.LIT) ? 7 : 0)
+                    .sounds(BlockSoundGroup.WOOD)
+                    .pistonBehavior(PistonBehavior.DESTROY)));
 
     public static void registerModBlocks() {
         CobaltRails.LOGGER.info("Registering mod blocks for " + CobaltRails.MOD_ID);
@@ -109,17 +117,12 @@ public class ModBlocks {
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(entries -> {
             entries.addAfter(Blocks.POWERED_RAIL, COBALT_RAIL);
+            entries.addAfter(Items.REPEATER, COBALT_REPEATER);
+            entries.addAfter(Items.COMPARATOR, COBALT_COMPARATOR);
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(entries -> {
             entries.addBefore(Blocks.GOLD_BLOCK, COBALT_BLOCK);
-        });
-
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(entries -> {
-            entries.addAfter(Items.REPEATER, COBALT_REPEATER);
-            entries.addAfter(Items.COMPARATOR, COBALT_COMPARATOR);
-            entries.addAfter(Items.REDSTONE_TORCH, COBALT_TORCH);
         });
 
     }

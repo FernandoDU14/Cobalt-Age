@@ -3,6 +3,7 @@ package net.fernando.cobaltrails;
 import net.fabricmc.api.ModInitializer;
 
 import net.fernando.cobaltrails.block.ModBlocks;
+import net.fernando.cobaltrails.block.entity.ModBlockEntities;
 import net.fernando.cobaltrails.gamerules.CobaltRailsGameRules;
 import net.fernando.cobaltrails.item.ModItems;
 import net.fernando.cobaltrails.world.gen.ModWorldGeneration;
@@ -18,13 +19,13 @@ public class CobaltRails implements ModInitializer {
 	public void onInitialize() {
 		LOGGER.info("Inizializzazione Cobalt Rails...");
 
-		// 1. Prima i blocchi (fondamentale)
+		// 1. Blocks and Block Entities
 		ModBlocks.registerModBlocks();
-
-		// 2. Poi gli item
+		ModBlockEntities.registerBlockEntities();
+		// 2. Items
 		ModItems.registerModItems();
 
-		// 3. Tutto il resto
+		// 3. All the rest
 		CobaltRailsGameRules.registerGameRules();
 		ModWorldGeneration.generateWorldGen();
 

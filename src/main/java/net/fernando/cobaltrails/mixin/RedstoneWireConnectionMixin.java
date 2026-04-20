@@ -14,18 +14,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(RedstoneWireBlock.class)
 public class RedstoneWireConnectionMixin {
 
-    // 1. Permette alla polvere di connettersi orizzontalmente
+    // 1. This will allow the Cobalt Dust to connect to this blocks
     @Inject(at = @At("HEAD"), method = "connectsTo(Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/Direction;)Z", cancellable = true)
     private static void cobalt$canConnectTo(BlockState state, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         if (state.isOf(ModBlocks.COBALT_DUST) ||
-                state.isOf(ModBlocks.COBALT_REPEATER) ||
-                state.isOf(ModBlocks.COBALT_WALL_TORCH) ||
-                state.isOf(ModBlocks.COBALT_COMPARATOR)) {
+                state.isOf(ModBlocks.COBALT_WALL_TORCH)) {
             cir.setReturnValue(true);
         }
     }
 
-    // 2. Permette alla polvere di "salire" verticalmente (Risolve il crash al break)
+    // 2. This will allow the Cobalt Dust to "runOnTop" of the Block, if there are this valid blocks:
     @Inject(at = @At("HEAD"), method = "canRunOnTop", cancellable = true)
     private void cobalt$canRunOnTop(BlockView world, BlockPos pos, BlockState floor, CallbackInfoReturnable<Boolean> cir) {
         if (floor.isOf(ModBlocks.COBALT_DUST)) {

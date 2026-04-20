@@ -6,10 +6,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fernando.cobaltrails.block.ModBlocks;
 import net.minecraft.block.RedstoneWireBlock;
 import net.minecraft.client.render.BlockRenderLayer;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.math.MathHelper;
-
-import static net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap.putBlock;
 
 public class CobaltRailsClient implements ClientModInitializer {
 
@@ -24,14 +21,14 @@ public class CobaltRailsClient implements ClientModInitializer {
                 ModBlocks.COBALT_COMPARATOR
         );
 
-        // COLORE DINAMICO PER IL BLOCCO
+        // Dynamic Color for the Cobalt Dust
         ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
             int power = state.get(RedstoneWireBlock.POWER);
             return getCobaltColor(power);
         }, ModBlocks.COBALT_DUST);
     }
 
-    // Funzione per calcolare il gradiente blu
+    // Function to compute the color gradient of the Cobalt Dust
     private static int getCobaltColor(int power) {
         float f = (float)power / 15.0F;
         // Calcoliamo le componenti R, G, B basandoci sul livello di carica

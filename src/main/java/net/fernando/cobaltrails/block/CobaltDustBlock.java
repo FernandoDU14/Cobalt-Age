@@ -11,12 +11,9 @@ import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.WorldAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
-import org.joml.Vector3f;
 import net.minecraft.block.enums.WireConnection;
 
 public class CobaltDustBlock extends RedstoneWireBlock implements Waterloggable {
@@ -24,8 +21,7 @@ public class CobaltDustBlock extends RedstoneWireBlock implements Waterloggable 
 
     public CobaltDustBlock(Settings settings) {
         super(settings);
-        // IMPORTANTE: Non chiamare metodi complessi qui se non necessario.
-        // Inizializza solo lo stato predefinito.
+        // Initialization of default dust state
         this.setDefaultState(this.stateManager.getDefaultState()
                 .with(WIRE_CONNECTION_NORTH, WireConnection.NONE)
                 .with(WIRE_CONNECTION_SOUTH, WireConnection.NONE)
@@ -36,26 +32,22 @@ public class CobaltDustBlock extends RedstoneWireBlock implements Waterloggable 
     }
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        // Aggiungiamo WATERLOGGED alle proprietà della Redstone standard
+        // Waterlogged Property of Cobalt Dust (as Block ofc, not skill issues here!)
         super.appendProperties(builder);
         builder.add(WATERLOGGED);
     }
 
-    // GESTIONE PARTICELLE: Cambiamo il colore da rosso a blu cobalto
+    // Particle Spawning Section. Here we manage the redstone-like particle on Cobalt Dust (as block)
     @Override
     public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
         int power = state.get(POWER);
         if (power != 0) {
             for (Direction direction : Direction.Type.HORIZONTAL) {
-                // Se la redstone è attiva, creiamo particelle Dust blu
-                // Vector3f(0.2f, 0.6f, 1.0f) è un bel blu brillante
+                // If Cobalt Dust is active, particles will spawn
+                // Vector3f(0.2f, 0.6f, 1.0f) is a good blue for the cobalt
                 double d = (double)pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
                 double e = (double)pos.getY() + 0.0625;
                 double f = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
-                float g = (float)power / 15.0f;
-                float h = g * 0.6f + 0.4f;
-                float i = Math.max(0.0f, g * g * 0.7f - 0.5f);
-                float j = Math.max(0.0f, g * g * 0.6f - 0.7f);
 
                 int cobaltBlue = (0 << 16) | (153 << 8) | 255;
                 DustParticleEffect cobaltDust = new DustParticleEffect(cobaltBlue, 1.0f);
@@ -75,6 +67,15 @@ public class CobaltDustBlock extends RedstoneWireBlock implements Waterloggable 
     }
 
     @Override
+    public boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
+        BlockPos floorPos = pos.down();
+        BlockState floorState = world.getBlockState(floorPos);
+
+        // This will allow the placement only and only if the block under is valid and is not another Cobalt Dust
+        return floorState.isSideSolidFullSquare(world, floorPos, Direction.UP) || floorState.isOf(Blocks.HOPPER);
+    }
+
+    @Override
     public FluidState getFluidState(BlockState state) {
         return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
     }
@@ -84,12 +85,12 @@ public class CobaltDustBlock extends RedstoneWireBlock implements Waterloggable 
         if (state.get(WATERLOGGED)) {
             tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
         }
-        // CORREZIONE FLICKER: Prendiamo il nuovo stato calcolato dalla redstone vanilla
-        // e gli iniettiamo IMMEDIATAMENTE il valore corrente di WATERLOGGED.
+        // Flicker issue fix: We take the new computed vanilla state, and we inject the waterlog property
         BlockState newState =  super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
         if (newState.isOf(this)) {
             return newState.with(WATERLOGGED, state.get(WATERLOGGED));
         }
         return newState;
     }
+
 }

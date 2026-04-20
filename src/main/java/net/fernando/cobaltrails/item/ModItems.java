@@ -3,18 +3,15 @@ package net.fernando.cobaltrails.item;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fernando.cobaltrails.CobaltRails;
 import net.fernando.cobaltrails.block.ModBlocks;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
-import java.util.function.Function;
+import net.minecraft.util.math.Direction;
 
-import static net.fernando.cobaltrails.block.ModBlocks.COBALT_DUST;
+import java.util.function.Function;
 
 public class ModItems {
 
@@ -26,16 +23,23 @@ public class ModItems {
         Identifier id = Identifier.of(CobaltRails.MOD_ID, name);
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
 
-        // Creiamo i settings con la chiave GIÀ INCLUSA
+        // We create the settings with the key
         Item.Settings settings = new Item.Settings().registryKey(key);
 
-        // Creiamo l'item e lo registriamo con la stessa chiave
+        // We create the item with the same key
         return Registry.register(Registries.ITEM, key, function.apply(settings));
     }
 
-    // Nella registrazione della polvere
     public static final Item COBALT_DUST = registerItem("cobalt_dust",
             settings -> new BlockItem(ModBlocks.COBALT_DUST, settings));
+
+    public static final Item COBALT_TORCH = registerItem("cobalt_torch",
+            settings -> new VerticallyAttachableBlockItem(
+                    ModBlocks.COBALT_TORCH,
+                    ModBlocks.COBALT_WALL_TORCH,
+                    Direction.DOWN,
+                    settings) // Standard placement settings
+    );
 
     public static void registerModItems(){
         CobaltRails.LOGGER.info("Regiestering mod items for " + CobaltRails.MOD_ID);
@@ -48,6 +52,7 @@ public class ModItems {
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(entries -> {
             entries.addAfter(Items.REDSTONE, ModItems.COBALT_DUST);
+            entries.addAfter(Items.REDSTONE_TORCH, ModItems.COBALT_TORCH);
         });
     }
 }
