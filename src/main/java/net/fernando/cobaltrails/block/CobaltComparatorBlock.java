@@ -25,7 +25,7 @@ import net.minecraft.world.block.WireOrientation;
 import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
-public class CobaltComparatorBlock extends ComparatorBlock implements Waterloggable {
+public class CobaltComparatorBlock extends ComparatorBlock implements Waterloggable, CobaltPowerSource {
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
     public CobaltComparatorBlock(Settings settings) {
@@ -37,6 +37,13 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
                 .with(MODE, ComparatorMode.COMPARE)
                 .with(WATERLOGGED, false));
     }
+
+    @Override
+    public int getCobaltPower(BlockState state, World world, BlockPos pos) {
+        return state.get(POWERED) ? 15 : 0;
+    }
+
+
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
@@ -228,5 +235,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
             world.addParticleClient(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
         }
     }
+
+
 
 }

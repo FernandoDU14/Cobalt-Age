@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
 
-public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable {
+public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable, CobaltPowerSource {
     public CobaltRepeaterBlock(Settings settings) {
         super(settings);
         this.setDefaultState(this.stateManager.getDefaultState()
@@ -27,6 +27,11 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable 
                 .with(LOCKED, false)
                 .with(POWERED, false)
                 .with(WATERLOGGED, false)); // Aggiungi questo
+    }
+
+    @Override
+    public int getCobaltPower(BlockState state, World world, BlockPos pos) {
+        return state.get(POWERED) ? 15 : 0;
     }
 
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
@@ -80,4 +85,6 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable 
         }
         return newState;
     }
+
+
 }

@@ -7,8 +7,8 @@
 		"MinecartBehaviorMixin",
 		"AbstractMinecartMixin",
 		"NewMinecartBehaviorMixin",
-		"RedstoneWireConnectionMixin",
-		"RedstoneWireBlockMixin"
+		"RedstoneIsolationMixin",
+		"BlockPowerFilterMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

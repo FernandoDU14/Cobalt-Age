@@ -87,9 +87,17 @@ public class ModBlocks {
 
 
     public static final Block COBALT_DUST = registerBlockWithoutItem("cobalt_dust",
-            new CobaltDustBlock(AbstractBlock.Settings.create().registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(CobaltRails.MOD_ID, "cobalt_dust")))
-                    .noCollision().breakInstantly().nonOpaque().pistonBehavior(PistonBehavior.DESTROY).sounds(BlockSoundGroup.STONE)));
-
+            new CobaltWireBlock(AbstractBlock.Settings.create()
+                    .noCollision()
+                    .breakInstantly()
+                    .nonOpaque()
+                    .pistonBehavior(PistonBehavior.DESTROY)
+                    .sounds(BlockSoundGroup.STONE)
+                    .registryKey(RegistryKey.of(
+                            RegistryKeys.BLOCK,
+                            Identifier.of(CobaltRails.MOD_ID, "cobalt_dust")
+                    ))
+            ));
 
     // La torcia verticale può restare così (ma usa registerBlockWithoutItem se vuoi gestire l'item in ModItems)
     public static final Block COBALT_TORCH = registerBlockWithoutItem("cobalt_torch",

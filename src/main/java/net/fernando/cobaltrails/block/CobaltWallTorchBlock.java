@@ -11,11 +11,12 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
 
-public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Waterloggable {
+public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Waterloggable, CobaltPowerSource {
 
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
@@ -24,6 +25,11 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
         this.setDefaultState(this.stateManager.getDefaultState()
                 .with(LIT, true)
                 .with(WATERLOGGED, false));
+    }
+
+    @Override
+    public int getCobaltPower(BlockState state, World world, BlockPos pos) {
+        return state.get(LIT) ? 15 : 0;
     }
 
     @Override
@@ -71,6 +77,37 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
             return newState.with(WATERLOGGED, state.get(WATERLOGGED));
         }
         return newState;
+    }
+
+    @Override
+    protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        BlockPos neighborPos = pos.offset(direction.getOpposite());
+        BlockState neighborState = world.getBlockState(neighborPos);
+
+        if (isVanillaRedstone(neighborState)) {
+            return 0; // Niente energia per te, redstone rossa!
+        }
+        return super.getWeakRedstonePower(state, world, pos, direction);
+    }
+
+    @Override
+    protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        BlockPos neighborPos = pos.offset(direction.getOpposite());
+        BlockState neighborState = world.getBlockState(neighborPos);
+
+        if (isVanillaRedstone(neighborState)) {
+            return 0;
+        }
+        return super.getStrongRedstonePower(state, world, pos, direction);
+    }
+
+    private boolean isVanillaRedstone(BlockState state) {
+        return state.isOf(Blocks.REDSTONE_WIRE) ||
+                state.isOf(Blocks.REPEATER) ||
+                state.isOf(Blocks.COMPARATOR) ||
+                state.isOf(Blocks.REDSTONE_TORCH) ||
+                state.isOf(Blocks.REDSTONE_WALL_TORCH) ||
+                state.isOf(Blocks.REDSTONE_BLOCK);
     }
 
 }
