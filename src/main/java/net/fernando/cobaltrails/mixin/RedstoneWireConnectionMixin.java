@@ -2,6 +2,7 @@ package net.fernando.cobaltrails.mixin;
 
 import net.fernando.cobaltrails.block.ModBlocks;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.RedstoneWireBlock;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -23,6 +24,7 @@ public class RedstoneWireConnectionMixin {
         }
     }
 
+
     // 2. This will allow the Cobalt Dust to "runOnTop" of the Block, if there are this valid blocks:
     @Inject(at = @At("HEAD"), method = "canRunOnTop", cancellable = true)
     private void cobalt$canRunOnTop(BlockView world, BlockPos pos, BlockState floor, CallbackInfoReturnable<Boolean> cir) {
@@ -30,4 +32,8 @@ public class RedstoneWireConnectionMixin {
             cir.setReturnValue(true);
         }
     }
+
+
+
+
 }
