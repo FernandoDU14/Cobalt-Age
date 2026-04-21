@@ -28,6 +28,12 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
     }
 
     @Override
+    public int getStrongCobaltPower(BlockState state, World world, BlockPos pos, Direction direction) {
+        // La torcia dà Energia Forte SOLO verso l'alto (al blocco che ha sulla testa)
+        return (direction == Direction.UP && state.get(LIT)) ? 15 : 0;
+    }
+
+    @Override
     public int getCobaltPower(BlockState state, World world, BlockPos pos) {
         return state.get(LIT) ? 15 : 0;
     }
@@ -79,6 +85,7 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
         return newState;
     }
 
+
     @Override
     protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
         BlockPos neighborPos = pos.offset(direction.getOpposite());
@@ -92,13 +99,35 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
 
     @Override
     protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        BlockPos neighborPos = pos.offset(direction.getOpposite());
-        BlockState neighborState = world.getBlockState(neighborPos);
+        // 1. Identifichiamo il blocco che sta ricevendo l'energia (quello sopra la torcia)
+        BlockPos targetPos = pos.offset(direction.getOpposite());
+        BlockState targetState = world.getBlockState(targetPos);
 
-        if (isVanillaRedstone(neighborState)) {
-            return 0;
+        // 2. Se il blocco sopra è un blocco solido (Pietra, Cobblestone, ecc.)
+        if (targetState.isSolidBlock(world, targetPos)) {
+            // Controlliamo i vicini del blocco di pietra!
+            for (Direction side : Direction.values()) {
+                // Non controlliamo la torcia stessa (sotto)
+                if (side == direction) continue;
+
+                BlockPos checkPos = targetPos.offset(side);
+                BlockState checkState = world.getBlockState(checkPos);
+
+                // Se la pietra tocca Redstone Vanilla, la torcia "spegne" la Strong Power
+                // per evitare che la polvere si accenda.
+                if (isVanillaRedstone(checkState)) {
+                    return 0;
+                }
+            }
         }
+
+        // Se non c'è redstone vanilla attorno al blocco caricato, procedi normalmente
         return super.getStrongRedstonePower(state, world, pos, direction);
+    }
+
+    @Override
+    public boolean emitsRedstonePower(BlockState state) {
+        return false;
     }
 
     private boolean isVanillaRedstone(BlockState state) {
@@ -108,6 +137,44 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
                 state.isOf(Blocks.REDSTONE_TORCH) ||
                 state.isOf(Blocks.REDSTONE_WALL_TORCH) ||
                 state.isOf(Blocks.REDSTONE_BLOCK);
+    }
+
+    @Override
+    protected boolean shouldUnpower(World world, BlockPos pos, BlockState state) {
+        // 1. Direzione e blocco di ancoraggio
+        Direction facing = state.get(FACING);
+        BlockPos attachedToPos = pos.offset(facing.getOpposite());
+
+        // 2. Controllo SOPRA il blocco di ancoraggio (Cobalt Wire)
+        BlockPos sourcePosUp = attachedToPos.up();
+        BlockState sourceStateUp = world.getBlockState(sourcePosUp);
+
+        if (sourceStateUp.getBlock() instanceof CobaltWireBlock) {
+            // ✅ CORRETTO: Chiediamo il power a sourceStateUp
+            if (sourceStateUp.get(CobaltWireBlock.POWER) > 0) return true;
+        }
+
+        // 3. Controllo SOTTO il blocco di ancoraggio (Cobalt Torch / Sorgenti)
+        BlockPos sourcePosDown = attachedToPos.down();
+        BlockState sourceStateDown = world.getBlockState(sourcePosDown);
+
+        if (sourceStateDown.getBlock() instanceof CobaltPowerSource source) {
+            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
+                if (source.getCobaltPower(sourceStateDown, world, sourcePosDown) > 0) return true;
+            }
+        }
+
+        // 4. Controllo direttamente SOTTO la torcia (quello che avevi prima)
+        BlockPos belowPos = pos.down();
+        BlockState belowState = world.getBlockState(belowPos);
+
+        if (belowState.getBlock() instanceof CobaltPowerSource source) {
+            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
+                if (source.getCobaltPower(belowState, world, belowPos) > 0) return true;
+            }
+        }
+
+        return false;
     }
 
 }

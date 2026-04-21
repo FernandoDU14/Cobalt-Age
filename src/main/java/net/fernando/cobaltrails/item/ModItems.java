@@ -19,17 +19,6 @@ public class ModItems {
     public static final Item COBALT_NUGGET = registerItem("cobalt_nugget", Item::new);
     public static final Item RAW_COBALT = registerItem("raw_cobalt", Item::new);
 
-    private static Item registerItem(String name, Function<Item.Settings, Item> function) {
-        Identifier id = Identifier.of(CobaltRails.MOD_ID, name);
-        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
-
-        // We create the settings with the key
-        Item.Settings settings = new Item.Settings().registryKey(key);
-
-        // We create the item with the same key
-        return Registry.register(Registries.ITEM, key, function.apply(settings));
-    }
-
     public static final Item COBALT_DUST = registerItem("cobalt_dust",
             settings -> new BlockItem(ModBlocks.COBALT_DUST, settings));
 
@@ -40,6 +29,15 @@ public class ModItems {
                     Direction.DOWN,
                     settings) // Standard placement settings
     );
+
+    private static Item registerItem(String name, Function<Item.Settings, Item> function) {
+        Identifier id = Identifier.of(CobaltRails.MOD_ID, name);
+        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
+
+        Item.Settings settings = new Item.Settings().registryKey(key);
+
+        return Registry.register(Registries.ITEM, key, function.apply(settings));
+    }
 
     public static void registerModItems(){
         CobaltRails.LOGGER.info("Regiestering mod items for " + CobaltRails.MOD_ID);

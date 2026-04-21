@@ -1,9 +1,6 @@
 package net.fernando.cobaltrails.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.RepeaterBlock;
-import net.minecraft.block.Waterloggable;
+import net.minecraft.block.*;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
@@ -14,6 +11,9 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.RedstoneView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
@@ -28,6 +28,13 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
                 .with(POWERED, false)
                 .with(WATERLOGGED, false)); // Aggiungi questo
     }
+
+    @Override
+    public int getStrongCobaltPower(BlockState state, World world, BlockPos pos, Direction direction) {
+        // Il ripetitore dà Energia Forte verso la direzione in cui sta puntando
+        return (state.get(FACING) == direction && state.get(POWERED)) ? 15 : 0;
+    }
+
 
     @Override
     public int getCobaltPower(BlockState state, World world, BlockPos pos) {
@@ -84,6 +91,37 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
             return newState.with(WATERLOGGED, state.get(WATERLOGGED));
         }
         return newState;
+    }
+
+
+
+    @Override
+    protected int getPower(World world, BlockPos pos, BlockState state) {
+
+        Direction direction = state.get(FACING);
+        BlockPos inputPos = pos.offset(direction);
+
+        BlockState inputState = world.getBlockState(inputPos);
+
+        // 🟦 SOLO COBALT
+        if (inputState.getBlock() instanceof CobaltPowerSource source) {
+            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
+                return source.getCobaltPower(inputState, world, inputPos);
+            }
+        }
+
+        // 🟦 COBALT WIRE
+        if (inputState.getBlock() instanceof CobaltWireBlock) {
+            return inputState.get(CobaltWireBlock.POWER);
+        }
+
+        // ❌ IGNORA COMPLETAMENTE REDSTONE
+        return 0;
+    }
+
+    @Override
+    protected int getMaxInputLevelSides(RedstoneView world, BlockPos pos, BlockState state) {
+        return 0; // 🔥 blocca input laterali vanilla
     }
 
 

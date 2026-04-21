@@ -3,9 +3,15 @@ package net.fernando.cobaltrails;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
+import net.fabricmc.fabric.api.resource.v1.pack.PackActivationType;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.fernando.cobaltrails.block.ModBlocks;
 import net.minecraft.block.RedstoneWireBlock;
 import net.minecraft.client.render.BlockRenderLayer;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 
 public class CobaltRailsClient implements ClientModInitializer {
@@ -26,6 +32,8 @@ public class CobaltRailsClient implements ClientModInitializer {
             int power = state.get(RedstoneWireBlock.POWER);
             return getCobaltColor(power);
         }, ModBlocks.COBALT_DUST);
+
+        initializeResourcePack();
     }
 
     // Function to compute the color gradient of the Cobalt Dust
@@ -43,5 +51,12 @@ public class CobaltRailsClient implements ClientModInitializer {
 
         return red << 16 | green << 8 | blue;
     }
+
+    private static void initializeResourcePack() {
+        Identifier id = Identifier.of(CobaltRails.MOD_ID, "cobaltrails3d");
+        ModContainer modContainer = FabricLoader.getInstance().getModContainer(CobaltRails.MOD_ID).orElseThrow();
+        ResourceLoader.registerBuiltinPack(id, modContainer, Text.of("CobaltRails 3D Rails"), PackActivationType.NORMAL);
+    }
+
 
 }
