@@ -8,6 +8,7 @@
 		"AbstractMinecartMixin",
 		"NewMinecartBehaviorMixin",
 		"RedstoneIsolationMixin",
+		"CalibratedSculkSensorCallbackMixin",
 		"BlockPowerFilterMixin"
 	],
 	"injectors": {

@@ -42,8 +42,13 @@ public class CobaltRailsClient implements ClientModInitializer {
         // Calcoliamo le componenti R, G, B basandoci sul livello di carica
         // Per il cobalto: poco rosso, medio verde, molto blu
         float r = f * 0.1f + 0.1f;
-        float g = f * 0.5f + 0.2f;
-        float b = f * 0.9f + 0.4f;
+        float g = f * 0.5f + 0.3f;
+        float b = f * 1.1f + 0.4f;
+
+        if(f!=0){
+            b = b + 0.1f;
+            g = g + 0.1f;
+        }
 
         int red = MathHelper.clamp((int)(r * 255.0F), 0, 255);
         int green = MathHelper.clamp((int)(g * 255.0F), 0, 255);

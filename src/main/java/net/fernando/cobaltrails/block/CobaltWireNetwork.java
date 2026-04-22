@@ -5,30 +5,41 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import net.minecraft.world.block.WireOrientation; // Aggiungi questo import
-
 import java.util.*;
 
 public class CobaltWireNetwork {
-    private static final Queue<BlockPos> queue = new ArrayDeque<>();
+    // 🛡️ La Guardia: impedisce alla rete di chiamare se stessa all'infinito
+    private static boolean isUpdating = false;
 
     public static void schedule(World world, BlockPos start) {
-        Set<BlockPos> visited = new HashSet<>();
-        queue.clear();
-        queue.add(start);
+        // Se stiamo già calcolando la rete, ignoriamo le nuove chiamate.
+        // Il ciclo 'while' qui sotto si occuperà comunque di aggiornare tutti i blocchi connessi.
+        if (isUpdating) return;
 
-        while (!queue.isEmpty()) {
-            BlockPos pos = queue.poll();
-            if (!visited.add(pos)) continue;
+        isUpdating = true;
+        try {
+            // 📦 Coda LOCALE: evita conflitti tra aggiornamenti diversi
+            Queue<BlockPos> queue = new ArrayDeque<>();
+            Set<BlockPos> visited = new HashSet<>();
 
-            update(world, pos);
+            queue.add(start);
 
-            for (Direction dir : Direction.values()) {
-                BlockPos next = pos.offset(dir);
-                if (world.getBlockState(next).getBlock() instanceof CobaltWireBlock) {
-                    queue.add(next);
+            while (!queue.isEmpty()) {
+                BlockPos pos = queue.poll();
+                if (!visited.add(pos)) continue;
+
+                update(world, pos);
+
+                for (Direction dir : Direction.values()) {
+                    BlockPos next = pos.offset(dir);
+                    if (world.getBlockState(next).getBlock() instanceof CobaltWireBlock) {
+                        queue.add(next);
+                    }
                 }
             }
+        } finally {
+            // Fondamentale: liberiamo la guardia alla fine, anche se c'è un errore
+            isUpdating = false;
         }
     }
 
@@ -40,26 +51,22 @@ public class CobaltWireNetwork {
         int oldPower = state.get(CobaltWireBlock.POWER);
 
         if (newPower != oldPower) {
+            // NOTA: setBlockState scatena i neighborUpdate,
+            // ma ora la nostra guardia 'isUpdating' li bloccherà!
             world.setBlockState(pos, state.with(CobaltWireBlock.POWER, newPower), Block.NOTIFY_ALL);
 
-            // 🔥 Notifichiamo i vicini e i vicini dei vicini
+            // Notifichiamo i vicini (torce, pistoni, ecc.)
             updateNeighborsOfNeighbors(world, pos);
 
             world.scheduleBlockTick(pos, state.getBlock(), 1);
         }
     }
 
-    // NUOVO METODO con supporto a WireOrientation (null per aggiornamenti standard)
     private static void updateNeighborsOfNeighbors(World world, BlockPos pos) {
         Block block = world.getBlockState(pos).getBlock();
-
-        // Aggiorna i 6 vicini diretti
         world.updateNeighborsAlways(pos, block, null);
-
-        // Aggiorna i vicini di ogni vicino (fondamentale per i pistoni sotto i blocchi)
         for (Direction direction : Direction.values()) {
             world.updateNeighborsAlways(pos.offset(direction), block, null);
         }
     }
-
 }

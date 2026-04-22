@@ -21,6 +21,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
@@ -103,23 +104,68 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         };
     }
 
+    // Function to compute the color gradient of the Cobalt Dust
+    private static int getCobaltColor(int power) {
+        float f = (float)power / 15.0F;
+        // Calcoliamo le componenti R, G, B basandoci sul livello di carica
+        // Per il cobalto: poco rosso, medio verde, molto blu
+        float r = f * 0.1f + 0.1f;
+        float g = f * 0.5f + 0.3f;
+        float b = f * 1.1f + 0.4f;
+
+        if(f!=0){
+            b = b + 0.1f;
+            g = g + 0.1f;
+        }
+
+        int red = MathHelper.clamp((int)(r * 255.0F), 0, 255);
+        int green = MathHelper.clamp((int)(g * 255.0F), 0, 255);
+        int blue = MathHelper.clamp((int)(b * 255.0F), 0, 255);
+
+        return red << 16 | green << 8 | blue;
+    }
+
+    // Questo è il metodo "segreto" di Vanilla che posiziona le particelle lungo i fili
+    private void addPoweredParticles(World world, Random random, BlockPos pos, int colorInt, Direction direction, Direction direction2, float f, float g) {
+        float h = g - f;
+        if (!(random.nextFloat() > 0.2F * h)) { // Non spawnare troppe particelle
+            float j = f + h * random.nextFloat();
+            double d = (double)pos.getX() + 0.5 + (double)(0.4375F * (float)direction.getOffsetX() + j * (float)direction2.getOffsetX());
+            double e = (double)pos.getY() + 0.5 + (double)(0.4375F * (float)direction.getOffsetY() + j * (float)direction2.getOffsetY());
+            double k = (double)pos.getZ() + 0.5 + (double)(0.4375F * (float)direction.getOffsetZ() + j * (float)direction2.getOffsetZ());
+
+            // Creiamo l'effetto polvere col colore dinamico
+            DustParticleEffect particleEffect = new DustParticleEffect(colorInt, 1.0F);
+            world.addParticleClient(particleEffect, d, e, k, 0.0, 0.0, 0.0);
+        }
+    }
+
 
 
     @Override
     public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
         int power = state.get(POWER);
-        if (power != 0) {
-            for (Direction direction : Direction.Type.HORIZONTAL) {
-                // If Cobalt Dust is active, particles will spawn
-                // Vector3f(0.2f, 0.6f, 1.0f) is a good blue for the cobalt
-                double d = (double)pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
-                double e = (double)pos.getY() + 0.0625;
-                double f = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
+        if (power == 0) return;
 
-                int cobaltBlue = (0 << 16) | (153 << 8) | 255;
-                DustParticleEffect cobaltDust = new DustParticleEffect(cobaltBlue, 1.0f);
+        // 1. Otteniamo il colore dinamico usando la tua funzione
+        int colorInt = getCobaltColor(power);
 
-                world.addParticleClient(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
+        // 2. Ciclo sulle direzioni orizzontali (esattamente come Vanilla)
+        for (Direction direction : Direction.Type.HORIZONTAL) {
+            // Recuperiamo la connessione per quella direzione
+            EnumProperty<WireConnection> property = getProperty(direction);
+
+            switch (state.get(property)) {
+                case UP:
+                    addPoweredParticles(world, random, pos, colorInt, direction, Direction.UP, -0.5F, 0.5F);
+                    break; // Aggiunto break per sicurezza
+                case SIDE:
+                    addPoweredParticles(world, random, pos, colorInt, Direction.DOWN, direction, 0.0F, 0.5F);
+                    break;
+                case NONE:
+                default:
+                    addPoweredParticles(world, random, pos, colorInt, Direction.DOWN, direction, 0.0F, 0.3F);
+                    break;
             }
         }
     }
@@ -155,10 +201,8 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
                                boolean notify) {
         if (!world.isClient()) {
             // 1. aggiorna la tua rete (logica custom)
-            CobaltWireNetwork.update(world, pos);
+            CobaltWireNetwork.schedule(world, pos);
         }
-        // 2. schedula il tick per ricalcolare la potenza
-        world.scheduleBlockTick(pos, this, 0);
     }
 
     @Override
@@ -218,11 +262,9 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
             BlockState state = world.getBlockState(target);
 
             if (state.getBlock() instanceof CobaltPowerSource source) {
-                if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
                     power = Math.max(power, source.getCobaltPower(state, world, target));
                 }
             }
-        }
 
         return power;
     }
@@ -270,37 +312,62 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         return 0;
     }
 
-    // 🔥 ENERGIA FORTE (Carica i blocchi solidi)
+    // 🔥 ENERGIA FORTE (Ora alimenta anche i lati, come in Vanilla)
     @Override
     protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        // La redstone dà energia forte SOLO verso il basso (al blocco su cui poggia)
-        if (direction != Direction.UP) return 0;
+        // La redstone non dà mai energia forte verso l'alto
+        if (direction == Direction.DOWN) return 0;
 
         int power = state.get(POWER);
-        if (power == 0) return 0;
+        if (power <= 0) return 0;
 
-        // Se è un puntino, non diamo energia forte al blocco sotto (comportamento Vanilla 1.16+)
-        // if (isNotConnected(state)) return 0;
+        Direction side = direction.getOpposite();
 
-        BlockPos blockBelowPos = pos.down();
-        BlockState blockBelowState = world.getBlockState(blockBelowPos);
+        // 1. ALIMENTARE IL BLOCCO SOTTOSTANTE
+        if (direction == Direction.UP) {
+            // Il puntino in Vanilla alimenta sempre il blocco su cui poggia.
+            BlockPos blockBelowPos = pos.down();
+            BlockState blockBelowState = world.getBlockState(blockBelowPos);
 
-        // 🛑 LA NUOVA VEGGENZA 🛑
-        // Se il blocco sotto di noi è solido, controlliamo se ha redstone vanilla attorno
-        if (blockBelowState.isSolidBlock(world, blockBelowPos)) {
-            for (Direction dir : Direction.values()) {
-                if (dir == Direction.UP) continue; // Ignoriamo la polvere stessa (che è sopra)
-
-                BlockPos checkPos = blockBelowPos.offset(dir);
-                if (isVanillaRedstone(world.getBlockState(checkPos))) {
-                    // "Vedo della redstone Vanilla attorno al blocco di supporto!
-                    // Non inietto Energia Forte per non accenderla."
-                    return 0;
+            // VEGGENZA: Isoliamo il blocco sottostante dalla vanilla
+            if (blockBelowState.isSolidBlock(world, blockBelowPos)) {
+                for (Direction dir : Direction.values()) {
+                    if (dir == Direction.UP) continue; // Ignoriamo il cavo stesso
+                    if (isVanillaRedstone(world.getBlockState(blockBelowPos.offset(dir)))) {
+                        return 0;
+                    }
                 }
             }
+            return power;
         }
 
-        return power;
+        // 2. ALIMENTARE I BLOCCHI LATERALI (La tua rifinitura!)
+        // Un puntino non spara energia forte ai lati
+        if (isNotConnected(state)) return 0;
+
+        // Se il modello del cavo è "connesso" (SIDE o UP) verso quella direzione
+        EnumProperty<WireConnection> property = getProperty(side);
+        if (state.get(property).isConnected()) {
+
+            BlockPos sideBlockPos = pos.offset(side);
+            BlockState sideBlockState = world.getBlockState(sideBlockPos);
+
+            // VEGGENZA: Isoliamo il blocco laterale!
+            // Se c'è della redstone vanilla che tocca questo blocco solido,
+            // la Cobalt Dust si rifiuta di caricarlo, proteggendo i circuiti.
+            // Se invece c'è solo un pistone, lo carica e lo fa scattare!
+            if (sideBlockState.isSolidBlock(world, sideBlockPos)) {
+                for (Direction dir : Direction.values()) {
+                    if (dir == side.getOpposite()) continue; // Ignoriamo il lato da cui arriva il cavo
+                    if (isVanillaRedstone(world.getBlockState(sideBlockPos.offset(dir)))) {
+                        return 0;
+                    }
+                }
+            }
+            return power;
+        }
+
+        return 0;
     }
 
     private boolean isVanillaRedstone(BlockState state) {
@@ -347,8 +414,14 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         super.onStateReplaced(state, world, pos, moved);
         if (world.isClient()) return;
 
-        // Quando rompi la polvere, forza l'aggiornamento grafico di chi le stava attorno
+        // 1. Quando rompi la polvere, forza l'aggiornamento grafico di chi le stava attorno
         this.updateDiagonalShapes(world, pos);
+        world.updateNeighborsAlways(pos, this, null);
+        // 2. Notifica i vicini dei vicini (il "secondo anello")
+        for (Direction direction : Direction.values()) {
+            world.updateNeighborsAlways(pos.offset(direction), this, null);
+        }
+
         // Aggiorna l'energia
         CobaltWireNetwork.schedule(world, pos);
     }

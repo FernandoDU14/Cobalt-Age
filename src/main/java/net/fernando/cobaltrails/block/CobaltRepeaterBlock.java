@@ -29,18 +29,6 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
                 .with(WATERLOGGED, false)); // Aggiungi questo
     }
 
-    @Override
-    public int getStrongCobaltPower(BlockState state, World world, BlockPos pos, Direction direction) {
-        // Il ripetitore dà Energia Forte verso la direzione in cui sta puntando
-        return (state.get(FACING) == direction && state.get(POWERED)) ? 15 : 0;
-    }
-
-
-    @Override
-    public int getCobaltPower(BlockState state, World world, BlockPos pos) {
-        return state.get(POWERED) ? 15 : 0;
-    }
-
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
     @Override
@@ -95,34 +83,113 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
 
 
 
+    // --- LOGICA DI INPUT (DIETRO) ---
     @Override
     protected int getPower(World world, BlockPos pos, BlockState state) {
+        // FACING STA PUNTANDO IN REALTA' DIETRO IL REPEATER.
+        Direction outDirection = state.get(FACING);
+        BlockPos outPos = pos.offset(outDirection);
+        BlockState outState = world.getBlockState(outPos);
 
-        Direction direction = state.get(FACING);
-        BlockPos inputPos = pos.offset(direction);
+        // L'input è dietro il repeater
+        Direction inDirection = outDirection.getOpposite();
+        BlockPos inputPos = pos.offset(inDirection);
 
         BlockState inputState = world.getBlockState(inputPos);
 
-        // 🟦 SOLO COBALT
-        if (inputState.getBlock() instanceof CobaltPowerSource source) {
-            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                return source.getCobaltPower(inputState, world, inputPos);
-            }
+        // 🟦 INPUT DA CAVO
+        if (outState.getBlock() instanceof CobaltWireBlock) {
+            return outState.get(CobaltWireBlock.POWER);
         }
 
-        // 🟦 COBALT WIRE
-        if (inputState.getBlock() instanceof CobaltWireBlock) {
-            return inputState.get(CobaltWireBlock.POWER);
+        // 🟦 INPUT DA ALTRE SORGENTI (Torce, Leve, ecc.)
+        if (outState.getBlock() instanceof CobaltPowerSource source) {
+            return source.getCobaltPower(outState, world, outPos);
         }
 
-        // ❌ IGNORA COMPLETAMENTE REDSTONE
+        return 0;
+    }
+
+    // --- LOGICA DI BLOCCAGGIO (LATERALE) ---
+    @Override
+    protected int getMaxInputLevelSides(RedstoneView world, BlockPos pos, BlockState state) {
+        Direction facing = state.get(FACING);
+        Direction side1 = facing.rotateYClockwise();
+        Direction side2 = facing.rotateYCounterclockwise();
+        return Math.max(getCobaltSidePower(world, pos.offset(side1)), getCobaltSidePower(world, pos.offset(side2)));
+    }
+
+    private int getCobaltSidePower(RedstoneView world, BlockPos sidePos) {
+        BlockState state = world.getBlockState(sidePos);
+        // Solo Repeater/Comparatori Cobalt possono bloccare un Repeater Cobalt
+        if (state.getBlock() instanceof CobaltRepeaterBlock || state.getBlock() instanceof CobaltComparatorBlock) {
+            return ((CobaltPowerSource)state.getBlock()).getCobaltPower(state, (World)world, sidePos);
+        }
         return 0;
     }
 
     @Override
-    protected int getMaxInputLevelSides(RedstoneView world, BlockPos pos, BlockState state) {
-        return 0; // 🔥 blocca input laterali vanilla
+    public int getCobaltPower(BlockState state, World world, BlockPos pos) {
+        // Il repeater emette energia SOLO se è acceso (POWERED)
+        return state.get(POWERED) ? 15 : 0;
     }
 
+    @Override
+    public int getStrongCobaltPower(BlockState state, World world, BlockPos pos, Direction direction) {
+        // direction è la faccia del blocco adiacente che viene colpita.
+        // Il repeater emette "Strong Power" solo dalla sua faccia anteriore.
+        return (state.get(FACING).getOpposite() == direction && state.get(POWERED)) ? 15 : 0;
+    }
 
+    // --- ISOLAMENTO TOTALE ---
+    @Override public boolean emitsRedstonePower(BlockState state) { return false; }
+
+    @Override
+    protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        BlockPos neighborPos = pos.offset(direction.getOpposite());
+        BlockState neighborState = world.getBlockState(neighborPos);
+
+        if (isVanillaRedstone(neighborState)) {
+            return 0; // Niente energia per te, redstone rossa!
+        }
+        return super.getWeakRedstonePower(state, world, pos, direction);
+    }
+
+    @Override
+    protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        // 1. Identifichiamo il blocco che sta ricevendo l'energia (quello sopra la torcia)
+        BlockPos targetPos = pos.offset(direction.getOpposite());
+        BlockState targetState = world.getBlockState(targetPos);
+
+        // 2. Se il blocco sopra è un blocco solido (Pietra, Cobblestone, ecc.)
+        if (targetState.isSolidBlock(world, targetPos)) {
+            // Controlliamo i vicini del blocco di pietra!
+            for (Direction side : Direction.values()) {
+                // Non controlliamo la torcia stessa (sotto)
+                if (side == direction) continue;
+
+                BlockPos checkPos = targetPos.offset(side);
+                BlockState checkState = world.getBlockState(checkPos);
+
+                // Se la pietra tocca Redstone Vanilla, la torcia "spegne" la Strong Power
+                // per evitare che la polvere si accenda.
+                if (isVanillaRedstone(checkState)) {
+                    return 0;
+                }
+            }
+        }
+
+        // Se non c'è redstone vanilla attorno al blocco caricato, procedi normalmente
+        return super.getStrongRedstonePower(state, world, pos, direction);
+    }
+
+    // Lista dei blocchi vanilla da tenere isolati
+    private static boolean isVanillaRedstone(BlockState state) {
+        return state.isOf(Blocks.REDSTONE_WIRE) ||
+                state.isOf(Blocks.REPEATER) ||
+                state.isOf(Blocks.COMPARATOR) ||
+                state.isOf(Blocks.REDSTONE_TORCH) ||
+                state.isOf(Blocks.REDSTONE_WALL_TORCH) ||
+                state.isOf(Blocks.REDSTONE_BLOCK);
+    }
 }

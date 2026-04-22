@@ -141,40 +141,14 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
 
     @Override
     protected boolean shouldUnpower(World world, BlockPos pos, BlockState state) {
-        // 1. Direzione e blocco di ancoraggio
         Direction facing = state.get(FACING);
-        BlockPos attachedToPos = pos.offset(facing.getOpposite());
+        BlockPos attachedPos = pos.offset(facing.getOpposite());
 
-        // 2. Controllo SOPRA il blocco di ancoraggio (Cobalt Wire)
-        BlockPos sourcePosUp = attachedToPos.up();
-        BlockState sourceStateUp = world.getBlockState(sourcePosUp);
-
-        if (sourceStateUp.getBlock() instanceof CobaltWireBlock) {
-            // ✅ CORRETTO: Chiediamo il power a sourceStateUp
-            if (sourceStateUp.get(CobaltWireBlock.POWER) > 0) return true;
-        }
-
-        // 3. Controllo SOTTO il blocco di ancoraggio (Cobalt Torch / Sorgenti)
-        BlockPos sourcePosDown = attachedToPos.down();
-        BlockState sourceStateDown = world.getBlockState(sourcePosDown);
-
-        if (sourceStateDown.getBlock() instanceof CobaltPowerSource source) {
-            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                if (source.getCobaltPower(sourceStateDown, world, sourcePosDown) > 0) return true;
-            }
-        }
-
-        // 4. Controllo direttamente SOTTO la torcia (quello che avevi prima)
-        BlockPos belowPos = pos.down();
-        BlockState belowState = world.getBlockState(belowPos);
-
-        if (belowState.getBlock() instanceof CobaltPowerSource source) {
-            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                if (source.getCobaltPower(belowState, world, belowPos) > 0) return true;
-            }
-        }
-
-        return false;
+        // Controlla se il blocco dietro di noi riceve energia Cobalt.
+        // 'facing' è la direzione in cui guarda la torcia, che corrisponde esattamente
+        // alla direzione in cui ci troviamo rispetto al blocco attaccato.
+        return CobaltWireLogic.isSolidBlockPoweredByCobalt(world, attachedPos, facing);
     }
+
 
 }

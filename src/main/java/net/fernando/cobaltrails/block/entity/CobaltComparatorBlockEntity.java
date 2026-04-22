@@ -33,4 +33,6 @@ public class CobaltComparatorBlockEntity extends BlockEntity {
         super.readData(view);
         this.outputSignal = view.getInt("OutputSignal", 0);
     }
+
+
 }

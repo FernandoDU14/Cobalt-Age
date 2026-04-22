@@ -1,10 +1,12 @@
 package net.fernando.cobaltrails.block;
 
-import net.minecraft.block.BlockState;
+import net.minecraft.block.*;
 import net.minecraft.block.enums.WireConnection;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
+import org.jetbrains.annotations.Nullable;
 
 public class CobaltWireShape {
 
@@ -66,7 +68,7 @@ public class CobaltWireShape {
 
         // 1. CONNESSIONE ORIZZONTALE (SIDE)
         // Accetta connessioni da Cavi E Sorgenti (Torce, Repeater, ecc.)
-        if (canConnectTo(neighborState)) {
+        if (canConnectTo(neighborState, direction)) {
             return WireConnection.SIDE;
         }
 
@@ -92,8 +94,19 @@ public class CobaltWireShape {
         return WireConnection.NONE;
     }
 
-    private static boolean canConnectTo(BlockState state) {
-        return state.getBlock() instanceof CobaltWireBlock ||
-                state.getBlock() instanceof CobaltPowerSource;
+    private static boolean canConnectTo(BlockState state, @Nullable Direction dir) {
+        if (state.getBlock() instanceof CobaltWireBlock) return true;
+
+        if (state.getBlock() instanceof CobaltRepeaterBlock) {
+            Direction facing = state.get(Properties.HORIZONTAL_FACING);
+            // Se dir è null, stiamo solo controllando se il blocco è compatibile in generale
+            if (dir == null) return true;
+            // La polvere si connette solo se è davanti o dietro al repeater/comparator
+            return dir == facing || dir == facing.getOpposite();
+        }
+
+        return state.getBlock() instanceof CobaltPowerSource ||
+                CobaltWireLogic.compatibleCobaltPowerSource(state);
     }
+
 }

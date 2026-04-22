@@ -1,12 +1,10 @@
 package net.fernando.cobaltrails.block;
 
 import net.fernando.cobaltrails.block.entity.CobaltComparatorBlockEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ComparatorBlock;
-import net.minecraft.block.Waterloggable;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.ComparatorMode;
+import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
@@ -16,14 +14,18 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.RedstoneView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.block.WireOrientation;
 import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class CobaltComparatorBlock extends ComparatorBlock implements Waterloggable, CobaltPowerSource {
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
@@ -37,12 +39,6 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
                 .with(MODE, ComparatorMode.COMPARE)
                 .with(WATERLOGGED, false));
     }
-
-    @Override
-    public int getCobaltPower(BlockState state, World world, BlockPos pos) {
-        return state.get(POWERED) ? 15 : 0;
-    }
-
 
 
     @Override
@@ -128,30 +124,27 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
 
     }
 
-    // 3. Gestisce il tick programmato per cambiare effettivamente il segnale
     @Override
-    protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        int i = this.calculateOutputSignal(world, pos, state);
+    public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, net.minecraft.util.math.random.Random random) {
+        int expectedPower = this.calculateOutputSignal(world, pos, state);
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        int j = 0;
+        int currentPower = 0;
 
-        if (blockEntity instanceof CobaltComparatorBlockEntity cobaltBE) {
-            j = cobaltBE.getOutputSignal();
-            cobaltBE.setOutputSignal(i);
+        // Risolviamo il bug del cast vanilla usando la NOSTRA entità Cobalt
+        if (blockEntity instanceof CobaltComparatorBlockEntity cobaltEntity) {
+            currentPower = cobaltEntity.getOutputSignal();
+            cobaltEntity.setOutputSignal(expectedPower);
         }
 
-        if (j != i || state.get(MODE) != net.minecraft.block.enums.ComparatorMode.COMPARE) {
-            boolean haPotenza = this.hasPower(world, pos, state);
-            boolean eAcceso = state.get(POWERED);
-
-            if (eAcceso && !haPotenza) {
+        if (currentPower != expectedPower || state.get(MODE) == ComparatorMode.COMPARE) {
+            boolean shouldBePowered = this.hasPower(world, pos, state);
+            boolean isPowered = state.get(POWERED);
+            if (isPowered && !shouldBePowered) {
                 world.setBlockState(pos, state.with(POWERED, false), 2);
-            } else if (!eAcceso && haPotenza) {
+            } else if (!isPowered && shouldBePowered) {
                 world.setBlockState(pos, state.with(POWERED, true), 2);
             }
-
-            // CORREZIONE QUI:
-            world.updateNeighborsAlways(pos, this, (net.minecraft.world.block.WireOrientation)null);
+            this.updateTarget(world, pos, state);
         }
     }
 
@@ -171,19 +164,20 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
     }
 
     private int calculateOutputSignal(World world, BlockPos pos, BlockState state) {
-        // Calcola la potenza che arriva dal retro (es. da una cesta o polvere)
-        int i = this.getPowerOnSides(world, pos, state);
-
-        // Se c'è un'entità (come una cesta) direttamente dietro, legge quella
-        int j = this.getPowerOnBack(world, pos, state);
-
-        if (state.get(MODE) == net.minecraft.block.enums.ComparatorMode.SUBTRACT) {
-            // Modalità Sottrazione (Torcia davanti accesa)
-            return Math.max(j - i, 0);
+        int i = this.getPowerOnBack(world, pos, state);
+        if (i == 0) {
+            return 0;
+        } else {
+            int j = this.getPowerOnSides(world, pos, state);
+            if (j > i) {
+                return 0;
+            } else {
+                return state.get(MODE) == ComparatorMode.SUBTRACT ? i - j : i;
+            }
         }
-        // Modalità Comparazione (Torcia davanti spenta)
-        return j >= i ? j : 0;
     }
+
+
 
     // Servono anche questi due piccoli metodi di supporto perché spesso sono private o final
     private int getPowerOnBack(World world, BlockPos pos, BlockState state) {
@@ -192,14 +186,27 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
         return this.getPowerOnSide(world, blockPos, direction);
     }
 
-    private int getPowerOnSides(World world, BlockPos pos, BlockState state) {
-        int i = 0;
-        for (Direction direction : Direction.Type.HORIZONTAL) {
-            if (direction == state.get(FACING)) continue;
-            int j = this.getPowerOnSide(world, pos.offset(direction), direction);
-            if (j > i) i = j;
+    protected int getPowerOnSides(WorldView world, BlockPos pos, BlockState state) {
+        int maxSidePower = 0;
+        Direction facing = state.get(FACING);
+
+        // Controlla i due lati (Destra e Sinistra rispetto alla direzione)
+        for (Direction side : Direction.Type.HORIZONTAL) {
+            if (side != facing && side != facing.getOpposite()) {
+                BlockPos sidePos = pos.offset(side);
+                BlockState sideState = world.getBlockState(sidePos);
+
+                int p = 0;
+                if (sideState.getBlock() instanceof CobaltWireBlock) {
+                    p = sideState.get(CobaltWireBlock.POWER);
+                } else if (sideState.getBlock() instanceof CobaltPowerSource source) {
+                    p = source.getCobaltPower(sideState, (World)world, sidePos);
+                }
+
+                if (p > maxSidePower) maxSidePower = p;
+            }
         }
-        return i;
+        return maxSidePower;
     }
 
     private int getPowerOnSide(World world, BlockPos pos, Direction side) {
@@ -213,6 +220,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
         // Else it will read the signal emitted by the block
         return state.getWeakRedstonePower(world, pos, side);
     }
+
+
 
     // To understand if this block can conduct power
     private boolean isRedstoneConductor(World world, BlockPos pos, BlockState state) {
@@ -236,6 +245,168 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
         }
     }
 
+    @Override
+    protected int getPower(World world, BlockPos pos, BlockState state) {
+        int power = 0;
+        Direction direction = state.get(FACING);
+        BlockPos rearPos = pos.offset(direction);
+        BlockState rearState = world.getBlockState(rearPos);
 
+        // --- 1. LEGGE RETE COBALT ---
+        if (rearState.getBlock() instanceof CobaltPowerSource source) {
+            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
+                power = source.getCobaltPower(rearState, world, rearPos);
+            }
+        } else if (rearState.getBlock() instanceof CobaltWireBlock) {
+            power = rearState.get(CobaltWireBlock.POWER);
+        }
 
+        // --- 2. LEGGE INVENTARI, SCULK SENSOR E ITEM FRAME ---
+        if (rearState.hasComparatorOutput()) {
+            power = Math.max(power, rearState.getComparatorOutput(world, rearPos, direction));
+        } else if (power < 15 && rearState.isSolidBlock(world, rearPos)) {
+            // Se c'è un blocco solido, guarda cosa c'è dietro (es. Blocco di Pietra con Item Frame attaccato)
+            BlockPos furtherPos = rearPos.offset(direction);
+            BlockState furtherState = world.getBlockState(furtherPos);
+
+            int behindPower = 0;
+            if (furtherState.hasComparatorOutput()) {
+                behindPower = furtherState.getComparatorOutput(world, furtherPos, direction);
+            }
+
+            // Cerca Item Frame appesi al blocco solido
+            Box box = new Box(furtherPos);
+            List<ItemFrameEntity> list = world.getEntitiesByClass(
+                    ItemFrameEntity.class,
+                    box,
+                    (entity) -> entity != null && entity.getFacing() == direction
+            );
+
+            if (list.size() == 1) {
+                behindPower = Math.max(behindPower, list.get(0).getComparatorPower());
+            }
+
+            power = Math.max(power, behindPower);
+        }
+
+        return power;
+    }
+
+    /**
+     * Calcola la potenza Cobalt che entra nel comparatore dal lato posteriore.
+     */
+    private int getCobaltInputFromBehind(World world, BlockPos pos, BlockState state) {
+        Direction direction = state.get(FACING);
+        BlockPos blockPos = pos.offset(direction);
+        BlockState blockState = world.getBlockState(blockPos);
+
+        // Se dietro c'è un cavo Cobalt
+        if (blockState.getBlock() instanceof CobaltWireBlock) {
+            return blockState.get(CobaltWireBlock.POWER);
+        }
+
+        // Se dietro c'è una sorgente Cobalt (Leva, Torcia Cobalt, ecc.)
+        if (blockState.getBlock() instanceof CobaltPowerSource source) {
+            return source.getCobaltPower(blockState, world, blockPos);
+        }
+
+        return 0;
+    }
+
+    /**
+     * Cerca un'entità Cornice (Item Frame) attaccata al lato corretto del blocco specificato.
+     */
+    private ItemFrameEntity getAttachedItemFrame(World world, Direction facing, BlockPos pos) {
+        // Cerchiamo entità ItemFrameEntity nella zona del blocco bersaglio
+        List<ItemFrameEntity> list = world.getEntitiesByClass(
+                ItemFrameEntity.class,
+                new Box(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1),
+                (itemFrame) -> itemFrame != null && itemFrame.getHorizontalFacing() == facing
+        );
+
+        return list.size() == 1 ? list.get(0) : null;
+    }
+
+    @Override
+    protected int getMaxInputLevelSides(RedstoneView world, BlockPos pos, BlockState state) {
+        Direction facing = state.get(FACING);
+        Direction side1 = facing.rotateYClockwise();
+        Direction side2 = facing.rotateYCounterclockwise();
+
+        return Math.max(
+                getCobaltSidePower(world, pos.offset(side1)),
+                getCobaltSidePower(world, pos.offset(side2))
+        );
+    }
+
+    private int getCobaltSidePower(RedstoneView world, BlockPos pos) {
+        BlockState state = world.getBlockState(pos);
+        if (state.getBlock() instanceof CobaltWireBlock) return state.get(CobaltWireBlock.POWER);
+        if (state.getBlock() instanceof CobaltPowerSource source) return source.getCobaltPower(state, (World)world, pos);
+        return 0;
+    }
+
+    // --- OUTPUT ---
+    @Override
+    public int getCobaltPower(BlockState state, World world, BlockPos pos) {
+        if (world.getBlockEntity(pos) instanceof CobaltComparatorBlockEntity be) {
+            return be.getOutputSignal();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getStrongCobaltPower(BlockState state, World world, BlockPos pos, Direction direction) {
+        return direction == state.get(FACING).getOpposite() ? this.getCobaltPower(state, world, pos) : 0;
+    }
+
+    @Override public boolean emitsRedstonePower(BlockState state) { return false; }
+    @Override
+    protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        BlockPos neighborPos = pos.offset(direction.getOpposite());
+        BlockState neighborState = world.getBlockState(neighborPos);
+
+        if (isVanillaRedstone(neighborState)) {
+            return 0; // Niente energia per te, redstone rossa!
+        }
+        return super.getWeakRedstonePower(state, world, pos, direction);
+    }
+
+    @Override
+    protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        // 1. Identifichiamo il blocco che sta ricevendo l'energia (quello sopra la torcia)
+        BlockPos targetPos = pos.offset(direction.getOpposite());
+        BlockState targetState = world.getBlockState(targetPos);
+
+        // 2. Se il blocco sopra è un blocco solido (Pietra, Cobblestone, ecc.)
+        if (targetState.isSolidBlock(world, targetPos)) {
+            // Controlliamo i vicini del blocco di pietra!
+            for (Direction side : Direction.values()) {
+                // Non controlliamo la torcia stessa (sotto)
+                if (side == direction) continue;
+
+                BlockPos checkPos = targetPos.offset(side);
+                BlockState checkState = world.getBlockState(checkPos);
+
+                // Se la pietra tocca Redstone Vanilla, la torcia "spegne" la Strong Power
+                // per evitare che la polvere si accenda.
+                if (isVanillaRedstone(checkState)) {
+                    return 0;
+                }
+            }
+        }
+
+        // Se non c'è redstone vanilla attorno al blocco caricato, procedi normalmente
+        return super.getStrongRedstonePower(state, world, pos, direction);
+    }
+
+    // Lista dei blocchi vanilla da tenere isolati
+    private static boolean isVanillaRedstone(BlockState state) {
+        return state.isOf(Blocks.REDSTONE_WIRE) ||
+                state.isOf(Blocks.REPEATER) ||
+                state.isOf(Blocks.COMPARATOR) ||
+                state.isOf(Blocks.REDSTONE_TORCH) ||
+                state.isOf(Blocks.REDSTONE_WALL_TORCH) ||
+                state.isOf(Blocks.REDSTONE_BLOCK);
+    }
 }

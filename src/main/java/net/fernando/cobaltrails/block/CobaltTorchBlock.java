@@ -139,31 +139,12 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements Waterloggabl
 
     @Override
     protected boolean shouldUnpower(World world, BlockPos pos, BlockState state) {
+        BlockPos attachedPos = pos.down();
 
-        BlockPos belowPos = pos.down();
-        BlockState belowState = world.getBlockState(belowPos);
-
-        BlockPos belowPos2 = belowPos.down();
-        BlockState belowState2 = world.getBlockState(belowPos2);
-
-        /*
-        // 🟦 1. sorgente cobalt diretta
-        if (belowState.getBlock() instanceof CobaltPowerSource source) {
-            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                return source.getCobaltPower(belowState, world, belowPos) > 0;
-            }
-        }
-        */
-
-        // 🟦 1. sorgente cobalt diretta
-        if (belowState2.getBlock() instanceof CobaltPowerSource source) {
-            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                return source.getCobaltPower(belowState2, world, belowPos2) > 0;
-            }
-        }
-
-        // ❌ NON controllare i vicini → causa flicker
-        return false;
+        // Controlla se il blocco sotto di noi riceve energia Cobalt.
+        // Passiamo Direction.UP come "eccezione", perché dal punto di vista
+        // del blocco attaccato, la nostra torcia si trova sopra (UP).
+        return CobaltWireLogic.isSolidBlockPoweredByCobalt(world, attachedPos, Direction.UP);
     }
 
 }
