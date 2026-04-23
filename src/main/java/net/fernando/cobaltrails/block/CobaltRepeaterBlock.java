@@ -17,7 +17,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
 
-import static net.fernando.cobaltrails.block.CobaltWireLogic.compatibleCobaltPowerSource;
 
 public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable, CobaltPowerSource {
     public CobaltRepeaterBlock(Settings settings) {
@@ -36,12 +35,11 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
     public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
         if (state.get(POWERED)) {
             // Cobalt Particles like the one we did in CobaltDustBlock.java
-            Direction direction = state.get(FACING);
             double d = (double)pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
             double e = (double)pos.getY() + 0.4 + (random.nextDouble() - 0.5) * 0.2;
             double f = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
 
-            int cobaltBlue = (0 << 16) | (153 << 8) | 255;
+            int cobaltBlue = (0) | (153 << 8) | 255;
             DustParticleEffect cobaltDust = new DustParticleEffect(cobaltBlue, 1.0f);
 
             world.addParticleClient(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
@@ -156,14 +154,15 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
         Direction facing = state.get(FACING);
         Direction side1 = facing.rotateYClockwise();
         Direction side2 = facing.rotateYCounterclockwise();
-        return Math.max(getCobaltSidePower(world, pos.offset(side1)), getCobaltSidePower(world, pos.offset(side2)));
+        return Math.max(getCobaltSidePower(world, pos.offset(side1), facing), getCobaltSidePower(world, pos.offset(side2), facing));
     }
 
-    private int getCobaltSidePower(RedstoneView world, BlockPos sidePos) {
+    private int getCobaltSidePower(RedstoneView world, BlockPos sidePos, Direction facing) {
         BlockState state = world.getBlockState(sidePos);
         // Solo Repeater/Comparatori Cobalt possono bloccare un Repeater Cobalt
         if (state.getBlock() instanceof CobaltRepeaterBlock || state.getBlock() instanceof CobaltComparatorBlock) {
-            return ((CobaltPowerSource)state.getBlock()).getCobaltPower(state, (World)world, sidePos);
+            if((state.get(FACING) == facing.rotateYClockwise()) || (state.get(FACING) == facing.rotateYCounterclockwise()))
+                return ((CobaltPowerSource) state.getBlock()).getCobaltPower(state, (World) world, sidePos);
         }
         return 0;
     }
@@ -176,7 +175,7 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
 
     @Override
     public int getStrongCobaltPower(BlockState state, World world, BlockPos pos, Direction direction) {
-        // direction è la faccia del blocco adiacente che viene colpita.
+        // Direction è la faccia del blocco adiacente che viene colpita.
         // Il repeater emette "Strong Power" solo dalla sua faccia anteriore.
         return (state.get(FACING).getOpposite() == direction && state.get(POWERED)) ? 15 : 0;
     }

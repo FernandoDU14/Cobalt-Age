@@ -28,7 +28,7 @@ public class CobaltWireShape {
             if (isNotConnected(state)) {
                 return state;
             }
-            // Se non è un puntino e non ha vicini (es. ho appena rotto l'ultimo cavo vicino),
+            // Se non è un puntino e non ha vicini (es, se ho appena rotto l'ultimo cavo vicino),
             // torniamo al CROSS (il nostro default di piazzamento).
             // Questo forzerà un aggiornamento del blocco e dei suoi vicini!
             return state
@@ -79,6 +79,18 @@ public class CobaltWireShape {
                     return WireConnection.SIDE;
             }
         }
+        // 1.TRIS: CONNESSIONE ORIZZONTALE (SIDE) SOLO OBSERVER FACING
+
+        // SE IL VICINO È UN OBSERVER
+        if (neighborState.isOf(Blocks.OBSERVER)) {
+            // L'Observer dà energia solo se la sua faccia posteriore punta verso il cavo.
+            // dirFromWire è la direzione dal cavo verso observer,
+            // quindi dobbiamo controllare se observer "guarda" dalla parte opposta.
+            if (neighborState.get(ObserverBlock.FACING) == direction) {
+                return WireConnection.SIDE;
+            }
+        }
+
 
         // 2. CONNESSIONE VERSO L'ALTO (UP)
         // La polvere sale SOLO se sopra il vicino c'è un'altra POLVERE.

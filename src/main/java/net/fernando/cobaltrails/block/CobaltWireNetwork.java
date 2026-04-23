@@ -8,17 +8,22 @@ import net.minecraft.world.World;
 import java.util.*;
 
 public class CobaltWireNetwork {
-    // 🛡️ La Guardia: impedisce alla rete di chiamare se stessa all'infinito
-    private static boolean isUpdating = false;
+
+    // 🛡️ FIX 1: Sostituiamo il boolean statico con un ThreadLocal.
+    // Questo crea una guardia separata e sicura per il Server e il Client,
+    // e previene blocchi della variabile tra i vari riavvii del mondo o tra le dimensioni.
+    private static final ThreadLocal<Boolean> IS_UPDATING = ThreadLocal.withInitial(() -> false);
 
     public static void schedule(World world, BlockPos start) {
-        // Se stiamo già calcolando la rete, ignoriamo le nuove chiamate.
-        // Il ciclo 'while' qui sotto si occuperà comunque di aggiornare tutti i blocchi connessi.
-        if (isUpdating) return;
+        // 🛡️ FIX 2: Blocchiamo immediatamente l'esecuzione sul client.
+        // La logica della redstone DEVE girare esclusivamente sul Server.
+        if (world.isClient()) return;
 
-        isUpdating = true;
+        // Se il server sta già calcolando la rete, ignoriamo.
+        if (IS_UPDATING.get()) return;
+
+        IS_UPDATING.set(true);
         try {
-            // 📦 Coda LOCALE: evita conflitti tra aggiornamenti diversi
             Queue<BlockPos> queue = new ArrayDeque<>();
             Set<BlockPos> visited = new HashSet<>();
 
@@ -32,14 +37,19 @@ public class CobaltWireNetwork {
 
                 for (Direction dir : Direction.values()) {
                     BlockPos next = pos.offset(dir);
-                    if (world.getBlockState(next).getBlock() instanceof CobaltWireBlock) {
-                        queue.add(next);
+
+                    // 🛡️ FIX 3: Evitiamo che la rete legga chunk scaricati (es. durante il caricamento del mondo)
+                    // Se il chunk non è caricato, lo ignoriamo per evitare che legga "Aria" e rompa il circuito.
+                    if (world.isChunkLoaded(next)) {
+                        if (world.getBlockState(next).getBlock() instanceof CobaltWireBlock) {
+                            queue.add(next);
+                        }
                     }
                 }
             }
         } finally {
-            // Fondamentale: liberiamo la guardia alla fine, anche se c'è un errore
-            isUpdating = false;
+            // Rilasciamo la guardia in modo sicuro
+            IS_UPDATING.set(false);
         }
     }
 
@@ -51,13 +61,8 @@ public class CobaltWireNetwork {
         int oldPower = state.get(CobaltWireBlock.POWER);
 
         if (newPower != oldPower) {
-            // NOTA: setBlockState scatena i neighborUpdate,
-            // ma ora la nostra guardia 'isUpdating' li bloccherà!
             world.setBlockState(pos, state.with(CobaltWireBlock.POWER, newPower), Block.NOTIFY_ALL);
-
-            // Notifichiamo i vicini (torce, pistoni, ecc.)
             updateNeighborsOfNeighbors(world, pos);
-
             world.scheduleBlockTick(pos, state.getBlock(), 1);
         }
     }

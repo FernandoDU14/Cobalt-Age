@@ -33,10 +33,6 @@ import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-
-import static net.fernando.cobaltrails.block.ModBlocks.*;
-import static net.minecraft.block.CaveVines.SHAPE;
-
 public class CobaltWireBlock extends Block  implements Waterloggable {
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
     public static final IntProperty POWER = Properties.POWER;
@@ -89,7 +85,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
             case SOUTH -> SOUTH;
             case EAST -> EAST;
             case WEST -> WEST;
-            default -> throw new IllegalArgumentException("Invalid direction: " + direction);
+            default -> throw new IllegalArgumentException("Invalid direction: %s".formatted(direction));
         };
     }
 
@@ -128,7 +124,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
     // Questo è il metodo "segreto" di Vanilla che posiziona le particelle lungo i fili
     private void addPoweredParticles(World world, Random random, BlockPos pos, int colorInt, Direction direction, Direction direction2, float f, float g) {
         float h = g - f;
-        if (!(random.nextFloat() > 0.2F * h)) { // Non spawnare troppe particelle
+        if (!(random.nextFloat() > 0.2F * h)) { // Non evocare troppe particelle
             float j = f + h * random.nextFloat();
             double d = (double)pos.getX() + 0.5 + (double)(0.4375F * (float)direction.getOffsetX() + j * (float)direction2.getOffsetX());
             double e = (double)pos.getY() + 0.5 + (double)(0.4375F * (float)direction.getOffsetY() + j * (float)direction2.getOffsetY());
@@ -411,7 +407,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
     @Override
     protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
         if (moved) return;
-        super.onStateReplaced(state, world, pos, moved);
+        super.onStateReplaced(state, world, pos, false);
         if (world.isClient()) return;
 
         // 1. Quando rompi la polvere, forza l'aggiornamento grafico di chi le stava attorno
@@ -473,8 +469,19 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
             // Se è cross -> diventa puntino. Se è puntino -> torna cross.
             BlockState newState = isFullyConnected(state) ? getDotState(state) : getCrossState(state);
 
+            // 1. Manteniamo il livello di potenza attuale durante la transizione
             newState = newState.with(POWER, state.get(POWER));
             world.setBlockState(pos, newState, Block.NOTIFY_ALL);
+
+            // --- FIX DEL BUG DELLA TORCIA ---
+            // 2. Avvisiamo i vicini dei vicini! Così il blocco in diagonale
+            // scopre che il cavo non lo sta più puntando e fa riaccendere la torcia.
+            this.updateAllNeighbors(world, pos);
+
+            // 3. Ricalcoliamo la rete. Cambiando forma, il cavo potrebbe
+            // essersi disconnesso (o connesso) a una fonte di energia.
+            CobaltWireNetwork.schedule(world, pos);
+
             return ActionResult.SUCCESS;
         }
 

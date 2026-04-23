@@ -5,7 +5,6 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
@@ -15,9 +14,9 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
-import net.minecraft.world.block.WireOrientation;
 import net.minecraft.world.tick.ScheduledTickView;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 public class CobaltTorchBlock extends RedstoneTorchBlock implements Waterloggable, CobaltPowerSource {
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
@@ -46,7 +45,7 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements Waterloggabl
             double e = (double)pos.getY() + 0.7;
             double f = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
             // Same of Dust - Particle Section
-            int cobaltBlue = (0 << 16) | (153 << 8) | 255;
+            int cobaltBlue = (0) | (153 << 8) | 255;
             DustParticleEffect cobaltDust = new DustParticleEffect(cobaltBlue, 1.0f);
 
             world.addParticleClient(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
@@ -66,7 +65,7 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements Waterloggabl
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         FluidState fluidState = ctx.getWorld().getFluidState(ctx.getBlockPos());
-        return super.getPlacementState(ctx).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
+        return Objects.requireNonNull(super.getPlacementState(ctx)).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
     }
 
 

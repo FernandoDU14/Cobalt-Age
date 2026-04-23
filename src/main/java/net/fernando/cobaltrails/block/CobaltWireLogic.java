@@ -8,16 +8,6 @@ import net.minecraft.world.World;
 
 public class CobaltWireLogic {
 
-    // Lista dei blocchi vanilla da tenere isolati
-    private static boolean isVanillaRedstone(BlockState state) {
-        return state.isOf(Blocks.REDSTONE_WIRE) ||
-                state.isOf(Blocks.REPEATER) ||
-                state.isOf(Blocks.COMPARATOR) ||
-                state.isOf(Blocks.REDSTONE_TORCH) ||
-                state.isOf(Blocks.REDSTONE_WALL_TORCH) ||
-                state.isOf(Blocks.REDSTONE_BLOCK);
-    }
-
     public static int calculate(World world, BlockPos pos) {
         int power = 0;
 
@@ -93,7 +83,7 @@ public class CobaltWireLogic {
 
                 Direction facing = state.get(Properties.HORIZONTAL_FACING);
 
-                // 'dir' è la direzione dal CAVO verso il BLOCCO.
+                // Dir è la direzione dal CAVO verso il BLOCCO.
                 // Il blocco punta verso il cavo solo se la sua direzione (facing)
                 // è l'opposto di 'dir'.
                 // Esempio: se il blocco è a NORD del cavo (dir=NORTH),
@@ -124,6 +114,16 @@ public class CobaltWireLogic {
             return state.getWeakRedstonePower(world, pos, dir.getOpposite());
         }
 
+        // SE IL VICINO È UN OBSERVER
+        if (state.isOf(Blocks.OBSERVER)) {
+            // L'Observer dà energia solo se la sua faccia posteriore punta verso il cavo.
+            // dirFromWire è la direzione dal cavo verso observer,
+            // quindi dobbiamo controllare se observer "guarda" dalla parte opposta.
+            if (state.get(ObserverBlock.FACING) == dir) {
+                return state.get(ObserverBlock.POWERED) ? 15 : 0;
+            }
+        }
+
         return 0;
     }
 
@@ -151,24 +151,13 @@ public class CobaltWireLogic {
         return maxStrongPower;
     }
 
-    public static int getStrongPowerReaching(World world, BlockPos solidBlockPos, Direction sideToFace) {
-        int maxPower = 0;
-        for (Direction dir : Direction.values()) {
-            // Ignoriamo la faccia che guarda il componente
-            if (dir == sideToFace.getOpposite()) continue;
-
-            BlockPos neighborPos = solidBlockPos.offset(dir);
-            BlockState neighborState = world.getBlockState(neighborPos);
-
-            if (neighborState.getBlock() instanceof CobaltPowerSource source) {
-                // Cerchiamo energia forte Cobalt che entra nel blocco
-                maxPower = Math.max(maxPower, source.getStrongCobaltPower(neighborState, world, neighborPos, dir.getOpposite()));
-            }
-        }
-        return maxPower;
-    }
 
     public static boolean isSolidBlockPoweredByCobalt(World world, BlockPos solidPos, Direction exceptDir) {
+
+        if(!world.getBlockState(solidPos).isSolidBlock(world, solidPos)){
+            return false;
+        }
+
         for (Direction dir : Direction.values()) {
             if (dir == exceptDir) continue;
 
@@ -194,6 +183,7 @@ public class CobaltWireLogic {
                 }
             }
         }
+
         return false;
     }
 
@@ -208,6 +198,7 @@ public class CobaltWireLogic {
                 state.getBlock() instanceof DaylightDetectorBlock ||
                 state.getBlock() instanceof JukeboxBlock ||
                 state.getBlock() instanceof LightningRodBlock ||
+                state.getBlock() instanceof TrappedChestBlock ||
                 state.getBlock() instanceof LeverBlock;
     }
 

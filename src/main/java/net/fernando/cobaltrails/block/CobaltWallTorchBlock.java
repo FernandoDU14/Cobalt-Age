@@ -45,7 +45,7 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
             double e = (double)pos.getY() + 0.7;
             double f = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
             // Usiamo Dust blu invece di quella rossa
-            int cobaltBlue = (0 << 16) | (153 << 8) | 255;
+            int cobaltBlue = (0) | (153 << 8) | 255;
             DustParticleEffect cobaltDust = new DustParticleEffect(cobaltBlue, 1.0f);
 
             world.addParticleClient(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
@@ -145,7 +145,7 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
         BlockPos attachedPos = pos.offset(facing.getOpposite());
 
         // Controlla se il blocco dietro di noi riceve energia Cobalt.
-        // 'facing' è la direzione in cui guarda la torcia, che corrisponde esattamente
+        // 'Facing' è la direzione in cui guarda la torcia, che corrisponde esattamente
         // alla direzione in cui ci troviamo rispetto al blocco attaccato.
         return CobaltWireLogic.isSolidBlockPoweredByCobalt(world, attachedPos, facing);
     }

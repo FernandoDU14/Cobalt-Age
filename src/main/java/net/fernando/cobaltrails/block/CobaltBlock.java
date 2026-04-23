@@ -43,7 +43,7 @@ public class CobaltBlock extends Block implements CobaltPowerSource {
 
     @Override
     protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        // 'direction' in getWeakRedstonePower indica la direzione DA CUI si sta chiedendo energia.
+        // Direction in getWeakRedstonePower indica la direzione DA CUI si sta chiedendo energia.
         // Usiamo l'opposto per trovare il blocco che sta cercando di prelevare energia.
         BlockPos neighborPos = pos.offset(direction.getOpposite());
         BlockState neighborState = world.getBlockState(neighborPos);

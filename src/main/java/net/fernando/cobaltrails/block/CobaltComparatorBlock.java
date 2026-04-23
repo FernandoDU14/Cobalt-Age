@@ -7,16 +7,13 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.ComparatorMode;
-import net.minecraft.block.enums.WireConnection;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -80,7 +77,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        // Fondamentale: aggiungiamo la proprietà al builder altrimenti crasha
+        // Fondamentale: aggiungiamo la proprietà al builder altrimenti vado in crash
         builder.add(FACING, POWERED, MODE, WATERLOGGED);
     }
 
@@ -187,7 +184,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
 
     @Override
     protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
-        // 1. Controlliamo se il blocco può sopravvivere (es. se il blocco sotto viene rimosso)
+        // 1. Controlliamo se il blocco può sopravvivere (es, se il blocco sotto viene rimosso)
         if (!state.canPlaceAt(world, pos)) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             dropStacks(state, world, pos, blockEntity);
@@ -196,7 +193,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
         }
 
         // 2. Chiamiamo la logica di aggiornamento del segnale
-        // Questo metodo (ereditato da ComparatorBlock) ricalcola l'output
+        // Questo metodo (ereditato da ComparatorBlock) ricalcola uscita
         this.updatePowered(world, pos, state);
     }
 
@@ -305,7 +302,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
             );
 
             if (list.size() == 1) {
-                behindPower = Math.max(behindPower, list.get(0).getComparatorPower());
+                behindPower = Math.max(behindPower, list.getFirst().getComparatorPower());
             }
 
             power = Math.max(power, behindPower);
