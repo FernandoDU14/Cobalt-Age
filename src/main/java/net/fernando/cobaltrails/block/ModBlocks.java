@@ -50,22 +50,12 @@ public class ModBlocks {
     }
 
     private static Block registerBlock(String name, Function<AbstractBlock.Settings, Block> function) {
-        // 1 We create the ID and the Key
         Identifier id = Identifier.of(CobaltRails.MOD_ID, name);
         RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, id);
-
-        // 2. We inject directly the Key
         AbstractBlock.Settings settings = AbstractBlock.Settings.create().registryKey(blockKey);
-
-        // 3. We create the instance of the Block with his settings
         Block block = function.apply(settings);
-
-        // 4. We register the Block
         Block registeredBlock = Registry.register(Registries.BLOCK, blockKey, block);
-
-        // 5. We register the Item related to the Block
         registerBlockItem(name, registeredBlock);
-
         return registeredBlock;
     }
 
@@ -99,6 +89,12 @@ public class ModBlocks {
                     ))
             ));
 
+    public static final Block COBALT_DUST_BLOCK = registerBlock("cobalt_dust_block",
+            settings -> new CobaltBlock(settings.mapColor(MapColor.LAPIS_BLUE)
+                    .requiresTool().strength(5.0F, 6.0F)
+                    .sounds(BlockSoundGroup.METAL).solidBlock(Blocks::never)));
+
+
     // La torcia verticale può restare così (ma usa registerBlockWithoutItem se vuoi gestire l'item in ModItems)
     public static final Block COBALT_TORCH = registerBlockWithoutItem("cobalt_torch",
             new CobaltTorchBlock(AbstractBlock.Settings.copy(Blocks.REDSTONE_TORCH)
@@ -127,6 +123,7 @@ public class ModBlocks {
             entries.addAfter(Blocks.POWERED_RAIL, COBALT_RAIL);
             entries.addAfter(Items.REPEATER, COBALT_REPEATER);
             entries.addAfter(Items.COMPARATOR, COBALT_COMPARATOR);
+            entries.addAfter(Blocks.REDSTONE_BLOCK, COBALT_DUST_BLOCK);
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(entries -> {

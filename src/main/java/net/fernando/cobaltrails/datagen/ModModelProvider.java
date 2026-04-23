@@ -21,6 +21,7 @@ public class ModModelProvider extends FabricModelProvider {
         blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.DEEPSLATE_COBALT_ORE);
         blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.COBALT_BLOCK);
         blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.RAW_COBALT_BLOCK);
+        blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.COBALT_DUST_BLOCK);
     }
 
     @Override

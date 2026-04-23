@@ -3,6 +3,7 @@
     "cobaltrails:cobalt_block",
     "cobaltrails:raw_cobalt_block",
     "cobaltrails:cobalt_ore",
-    "cobaltrails:deepslate_cobalt_ore"
+    "cobaltrails:deepslate_cobalt_ore",
+    "cobaltrails:cobalt_dust_block"
   ]
 }

@@ -1,4 +1,4 @@
-// 1.21.6	-999999999-01-01T00:00:00	Cobalt Rails/Cobalt rails recipes
+// 1.21.11	-999999999-01-01T00:00:00	Cobalt Rails/Cobalt rails recipes
 dedb8a00d645ea4ce93bef0378449dd42e9ad95e data/cobaltrails/advancement/recipes/building_blocks/cobalt_block.json
 a78b7a95a63ea03a45479c7bd4ae5e4fbc102132 data/cobaltrails/advancement/recipes/building_blocks/raw_cobalt_block.json
 8898356a0020224969ab16f8d79da4418f04552a data/cobaltrails/advancement/recipes/misc/cobalt_block_from_blasting_raw_cobalt_block.json
@@ -13,8 +13,12 @@ f6534b1ba1235ae1a863f66279f22b9109a4f1b7 data/cobaltrails/advancement/recipes/mi
 e1f2940dee0a70b8d5373c74b5b1b6ca812b7be3 data/cobaltrails/advancement/recipes/misc/cobalt_nugget.json
 cdbc422b925b036a3bae534ac21109e83ab3d229 data/cobaltrails/advancement/recipes/misc/cobalt_rail.json
 0b04cf6ebd5c7a155248fa3d0d66231f5822092e data/cobaltrails/advancement/recipes/misc/raw_cobalt.json
+5ba69cea7e279254f24666ea97ece9a97a272f0b data/cobaltrails/advancement/recipes/redstone/cobalt_dust.json
+2466f05c70ed087f1eb655c8e05017c1f2c10898 data/cobaltrails/advancement/recipes/redstone/cobalt_dust_block.json
 edf39507a2abbf3ec6380d0477c9c78485f670cb data/cobaltrails/recipe/cobalt_block.json
 90350283fee0d60ac7efff36de6ec85eb30e44bf data/cobaltrails/recipe/cobalt_block_from_blasting_raw_cobalt_block.json
+a83828617e00d90929d0f236fadcc4a0f902cca1 data/cobaltrails/recipe/cobalt_dust.json
+17248d82be31d004fa6057789b75a4dd6457e48e data/cobaltrails/recipe/cobalt_dust_block.json
 9adecd62fdfbf62132a21ade48ef655c5749b06e data/cobaltrails/recipe/cobalt_ingot.json
 9dab994ad41e17c99d5a5ed101c3137cabbabfcd data/cobaltrails/recipe/cobalt_ingot_from_blasting_cobalt_ore.json
 9f402413ddce24bcf70a57db47d1a50e236970db data/cobaltrails/recipe/cobalt_ingot_from_blasting_deepslate_cobalt_ore.json

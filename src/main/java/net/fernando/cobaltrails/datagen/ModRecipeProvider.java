@@ -69,6 +69,9 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .input(ModItems.COBALT_INGOT)
                         .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
                         .offerTo(exporter);
+
+                offerReversibleCompactingRecipes(RecipeCategory.REDSTONE, ModItems.COBALT_DUST,
+                        RecipeCategory.REDSTONE, ModBlocks.COBALT_DUST_BLOCK);
             }
         };
     }

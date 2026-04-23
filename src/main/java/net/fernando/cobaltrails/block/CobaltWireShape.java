@@ -65,20 +65,32 @@ public class CobaltWireShape {
     private static WireConnection getRenderConnection(BlockView world, BlockPos pos, Direction direction) {
         BlockPos neighborPos = pos.offset(direction);
         BlockState neighborState = world.getBlockState(neighborPos);
+        BlockState stateBelowMe = world.getBlockState(pos.down());
+        BlockState stateAboveNeighbor = world.getBlockState(neighborPos.up());
 
         // 1. CONNESSIONE ORIZZONTALE (SIDE)
         // Accetta connessioni da Cavi E Sorgenti (Torce, Repeater, ecc.)
         if (canConnectTo(neighborState, direction)) {
             return WireConnection.SIDE;
         }
+        // 1.BIS: CONNESSIONE ORIZZONTALE (SIDE) PER CONNETTERSI SE CI SONO BLOCCHI CON SLAB E SOPRA WIRE
+        if (stateAboveNeighbor.getBlock() instanceof CobaltWireBlock) { // <--- RESTRIZIONE
+            if (neighborState.getBlock() instanceof SlabBlock) {
+                    return WireConnection.SIDE;
+            }
+        }
 
         // 2. CONNESSIONE VERSO L'ALTO (UP)
         // La polvere sale SOLO se sopra il vicino c'è un'altra POLVERE.
         // Ignora Torce o altre sorgenti poste in alto.
         if (!world.getBlockState(pos.up()).isSolidBlock(world, pos.up())) {
-            BlockState stateAboveNeighbor = world.getBlockState(neighborPos.up());
             if (stateAboveNeighbor.getBlock() instanceof CobaltWireBlock) { // <--- RESTRIZIONE
-                return WireConnection.UP;
+
+                if (neighborState.getBlock() instanceof TransparentBlock ||
+                        neighborState.isSolidBlock(world, neighborPos)) {
+                    return WireConnection.UP;
+                }
+
             }
         }
 
@@ -86,8 +98,15 @@ public class CobaltWireShape {
         // La polvere scende SOLO se sotto il vicino c'è un'altra POLVERE.
         if (!neighborState.isSolidBlock(world, neighborPos)) {
             BlockState stateBelowNeighbor = world.getBlockState(neighborPos.down());
+
             if (stateBelowNeighbor.getBlock() instanceof CobaltWireBlock) { // <--- RESTRIZIONE
-                return WireConnection.SIDE;
+                // --- FIX VETRO / SLAB (Vertical Diode) ---
+                // Il cavo cerca di collegarsi (DA SOPRA) solo se il blocco SOTTO il cavo attuale è solido o glass.
+                if (stateBelowMe.getBlock() instanceof TransparentBlock ||
+                        stateBelowMe.getBlock() instanceof SlabBlock ||
+                        stateBelowMe.isSolidBlock(world, pos.down())) {
+                    return WireConnection.SIDE;
+                }
             }
         }
 

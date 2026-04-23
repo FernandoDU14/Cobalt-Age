@@ -33,7 +33,8 @@ public class CobaltRailsClient implements ClientModInitializer {
             return getCobaltColor(power);
         }, ModBlocks.COBALT_DUST);
 
-        initializeResourcePack();
+        initialize3dCobaltRailsResourcePack();
+        initializeCobaltWirePowerLevelResourcePack();
     }
 
     // Function to compute the color gradient of the Cobalt Dust
@@ -57,10 +58,16 @@ public class CobaltRailsClient implements ClientModInitializer {
         return red << 16 | green << 8 | blue;
     }
 
-    private static void initializeResourcePack() {
+    private static void initialize3dCobaltRailsResourcePack() {
         Identifier id = Identifier.of(CobaltRails.MOD_ID, "cobaltrails3d");
         ModContainer modContainer = FabricLoader.getInstance().getModContainer(CobaltRails.MOD_ID).orElseThrow();
-        ResourceLoader.registerBuiltinPack(id, modContainer, Text.of("CobaltRails 3D Rails"), PackActivationType.NORMAL);
+        ResourceLoader.registerBuiltinPack(id, modContainer, Text.of("CobaltAge 3D Rails"), PackActivationType.NORMAL);
+    }
+
+    private static void initializeCobaltWirePowerLevelResourcePack() {
+        Identifier id = Identifier.of(CobaltRails.MOD_ID, "cobalt_power_level");
+        ModContainer modContainer = FabricLoader.getInstance().getModContainer(CobaltRails.MOD_ID).orElseThrow();
+        ResourceLoader.registerBuiltinPack(id, modContainer, Text.of("Cobalt Wire Power Level"), PackActivationType.NORMAL);
     }
 
 

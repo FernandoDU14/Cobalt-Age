@@ -45,18 +45,33 @@ public class CobaltWireLogic {
 
             // 3. PROPAGAZIONE VERTICALE (Climbing - Salita/Discesa)
             if (dir.getAxis().isHorizontal()) {
+
+                // --- SALITA DEL SEGNALE (Sto cercando di prendere energia dal cavo SOPRA il mio vicino) ---
+                // In Vanilla: L'energia NON scende se lo scalino è di vetro/slab.
                 if (!world.getBlockState(pos.up()).isSolidBlock(world, pos.up())) {
                     BlockPos upPos = neighborPos.up();
                     BlockState upState = world.getBlockState(upPos);
+
                     if (upState.getBlock() instanceof CobaltWireBlock) {
-                        power = Math.max(power, upState.get(CobaltWireBlock.POWER) - 1);
+                        // FIX: Controlliamo lo "scalino" (neighborState).
+                        // Se è solido (Pietra, Cobble), l'energia può scendere verso di noi.
+                        // Se NON è solido (Vetro, Slab), l'energia è bloccata (Diodo).
+                        if (neighborState.isSolidBlock(world, neighborPos)) {
+                            power = Math.max(power, upState.get(CobaltWireBlock.POWER) - 1);
+                        }
                     }
                 }
 
+                // --- DISCESA DEL SEGNALE (Sto cercando di prendere energia dal cavo SOTTO il mio vicino) ---
+                // In Vanilla: L'energia sale SEMPRE, anche se io (pos) sono su un blocco di vetro.
                 if (!neighborState.isSolidBlock(world, neighborPos)) {
                     BlockPos downPos = neighborPos.down();
                     BlockState downState = world.getBlockState(downPos);
+
                     if (downState.getBlock() instanceof CobaltWireBlock) {
+                        // Rimosso il controllo su 'downStateOfMe':
+                        // Il segnale può sempre salire da un blocco inferiore a uno superiore
+                        // se il percorso (neighborPos) è libero.
                         power = Math.max(power, downState.get(CobaltWireBlock.POWER) - 1);
                     }
                 }
@@ -188,6 +203,11 @@ public class CobaltWireLogic {
                 state.getBlock() instanceof PressurePlateBlock ||
                 state.getBlock() instanceof WeightedPressurePlateBlock ||
                 state.getBlock() instanceof SculkSensorBlock ||
+                state.getBlock() instanceof TargetBlock ||
+                state.getBlock() instanceof TripwireHookBlock ||
+                state.getBlock() instanceof DaylightDetectorBlock ||
+                state.getBlock() instanceof JukeboxBlock ||
+                state.getBlock() instanceof LightningRodBlock ||
                 state.getBlock() instanceof LeverBlock;
     }
 

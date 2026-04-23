@@ -18,6 +18,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
     public void generate() {
         addDrop(ModBlocks.COBALT_BLOCK);
         addDrop(ModBlocks.RAW_COBALT_BLOCK);
+        addDrop(ModBlocks.COBALT_DUST_BLOCK);
 
         addDrop(ModBlocks.DEEPSLATE_COBALT_ORE, oreDrops(ModBlocks.DEEPSLATE_COBALT_ORE, ModItems.RAW_COBALT));
         addDrop(ModBlocks.COBALT_ORE, oreDrops(ModBlocks.COBALT_ORE, ModItems.RAW_COBALT));

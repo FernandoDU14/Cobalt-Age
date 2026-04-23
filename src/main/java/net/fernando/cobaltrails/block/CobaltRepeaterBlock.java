@@ -11,12 +11,13 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.RedstoneView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
+
+import static net.fernando.cobaltrails.block.CobaltWireLogic.compatibleCobaltPowerSource;
 
 public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable, CobaltPowerSource {
     public CobaltRepeaterBlock(Settings settings) {
@@ -80,34 +81,73 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
         }
         return newState;
     }
-
-
-
     // --- LOGICA DI INPUT (DIETRO) ---
     @Override
     protected int getPower(World world, BlockPos pos, BlockState state) {
-        // FACING STA PUNTANDO IN REALTA' DIETRO IL REPEATER.
-        Direction outDirection = state.get(FACING);
-        BlockPos outPos = pos.offset(outDirection);
-        BlockState outState = world.getBlockState(outPos);
+        Direction direction = state.get(FACING);
+        BlockPos rearPos = pos.offset(direction);
+        BlockState rearState = world.getBlockState(rearPos);
 
-        // L'input è dietro il repeater
-        Direction inDirection = outDirection.getOpposite();
-        BlockPos inputPos = pos.offset(inDirection);
+        int power = 0;
 
-        BlockState inputState = world.getBlockState(inputPos);
+        // 🟦 1. Sorgenti Cobalt
+        if (rearState.getBlock() instanceof CobaltPowerSource source) {
+            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
+                power = source.getCobaltPower(rearState, world, rearPos);
+            }
+        }
+        // 🟦 2. Cavo Cobalt
+        else if (rearState.getBlock() instanceof CobaltWireBlock) {
+            power = rearState.get(CobaltWireBlock.POWER);
+        }
+        // 🟦 3. Sorgente Vanilla Compatibile Diretta (Leva, Bottone attaccato direttamente dietro)
+        else if (CobaltWireLogic.compatibleCobaltPowerSource(rearState)) {
+            // FIX: Usiamo rearState e rearPos invece di state e pos!
+            power = rearState.getWeakRedstonePower(world, rearPos, direction);
+        }
+        // 🟦 4. Blocco Solido caricato da energia forte
+        else if (rearState.isSolidBlock(world, rearPos)) {
+            for (Direction dir : Direction.values()) {
+                BlockPos neighborPos = rearPos.offset(dir);
+                BlockState neighborState = world.getBlockState(neighborPos);
 
-        // 🟦 INPUT DA CAVO
-        if (outState.getBlock() instanceof CobaltWireBlock) {
-            return outState.get(CobaltWireBlock.POWER);
+                // CONTROLLO RICHIESTO: Polvere di cobalto che punta al blocco
+                if (neighborState.getBlock() instanceof CobaltWireBlock) {
+                    // Verifichiamo se il MODELLO della dust punta verso il blocco solido
+                    if (isDustPointingTo(neighborState, dir.getOpposite())) {
+                        power = Math.max(power, neighborState.get(CobaltWireBlock.POWER));
+                    }
+                }
+                // Altre sorgenti che caricano il blocco (Strong Power)
+                else if (neighborState.getBlock() instanceof CobaltPowerSource src) {
+                    if (src.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
+                        power = Math.max(power, src.getStrongCobaltPower(neighborState, world, neighborPos, dir.getOpposite()));
+                    }
+                } else if (CobaltWireLogic.compatibleCobaltPowerSource(neighborState)) {
+                    power = Math.max(power, neighborState.getStrongRedstonePower(world, neighborPos, dir));
+                }
+            }
         }
 
-        // 🟦 INPUT DA ALTRE SORGENTI (Torce, Leve, ecc.)
-        if (outState.getBlock() instanceof CobaltPowerSource source) {
-            return source.getCobaltPower(outState, world, outPos);
-        }
+        return power;
+    }
 
-        return 0;
+    // Metodo Helper per verificare la connessione visuale
+    private boolean isDustPointingTo(BlockState dustState, Direction directionToBlock) {
+        if (directionToBlock == Direction.DOWN) return true; // Sopra il blocco: alimenta sempre
+        if (directionToBlock == Direction.UP) return false;   // Sotto il blocco: non alimenta
+
+        // Controlliamo le proprietà NORTH, SOUTH, EAST, WEST del CobaltWireBlock
+        var property = switch (directionToBlock) {
+            case NORTH -> CobaltWireBlock.NORTH;
+            case SOUTH -> CobaltWireBlock.SOUTH;
+            case EAST -> CobaltWireBlock.EAST;
+            case WEST -> CobaltWireBlock.WEST;
+            default -> null;
+        };
+
+        // isConnected() restituisce true se lo stato è SIDE o UP (quindi punta verso il blocco)
+        return property != null && dustState.get(property).isConnected();
     }
 
     // --- LOGICA DI BLOCCAGGIO (LATERALE) ---
@@ -165,13 +205,13 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
         if (targetState.isSolidBlock(world, targetPos)) {
             // Controlliamo i vicini del blocco di pietra!
             for (Direction side : Direction.values()) {
-                // Non controlliamo la torcia stessa (sotto)
+                // Non controlliamo il repeater stesso (lato)
                 if (side == direction) continue;
 
                 BlockPos checkPos = targetPos.offset(side);
                 BlockState checkState = world.getBlockState(checkPos);
 
-                // Se la pietra tocca Redstone Vanilla, la torcia "spegne" la Strong Power
+                // Se la pietra tocca Redstone Vanilla, il cobalt repeater "spegne" la Strong Power
                 // per evitare che la polvere si accenda.
                 if (isVanillaRedstone(checkState)) {
                     return 0;
