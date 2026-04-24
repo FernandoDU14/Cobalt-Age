@@ -1,5 +1,6 @@
 package net.fernando.cobaltrails.block;
 
+import net.fernando.cobaltrails.block.wire.CobaltWireNetwork;
 import net.minecraft.block.*;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
@@ -99,7 +100,7 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
             power = rearState.get(CobaltWireBlock.POWER);
         }
         // 🟦 3. Sorgente Vanilla Compatibile Diretta (Leva, Bottone attaccato direttamente dietro)
-        else if (CobaltWireLogic.compatibleCobaltPowerSource(rearState)) {
+        else if (CobaltWireNetwork.compatibleCobaltPowerSource(rearState)) {
             // FIX: Usiamo rearState e rearPos invece di state e pos!
             power = rearState.getWeakRedstonePower(world, rearPos, direction);
         }
@@ -121,7 +122,7 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
                     if (src.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
                         power = Math.max(power, src.getStrongCobaltPower(neighborState, world, neighborPos, dir.getOpposite()));
                     }
-                } else if (CobaltWireLogic.compatibleCobaltPowerSource(neighborState)) {
+                } else if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
                     power = Math.max(power, neighborState.getStrongRedstonePower(world, neighborPos, dir));
                 }
             }

@@ -1,5 +1,8 @@
-package net.fernando.cobaltrails.block;
+package net.fernando.cobaltrails.block.wire;
 
+import net.fernando.cobaltrails.block.CobaltPowerSource;
+import net.fernando.cobaltrails.block.CobaltRepeaterBlock;
+import net.fernando.cobaltrails.block.CobaltWireBlock;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.WireConnection;
 import net.minecraft.state.property.Properties;
@@ -137,7 +140,7 @@ public class CobaltWireShape {
         }
 
         return state.getBlock() instanceof CobaltPowerSource ||
-                CobaltWireLogic.compatibleCobaltPowerSource(state);
+                CobaltWireNetwork.compatibleCobaltPowerSource(state);
     }
 
 }

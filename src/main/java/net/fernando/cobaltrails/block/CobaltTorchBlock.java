@@ -1,5 +1,6 @@
 package net.fernando.cobaltrails.block;
 
+import net.fernando.cobaltrails.block.wire.CobaltWireNetwork;
 import net.minecraft.block.*;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
@@ -136,6 +137,7 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements Waterloggabl
                 state.isOf(Blocks.REDSTONE_BLOCK);
     }
 
+
     @Override
     protected boolean shouldUnpower(World world, BlockPos pos, BlockState state) {
         BlockPos attachedPos = pos.down();
@@ -143,7 +145,7 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements Waterloggabl
         // Controlla se il blocco sotto di noi riceve energia Cobalt.
         // Passiamo Direction.UP come "eccezione", perché dal punto di vista
         // del blocco attaccato, la nostra torcia si trova sopra (UP).
-        return CobaltWireLogic.isSolidBlockPoweredByCobalt(world, attachedPos, Direction.UP);
+        return CobaltWireNetwork.isSolidBlockPoweredByCobalt(world, attachedPos, Direction.UP);
     }
 
 }

@@ -2,6 +2,7 @@ package net.fernando.cobaltrails.block;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import net.fernando.cobaltrails.block.wire.CobaltWireShape;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.WireConnection;
 import net.minecraft.entity.LivingEntity;
@@ -242,7 +243,6 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         return true;
     }
 
-
     // 🔥 ENERGIA DEBOLE (Attiva pistoni, porte, ecc.)
     @Override
     protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
@@ -368,6 +368,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
     public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
         if (!oldState.isOf(state.getBlock()) && !world.isClient()) {
             this.updateDiagonalShapes(world, pos);
+            this.updateAllNeighbors(world, pos);
             NETWORK_HANDLER.updateNetwork(world, pos);
         }
     }
@@ -378,7 +379,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         super.onStateReplaced(state, world, pos, false);
         if (!world.isClient()) {
             this.updateDiagonalShapes(world, pos);
-            world.updateNeighborsAlways(pos, this, null);
+            this.updateAllNeighbors(world, pos);
             NETWORK_HANDLER.updateNetwork(world, pos);
         }
     }

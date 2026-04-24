@@ -2,6 +2,7 @@ package net.fernando.cobaltrails.block;
 
 import net.fernando.cobaltrails.block.entity.CobaltComparatorBlockEntity;
 import net.fernando.cobaltrails.block.entity.ModBlockEntities;
+import net.fernando.cobaltrails.block.wire.CobaltWireNetwork;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -284,7 +285,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
             }
         } else if (rearState.getBlock() instanceof CobaltWireBlock) {
             power = rearState.get(CobaltWireBlock.POWER);
-        } else if (CobaltWireLogic.compatibleCobaltPowerSource(rearState)) {
+        } else if (CobaltWireNetwork.compatibleCobaltPowerSource(rearState)) {
             // Legge leve o bottoni piazzati direttamente dietro
             power = rearState.getWeakRedstonePower(world, rearPos, direction);
         } else if (rearState.isSolidBlock(world, rearPos)) {
@@ -304,7 +305,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
                     if (src.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
                         power = Math.max(power, src.getStrongCobaltPower(neighborState, world, neighborPos, dir.getOpposite()));
                     }
-                } else if (CobaltWireLogic.compatibleCobaltPowerSource(neighborState)) {
+                } else if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
                     power = Math.max(power, neighborState.getStrongRedstonePower(world, neighborPos, dir));
                 }
             }
@@ -381,7 +382,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
             power = state.get(CobaltWireBlock.POWER);
         } else if (state.getBlock() instanceof CobaltPowerSource source) {
             power = source.getCobaltPower(state, (World)world, sidePos);
-        } else if (CobaltWireLogic.compatibleCobaltPowerSource(state)) {
+        } else if (CobaltWireNetwork.compatibleCobaltPowerSource(state)) {
             // Legge i componenti compatibili attaccati ai lati
             power = state.getWeakRedstonePower(world, sidePos, sideDir);
         } else if (state.isSolidBlock(world, sidePos)) {
@@ -394,7 +395,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
                     if (src.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
                         power = Math.max(power, src.getStrongCobaltPower(neighborState, (World)world, neighborPos, dir.getOpposite()));
                     }
-                } else if (CobaltWireLogic.compatibleCobaltPowerSource(neighborState)) {
+                } else if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
                     power = Math.max(power, neighborState.getStrongRedstonePower(world, neighborPos, dir));
                 }
             }

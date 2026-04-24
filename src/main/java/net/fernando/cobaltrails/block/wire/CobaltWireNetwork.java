@@ -1,9 +1,6 @@
 package net.fernando.cobaltrails.block.wire;
 
-import net.fernando.cobaltrails.block.CobaltComparatorBlock;
-import net.fernando.cobaltrails.block.CobaltPowerSource;
-import net.fernando.cobaltrails.block.CobaltRepeaterBlock;
-import net.fernando.cobaltrails.block.CobaltWireBlock;
+import net.fernando.cobaltrails.block.*;
 import net.minecraft.block.*;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
@@ -231,7 +228,7 @@ public class CobaltWireNetwork {
     }
 
     // Funzione helper per vedere se un blocco è alimentato da Leve/Torce (Escludendo polveri)
-    private int getStrongPowerFromNeighbors(World world, BlockPos blockPos) {
+    public static int getStrongPowerFromNeighbors(World world, BlockPos blockPos) {
         int maxStrong = 0;
         for (Direction dir : Direction.values()) {
 
@@ -252,6 +249,46 @@ public class CobaltWireNetwork {
 
         }
         return maxStrong;
+    }
+
+    public static boolean isSolidBlockPoweredByCobalt(World world, BlockPos solidPos, Direction exceptDir) {
+
+
+        // Se è il blocco di alimentazione (sorgente), ritorna true a prescindere dalla "solidità"
+        if (world.getBlockState(solidPos).isOf(ModBlocks.COBALT_DUST_BLOCK)) { // Usa il riferimento corretto al tuo blocco solido
+            return true;
+        }
+        if(!world.getBlockState(solidPos).isSolidBlock(world, solidPos)){
+            return false;
+        }
+
+        for (Direction dir : Direction.values()) {
+            if (dir == exceptDir) continue;
+
+            BlockPos neighborPos = solidPos.offset(dir);
+            BlockState neighborState = world.getBlockState(neighborPos);
+
+            // A. Controllo Componenti Meccanici (Leve, bottoni attaccati al blocco solido)
+            if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
+                // Se la leva sta iniettando energia forte nel blocco di pietra,
+                // la torcia di cobalto attaccata ad esso deve spegnersi!
+                if (neighborState.getStrongRedstonePower(world, neighborPos, dir) > 0) return true;
+            }
+
+            // B. Controllo Cavo di Cobalto
+            if (neighborState.getBlock() instanceof CobaltWireBlock) {
+                if (neighborState.getWeakRedstonePower(world, neighborPos, dir) > 0) return true;
+                if (neighborState.getStrongRedstonePower(world, neighborPos, dir) > 0) return true;
+            }
+            // C. Controllo altre Sorgenti Cobalt
+            else if (neighborState.getBlock() instanceof CobaltPowerSource source) {
+                if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
+                    if (source.getStrongCobaltPower(neighborState, world, neighborPos, dir.getOpposite()) > 0) return true;
+                }
+            }
+        }
+
+        return false;
     }
 
 
@@ -290,7 +327,7 @@ public class CobaltWireNetwork {
         return node.isWire() ? node.asWire() : null;
     }
 
-    public boolean isVanillaRedstone(BlockState state) {
+    public static boolean isVanillaRedstone(BlockState state) {
         return state.isOf(net.minecraft.block.Blocks.REDSTONE_WIRE) ||
                 state.isOf(net.minecraft.block.Blocks.REPEATER) ||
                 state.isOf(net.minecraft.block.Blocks.COMPARATOR) ||
@@ -312,5 +349,16 @@ public class CobaltWireNetwork {
                 state.getBlock() instanceof LightningRodBlock ||
                 state.getBlock() instanceof TrappedChestBlock;
     }
-
+/*
+    // Helper per identificare i blocchi che DEVONO ricevere energia anche dalla cobalt dust
+    public static boolean isConsumerBlock(BlockState state) {
+        return compatibleCobaltPowerSource(state) ||
+                state.isOf(Blocks.COPPER_BULB) ||
+                state.isOf(Blocks.PISTON) ||
+                state.isOf(Blocks.STICKY_PISTON) ||
+                state.isOf(Blocks.REDSTONE_LAMP) ||
+                state.isOf(Blocks.NOTE_BLOCK) ||
+                state.getBlock() instanceof CobaltPowerSource; // Altri componenti Cobalt
+    }
+*/
 }

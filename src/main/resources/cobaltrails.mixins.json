@@ -3,13 +3,14 @@
 	"package": "net.fernando.cobaltrails.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"AbstractMinecartMixin",
+		"BlockPowerFilterMixin",
+		"CalibratedSculkSensorCallbackMixin",
 		"ExampleMixin",
 		"MinecartBehaviorMixin",
-		"AbstractMinecartMixin",
 		"NewMinecartBehaviorMixin",
 		"RedstoneIsolationMixin",
-		"CalibratedSculkSensorCallbackMixin",
-		"BlockPowerFilterMixin"
+		"consumers.PistonBlockMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

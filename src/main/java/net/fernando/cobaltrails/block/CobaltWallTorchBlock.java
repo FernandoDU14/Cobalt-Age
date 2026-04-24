@@ -1,5 +1,6 @@
 package net.fernando.cobaltrails.block;
 
+import net.fernando.cobaltrails.block.wire.CobaltWireNetwork;
 import net.minecraft.block.*;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
@@ -147,7 +148,7 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
         // Controlla se il blocco dietro di noi riceve energia Cobalt.
         // 'Facing' è la direzione in cui guarda la torcia, che corrisponde esattamente
         // alla direzione in cui ci troviamo rispetto al blocco attaccato.
-        return CobaltWireLogic.isSolidBlockPoweredByCobalt(world, attachedPos, facing);
+        return CobaltWireNetwork.isSolidBlockPoweredByCobalt(world, attachedPos, facing);
     }
 
 
