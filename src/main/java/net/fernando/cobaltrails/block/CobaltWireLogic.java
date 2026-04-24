@@ -154,6 +154,11 @@ public class CobaltWireLogic {
 
     public static boolean isSolidBlockPoweredByCobalt(World world, BlockPos solidPos, Direction exceptDir) {
 
+
+        // Se è il blocco di alimentazione (sorgente), ritorna true a prescindere dalla "solidità"
+        if (world.getBlockState(solidPos).isOf(ModBlocks.COBALT_DUST_BLOCK)) { // Usa il riferimento corretto al tuo blocco solido
+            return true;
+        }
         if(!world.getBlockState(solidPos).isSolidBlock(world, solidPos)){
             return false;
         }
