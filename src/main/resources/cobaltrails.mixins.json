@@ -10,7 +10,20 @@
 		"MinecartBehaviorMixin",
 		"NewMinecartBehaviorMixin",
 		"RedstoneIsolationMixin",
-		"consumers.PistonBlockMixin"
+		"consumers.BellBlockMixin",
+		"consumers.CopperBulbMixin",
+		"consumers.CrafterBlockMixin",
+		"consumers.DispenserBlockMixin",
+		"consumers.DoorBlockMixin",
+		"consumers.FenceGateBlockMixin",
+		"consumers.HopperBlockMixin",
+		"consumers.NoteBlockMixin",
+		"consumers.PistonBlockMixin",
+		"consumers.PoweredRailMixin",
+		"consumers.RedstoneLampMixin",
+		"consumers.ShelfBlockMixin",
+		"consumers.TntBlockMixin",
+		"consumers.TrapdoorBlockMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

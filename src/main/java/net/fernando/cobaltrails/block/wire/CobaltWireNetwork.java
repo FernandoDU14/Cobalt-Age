@@ -361,4 +361,5 @@ public class CobaltWireNetwork {
                 state.getBlock() instanceof CobaltPowerSource; // Altri componenti Cobalt
     }
 */
+
 }
