@@ -8,6 +8,7 @@ import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.ComparatorMode;
 import net.minecraft.entity.decoration.ItemFrameEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
@@ -15,6 +16,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
@@ -31,6 +34,7 @@ import java.util.List;
 
 public class CobaltComparatorBlock extends ComparatorBlock implements Waterloggable, CobaltPowerSource {
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
+    private static final net.fernando.cobaltrails.block.wire.CobaltWireNetwork NETWORK_HANDLER = new net.fernando.cobaltrails.block.wire.CobaltWireNetwork();
 
     public CobaltComparatorBlock(Settings settings) {
         super(settings);
@@ -70,7 +74,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
         // 2. SVEGLIA LA RETE COBALT!
         // Se non facciamo questo, il comparatore cambia ma la Cobalt Dust non lo sa.
         if (world.getBlockState(outputPos).getBlock() instanceof CobaltWireBlock) {
-            CobaltWireNetwork.schedule(world, outputPos);
+            NETWORK_HANDLER.updateNetwork(world, pos);
         }
     }
 
@@ -90,6 +94,32 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
             return state.with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
         }
         return null;
+    }
+
+    @Override
+    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+        // Eseguiamo prima la logica vanilla (che cambia la modalità e produce il suono "click")
+        ActionResult result = super.onUse(state, world, pos, player, hit);
+
+        if (!world.isClient() && result.isAccepted()) {
+            // Il cambio di modalità è avvenuto con successo.
+            // Ora dobbiamo "svegliare" la rete Cobalt circostante.
+
+            // 1. Notifichiamo la rete Cobalt partendo da ogni lato del comparatore.
+            // Questo forza i cavi vicini a ricalcolare la loro potenza basandosi
+            // sulla nuova modalità (Sottrazione o Addizione).
+            for (Direction dir : Direction.values()) {
+                BlockPos neighborPos = pos.offset(dir);
+                NETWORK_HANDLER.updateNetwork(world, neighborPos);
+            }
+
+            // 2. Forziamo un tick del blocco immediato.
+            // Il flickering del comparatore dipende dai tick programmati (scheduled ticks).
+            // Senza questo, il comparatore potrebbe "congelarsi" nell'ultimo stato calcolato.
+            world.scheduleBlockTick(pos, this, 1);
+        }
+
+        return result;
     }
 
     @Override

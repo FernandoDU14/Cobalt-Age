@@ -127,7 +127,7 @@ public class CobaltWireLogic {
         return 0;
     }
 
-    private static int getStrongPowerThroughBlock(World world, BlockPos solidPos) {
+    public static int getStrongPowerThroughBlock(World world, BlockPos solidPos) {
         int maxStrongPower = 0;
 
         for (Direction dir : Direction.values()) {

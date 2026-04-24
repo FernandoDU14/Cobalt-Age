@@ -40,6 +40,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
     public static final EnumProperty<WireConnection> SOUTH = Properties.SOUTH_WIRE_CONNECTION;
     public static final EnumProperty<WireConnection> EAST = Properties.EAST_WIRE_CONNECTION;
     public static final EnumProperty<WireConnection> WEST = Properties.WEST_WIRE_CONNECTION;
+    private static final net.fernando.cobaltrails.block.wire.CobaltWireNetwork NETWORK_HANDLER = new net.fernando.cobaltrails.block.wire.CobaltWireNetwork();
 
     public CobaltWireBlock(Settings settings) {
         super(settings);
@@ -192,12 +193,9 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
     }
 
     @Override
-    public void neighborUpdate(BlockState state, World world, BlockPos pos,
-                               Block sourceBlock, @Nullable WireOrientation orientation,
-                               boolean notify) {
+    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation orientation, boolean notify) {
         if (!world.isClient()) {
-            // 1. aggiorna la tua rete (logica custom)
-            CobaltWireNetwork.schedule(world, pos);
+            NETWORK_HANDLER.updateNetwork(world, pos);
         }
     }
 
@@ -238,33 +236,6 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
 
         return state.with(WATERLOGGED, waterlogged);
     }
-
-
-    @Override
-    public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        int power = getCobaltPower(world, pos);
-        if (state.get(POWER) != power) {
-            world.setBlockState(pos, state.with(POWER, power), Block.NOTIFY_ALL);
-        }
-
-        CobaltWireNetwork.schedule(world, pos);
-    }
-
-    private int getCobaltPower(World world, BlockPos pos) {
-        int power = 0;
-
-        for (Direction dir : Direction.values()) {
-            BlockPos target = pos.offset(dir);
-            BlockState state = world.getBlockState(target);
-
-            if (state.getBlock() instanceof CobaltPowerSource source) {
-                    power = Math.max(power, source.getCobaltPower(state, world, target));
-                }
-            }
-
-        return power;
-    }
-
 
     @Override
     public boolean emitsRedstonePower(BlockState state) {
@@ -396,30 +367,20 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
     @Override
     public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
         if (!oldState.isOf(state.getBlock()) && !world.isClient()) {
-            // Forza l'aggiornamento grafico dei vicini
             this.updateDiagonalShapes(world, pos);
-            // Aggiorna l'energia
-            CobaltWireNetwork.schedule(world, pos);
+            NETWORK_HANDLER.updateNetwork(world, pos);
         }
     }
 
-    // ATTENZIONE: Uso la firma esatta che hai nel tuo file caricato!
     @Override
     protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
         if (moved) return;
         super.onStateReplaced(state, world, pos, false);
-        if (world.isClient()) return;
-
-        // 1. Quando rompi la polvere, forza l'aggiornamento grafico di chi le stava attorno
-        this.updateDiagonalShapes(world, pos);
-        world.updateNeighborsAlways(pos, this, null);
-        // 2. Notifica i vicini dei vicini (il "secondo anello")
-        for (Direction direction : Direction.values()) {
-            world.updateNeighborsAlways(pos.offset(direction), this, null);
+        if (!world.isClient()) {
+            this.updateDiagonalShapes(world, pos);
+            world.updateNeighborsAlways(pos, this, null);
+            NETWORK_HANDLER.updateNetwork(world, pos);
         }
-
-        // Aggiorna l'energia
-        CobaltWireNetwork.schedule(world, pos);
     }
 
     // --- NUOVI METODI PER FORZARE LA GRAFICA ---
@@ -457,7 +418,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         // Notifichiamo che l'energia è sparita
         this.updateAllNeighbors(world, pos);
-        CobaltWireNetwork.schedule(world, pos);
+        NETWORK_HANDLER.updateNetwork(world, pos);
     }
 
     @Override
@@ -480,7 +441,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
 
             // 3. Ricalcoliamo la rete. Cambiando forma, il cavo potrebbe
             // essersi disconnesso (o connesso) a una fonte di energia.
-            CobaltWireNetwork.schedule(world, pos);
+            NETWORK_HANDLER.updateNetwork(world, pos);
 
             return ActionResult.SUCCESS;
         }
