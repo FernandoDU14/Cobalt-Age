@@ -2,16 +2,17 @@
 	"schemaVersion": 1,
 	"id": "cobaltrails",
 	"version": "${version}",
-	"name": "Cobalt Rails",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Cobalt Age",
+	"description": "The first redstone alternative, finally waterloggable and faster, comes with a new mineral",
 	"authors": [
-		"Me!"
+		"JaviDP14",
+		"KanieOutis"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/FernandoDU14/Cobalt-Age",
+		"sources": "https://github.com/FernandoDU14/Cobalt-Age"
 	},
-	"license": "CC0-1.0",
+	"license": "All Rights Reserved",
 	"icon": "assets/cobaltrails/cobalt_rails.png",
 	"environment": "*",
 	"entrypoints": {
