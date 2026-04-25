@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.fernando.cobaltrails.block.ModBlocks;
 import net.fernando.cobaltrails.item.ModItems;
+import net.minecraft.block.Blocks;
 import net.minecraft.data.recipe.RecipeExporter;
 import net.minecraft.data.recipe.RecipeGenerator;
 import net.minecraft.item.ItemConvertible;
@@ -72,6 +73,17 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
                 offerReversibleCompactingRecipes(RecipeCategory.REDSTONE, ModItems.COBALT_DUST,
                         RecipeCategory.REDSTONE, ModBlocks.COBALT_DUST_BLOCK);
+
+
+                createShaped(RecipeCategory.REDSTONE, ModBlocks.CONVERTER)
+                        .pattern("CQT")
+                        .pattern("SSS")
+                        .input('C', ModBlocks.COBALT_TORCH)
+                        .input('Q', Items.QUARTZ)
+                        .input('T', Items.REDSTONE_TORCH)
+                        .input('S', Items.STONE)
+                        .criterion(hasItem(ModItems.COBALT_TORCH), conditionsFromItem(ModItems.COBALT_TORCH))
+                        .offerTo(exporter);
             }
         };
     }

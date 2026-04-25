@@ -17,18 +17,17 @@ import net.minecraft.world.gen.feature.OreFeatureConfig;
 import java.util.List;
 
 public class ModConfiguredFeatures {
-    public static final RegistryKey<ConfiguredFeature<?, ?>> COBALT_ORE_KEY = registerKey("cobalt_ore");
+    public static final RegistryKey<ConfiguredFeature<?, ?>> COBALT_ORE = registerKey("cobalt_ore");
 
     public static void bootstrap(Registerable<ConfiguredFeature<?, ?>> context) {
         RuleTest stoneReplaceables = new TagMatchRuleTest(BlockTags.STONE_ORE_REPLACEABLES);
         RuleTest deepslateReplaceables = new TagMatchRuleTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES);
 
-        List<OreFeatureConfig.Target> overworldPinkGarnetOres =
+        List<OreFeatureConfig.Target> cobaltOres =
                 List.of(OreFeatureConfig.createTarget(stoneReplaceables, ModBlocks.COBALT_ORE.getDefaultState()),
                         OreFeatureConfig.createTarget(deepslateReplaceables, ModBlocks.DEEPSLATE_COBALT_ORE.getDefaultState()));
 
-        register(context, COBALT_ORE_KEY, Feature.ORE, new OreFeatureConfig(overworldPinkGarnetOres, 8));
-
+        register(context, COBALT_ORE, Feature.ORE, new OreFeatureConfig(cobaltOres, 8));
     }
 
     public static RegistryKey<ConfiguredFeature<?, ?>> registerKey(String name) {

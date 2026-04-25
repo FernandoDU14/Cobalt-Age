@@ -2,10 +2,15 @@
   "item.cobaltrails.cobalt_ingot": "Lingote de cobalto",
   "item.cobaltrails.cobalt_nugget": "Pepita de cobalto",
   "item.cobaltrails.raw_cobalt": "Cobalto en bruto",
+  "item.cobaltrails.cobalt_dust_block": "Bloque cobalto en polvo",
   "item.cobaltrails.cobalt_rail": "Raíl de cobalto",
-
-  "item.cobaltrails.deepslate_cobalt_ore": "Mena de pizarra profunda de cobalto",
-  "item.cobaltrails.cobalt_ore": "Mena de cobalto",
+  "item.cobaltrails.deepslate_cobalt_ore": "Mineral de pizarra profunda de cobalto",
+  "item.cobaltrails.cobalt_ore": "Mineral de cobalto",
   "item.cobaltrails.cobalt_block": "Bloque de cobalto",
-  "item.cobaltrails.raw_cobalt_block": "Bloque de cobalto crudo"
+  "item.cobaltrails.raw_cobalt_block": "Block de cobalto en bruto",
+  "item.cobaltrails.cobalt_dust": "Polvo de cobalto",
+  "item.cobaltrails.cobalt_repeater": "Repetidor de cobalto",
+  "item.cobaltrails.cobalt_comparator": "Comparador de cobalto",
+  "item.cobaltrails.cobalt_torch": "Antorcha de cobalto",
+  "item.cobaltrails.converter": "Adaptador"
 }
