@@ -1,7 +1,7 @@
 {
     "ambientocclusion": false,
     "textures": {
-        "particle": "minecraft:block/repeater",
+        "particle": "cobaltrails:block/cobalt_repeater",
         "slab": "minecraft:block/smooth_stone",
         "top": "cobaltrails:block/cobalt_repeater",
         "lock": "minecraft:block/bedrock",

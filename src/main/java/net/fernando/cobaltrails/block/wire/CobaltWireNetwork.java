@@ -199,6 +199,14 @@ public class CobaltWireNetwork {
                         maxPower = Math.max(maxPower, source.getCobaltPower(neighborState, world, neighborPos)); // È un repeater ma guarda altrove, quindi 0 energia
                     }
                 }
+                else if (neighborState.getBlock() instanceof CobaltConverterBlock) {
+                    Direction cobaltSide = neighborState.get(CobaltConverterBlock.FACING);
+                    // Il convertitore cede Cobalt SOLO dalla faccia "Cobalt".
+                    // dir è la direzione dal cavo verso il convertitore.
+                    if (cobaltSide == dir.getOpposite()) {
+                        maxPower = Math.max(maxPower, source.getCobaltPower(neighborState, world, neighborPos));
+                    }
+                }
                 else{
                     maxPower = Math.max(maxPower, source.getCobaltPower(neighborState, world, neighborPos));
                 }
@@ -349,17 +357,5 @@ public class CobaltWireNetwork {
                 state.getBlock() instanceof LightningRodBlock ||
                 state.getBlock() instanceof TrappedChestBlock;
     }
-/*
-    // Helper per identificare i blocchi che DEVONO ricevere energia anche dalla cobalt dust
-    public static boolean isConsumerBlock(BlockState state) {
-        return compatibleCobaltPowerSource(state) ||
-                state.isOf(Blocks.COPPER_BULB) ||
-                state.isOf(Blocks.PISTON) ||
-                state.isOf(Blocks.STICKY_PISTON) ||
-                state.isOf(Blocks.REDSTONE_LAMP) ||
-                state.isOf(Blocks.NOTE_BLOCK) ||
-                state.getBlock() instanceof CobaltPowerSource; // Altri componenti Cobalt
-    }
-*/
 
 }

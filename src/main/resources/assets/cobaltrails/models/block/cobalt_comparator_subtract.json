@@ -1,7 +1,7 @@
 {
   "ambientocclusion": false,
   "textures": {
-    "particle": "minecraft:block/comparator",
+    "particle": "cobaltrails:block/cobalt_comparator",
     "slab": "minecraft:block/smooth_stone",
     "top": "cobaltrails:block/cobalt_comparator",
     "unlit": "cobaltrails:block/cobalt_torch_off",

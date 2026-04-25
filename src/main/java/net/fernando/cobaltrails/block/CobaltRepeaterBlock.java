@@ -18,7 +18,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
 
-
 public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable, CobaltPowerSource {
     public CobaltRepeaterBlock(Settings settings) {
         super(settings);
@@ -35,15 +34,34 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
     @Override
     public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
         if (state.get(POWERED)) {
-            // Cobalt Particles like the one we did in CobaltDustBlock.java
+            Direction direction = state.get(FACING);
+
+            // 1. Punto di partenza al centro del blocco (con leggera oscillazione casuale)
             double d = (double)pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
             double e = (double)pos.getY() + 0.4 + (random.nextDouble() - 0.5) * 0.2;
             double f = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
 
+            // 2. Calcolo della posizione della torcia
+            float g = -5.0F; // Offset della torcia fissa (quella posteriore)
+
+            if (random.nextBoolean()) {
+                // Offset della torcia mobile: cambia in base allo stato DELAY (1, 2, 3 o 4)
+                g = (float)(state.get(DELAY) * 2 - 1);
+            }
+
+            // Dividiamo per 16 per convertire i "pixel" del modello 3D in coordinate del blocco
+            g /= 16.0F;
+
+            // 3. Spostiamo la particella lungo l'asse X e Z corretto in base a dove guarda il repeater
+            double offsetX = (g * (float)direction.getOffsetX());
+            double offsetZ = (g * (float)direction.getOffsetZ());
+
+            // 4. Creiamo la tua particella personalizzata
             int cobaltBlue = (0) | (153 << 8) | 255;
             DustParticleEffect cobaltDust = new DustParticleEffect(cobaltBlue, 1.0f);
 
-            world.addParticleClient(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
+            // 5. Spawnamo la particella aggiungendo l'offset calcolato
+            world.addParticleClient(cobaltDust, d + offsetX, e, f + offsetZ, 0.0, 0.0, 0.0);
         }
     }
 

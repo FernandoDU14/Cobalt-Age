@@ -75,6 +75,9 @@ public class ModBlocks {
             settings -> new CobaltComparatorBlock(AbstractBlock.Settings.copy(Blocks.COMPARATOR)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(CobaltRails.MOD_ID, "cobalt_comparator")))));
 
+    public static final Block CONVERTER = registerBlock("converter",
+            settings -> new CobaltConverterBlock(settings.breakInstantly()
+                    .sounds(BlockSoundGroup.STONE).pistonBehavior(PistonBehavior.DESTROY)));
 
     public static final Block COBALT_DUST = registerBlockWithoutItem("cobalt_dust",
             new CobaltWireBlock(AbstractBlock.Settings.create()
@@ -122,6 +125,7 @@ public class ModBlocks {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(entries -> {
             entries.addAfter(Blocks.POWERED_RAIL, COBALT_RAIL);
             entries.addAfter(Items.REPEATER, COBALT_REPEATER);
+            entries.addAfter(COBALT_REPEATER, CONVERTER);
             entries.addAfter(Items.COMPARATOR, COBALT_COMPARATOR);
             entries.addAfter(Blocks.REDSTONE_BLOCK, COBALT_DUST_BLOCK);
         });

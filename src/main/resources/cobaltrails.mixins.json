@@ -1,34 +1,35 @@
 {
-	"required": true,
-	"package": "net.fernando.cobaltrails.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"AbstractMinecartMixin",
-		"BlockPowerFilterMixin",
-		"CalibratedSculkSensorCallbackMixin",
-		"ExampleMixin",
-		"MinecartBehaviorMixin",
-		"NewMinecartBehaviorMixin",
-		"RedstoneIsolationMixin",
-		"consumers.BellBlockMixin",
-		"consumers.CopperBulbMixin",
-		"consumers.CrafterBlockMixin",
-		"consumers.DispenserBlockMixin",
-		"consumers.DoorBlockMixin",
-		"consumers.FenceGateBlockMixin",
-		"consumers.HopperBlockMixin",
-		"consumers.NoteBlockMixin",
-		"consumers.PistonBlockMixin",
-		"consumers.PoweredRailMixin",
-		"consumers.RedstoneLampMixin",
-		"consumers.ShelfBlockMixin",
-		"consumers.TntBlockMixin",
-		"consumers.TrapdoorBlockMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
+  "required": true,
+  "package": "net.fernando.cobaltrails.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AbstractMinecartMixin",
+    "BlockPowerFilterMixin",
+    "CalibratedSculkSensorCallbackMixin",
+    "ExampleMixin",
+    "MinecartBehaviorMixin",
+    "NewMinecartBehaviorMixin",
+    "RedstoneIsolationMixin",
+    "consumers.BellBlockMixin",
+    "consumers.CopperBulbMixin",
+    "consumers.CrafterBlockMixin",
+    "consumers.DispenserBlockMixin",
+    "consumers.DoorBlockMixin",
+    "consumers.FenceGateBlockMixin",
+    "consumers.HopperBlockMixin",
+    "consumers.NoteBlockMixin",
+    "consumers.PistonBlockMixin",
+    "consumers.PoweredRailMixin",
+    "consumers.RedstoneLampMixin",
+    "consumers.ShelfBlockMixin",
+    "consumers.TntBlockMixin",
+    "consumers.TrapdoorBlockMixin",
+    "particles.LeverBlockMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
 	}
 }

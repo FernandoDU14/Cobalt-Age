@@ -1,0 +1,9 @@
+{
+  "parent": "cobaltrails:block/converter_base",
+  "textures": {
+    "top": "cobaltrails:block/converter_top",
+    "slab": "minecraft:block/smooth_stone",
+    "redstone_torch": "minecraft:block/redstone_torch",
+    "cobalt_torch": "cobaltrails:block/cobalt_torch"
+  }
+}

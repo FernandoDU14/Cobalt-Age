@@ -53,7 +53,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
                 .with(WEST, WireConnection.SIDE)
                 .with(WATERLOGGED, false));
     }
-
+    
     private static final VoxelShape DOT_SHAPE = Block.createCuboidShape(3.0, 0.0, 3.0, 13.0, 1.0, 13.0);
     private static final Map<Direction, VoxelShape> SHAPES_BY_DIRECTION = Maps.newEnumMap(ImmutableMap.of(
             Direction.NORTH, Block.createCuboidShape(3.0, 0.0, 0.0, 13.0, 1.0, 13.0),
