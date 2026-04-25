@@ -51,22 +51,39 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
 
     @Override
     public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
+        Direction facing = state.get(FACING);
+
+        // 1. Troviamo il centro esatto del blocco
+        double centerX = pos.getX() + 0.5;
+        double centerY = pos.getY() + 0.4; // L'altezza delle torce
+        double centerZ = pos.getZ() + 0.5;
+
+        // 2. Creiamo l'oscillazione casuale (il tremolio del fumo)
+        double randX = (random.nextDouble() - 0.5) * 0.2;
+        double randY = (random.nextDouble() - 0.5) * 0.2;
+        double randZ = (random.nextDouble() - 0.5) * 0.2;
+
+        // 3. Offset di distanza dal centro: 4 pixel (0.25 blocchi)
+        double offsetDistance = 0.25;
+
         if (state.get(COBALT_LIT)) {
-            double d = (double)pos.getX() + 0.75 + (random.nextDouble() - 0.5) * 0.2;
-            double e = (double)pos.getY() + 0.4;
-            double f = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
-            // Same of Dust - Particle Section
+            // La torcia Cobalt è spostata "IN AVANTI" rispetto al centro
+            double x = centerX + (facing.getOffsetX() * offsetDistance) + randX;
+            double y = centerY + randY;
+            double z = centerZ + (facing.getOffsetZ() * offsetDistance) + randZ;
+
             int cobaltBlue = (0) | (153 << 8) | 255;
             DustParticleEffect cobaltDust = new DustParticleEffect(cobaltBlue, 1.0f);
-
-            world.addParticleClient(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
+            world.addParticleClient(cobaltDust, x, y, z, 0.0, 0.0, 0.0);
         }
 
         if (state.get(REDSTONE_LIT)) {
-            double d = (double)pos.getX() + (double)0.25F + (random.nextDouble() - (double)0.5F) * 0.2;
-            double e = (double)pos.getY() + 0.4 + (random.nextDouble() - (double)0.5F) * 0.2;
-            double f = (double)pos.getZ() + (double)0.5F + (random.nextDouble() - (double)0.5F) * 0.2;
-            world.addParticleClient(DustParticleEffect.DEFAULT, d, e, f, 0.0F, 0.0F, 0.0F);
+            // La torcia Redstone è spostata "ALL'INDIETRO" rispetto al centro (nota il segno meno)
+            double x = centerX - (facing.getOffsetX() * offsetDistance) + randX;
+            double y = centerY + randY;
+            double z = centerZ - (facing.getOffsetZ() * offsetDistance) + randZ;
+
+            world.addParticleClient(DustParticleEffect.DEFAULT, x, y, z, 0.0F, 0.0F, 0.0F);
         }
     }
 
@@ -94,9 +111,22 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
     }
 
     @Override
+    public boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
+        BlockPos floorPos = pos.down();
+        BlockState floorState = world.getBlockState(floorPos);
+
+        // This will allow the placement only and only if the block under is valid and is not another Cobalt Dust
+        return floorState.isSideSolidFullSquare(world, floorPos, Direction.UP) || floorState.isOf(Blocks.HOPPER);
+    }
+
+    @Override
     public BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
         if (state.get(WATERLOGGED)) {
             tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+        }
+        // ❌ se non può stare lì → aria
+        if (!state.canPlaceAt(world, pos)) {
+            return Blocks.AIR.getDefaultState();
         }
         return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
