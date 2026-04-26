@@ -5,7 +5,7 @@
 This mod adds a new mineral to the game, the cobalt, which can be found in the overworld. The main feature of this mineral is to work on a similar way to redstone, being different on the aspect that it can be waterlogged and the fact that it is completely independent of redstone, making it possible to have parallel lines without them interfering each-other.
 
 <details>
-  <summary><b>Showcase</b></summary>
+  <summary><b>Spoiler</b></summary>
 
 <img src="./src/images/Cobalt-redstone%20independence.png" width="600">
 
@@ -14,7 +14,7 @@ This mod adds a new mineral to the game, the cobalt, which can be found in the o
 It also comes with a new set of redstone components, similar to their redstone counterpart, that react with cobalt, a converter, which works as a bridge between cobalt and redstone, and a new type of rail: the cobalt rail.
 
 <details>
-  <summary><b>Here the full cobalt set:</b></summary>
+  <summary><b>Spoiler</b></summary>
 
 <img src="./src/images/Cobalt%20set.png" width="600">
 
@@ -34,7 +34,7 @@ Although the speed of both type of rails can be modified, we recommend that at l
 ### Converter
 The converter is a block that works as a bridge between redstone and cobalt, letting players transform the energy source from type to the other. This also helps as ensure there is a way to connect cobalt to modded redstone machinery.
 <details>
-  <summary><b>Showcase:</b></summary>
+  <summary><b>Spoiler</b></summary>
 
 <img src="./src/images/Converter.png" width="600">
 
@@ -46,7 +46,7 @@ The converter is a block that works as a bridge between redstone and cobalt, let
 We have included two optional resource packs on this mod. One makes the cobalt rails have a 3D appereance. The other one lets the player see the power level the cobalt dust is emitting on a similar way to how the VanillaTweaks resource pack does.
 
 <details>
-  <summary><b>Showcase</b></summary>
+  <summary><b>Spoiler</b></summary>
 
 <img src="./src/images/Cobalt%20power%20level.png" width="600">
 <img src="./src/images/Cobalt%20rails%203D.png" width="200">
