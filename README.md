@@ -2,7 +2,7 @@
 
 # About
 
-This mod adds a new mineral to the game, the cobalt, which can be found in the overworld. The main feature of this mod is to work on a similar way to redstone, being different on the aspect that it can be waterlogged and the fact that it is completely independent of redstone, making it possible to have parallel lines without them interfering each-other.
+This mod adds a new mineral to the game, the cobalt, which can be found in the overworld. The main feature of this mineral is to work on a similar way to redstone, being different on the aspect that it can be waterlogged and the fact that it is completely independent of redstone, making it possible to have parallel lines without them interfering each-other.
 
 <details>
   <summary><b>Showcase</b></summary>
