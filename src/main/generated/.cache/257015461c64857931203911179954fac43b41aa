@@ -1,4 +1,4 @@
 // 1.21.11	-999999999-01-01T00:00:00	Cobalt Age/Tags for minecraft:block
-2aefb87150382806a362efd196b708ddf012b81e data/minecraft/tags/block/mineable/pickaxe.json
-a330c6ebb4b5f744aecfc89f7b4d36f2e88a429f data/minecraft/tags/block/needs_iron_tool.json
-c0f0df5e0391d15a69d7d2dfdd5df3dfa2379631 data/minecraft/tags/block/rails.json
+9316f47020a5abde6dc58852209bfa3d608d05de data/minecraft/tags/block/mineable/pickaxe.json
+d2469c0ef70e36f5d0bc0fad5cb338c9d2046022 data/minecraft/tags/block/needs_iron_tool.json
+8aacd91f3e2aaab08e0af5d60e70390aa4351d37 data/minecraft/tags/block/rails.json

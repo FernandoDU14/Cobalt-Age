@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "cobaltrails",
+	"id": "cobaltage",
 	"version": "${version}",
 	"name": "Cobalt Age",
 	"description": "The first redstone alternative, finally waterloggable and faster, comes with a new mineral",
@@ -13,17 +13,17 @@
 		"sources": "https://github.com/FernandoDU14/Cobalt-Age"
 	},
 	"license": "All Rights Reserved",
-	"icon": "assets/cobaltrails/cobalt_rails.png",
+	"icon": "assets/cobaltage/cobalt_age.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"net.fernando.cobaltrails.CobaltRails"
+			"net.fernando.cobaltage.CobaltAge"
 		],
 		"fabric-datagen": [
-			"net.fernando.cobaltrails.CobaltRailsDataGenerator"
+			"net.fernando.cobaltage.CobaltAgeDataGenerator"
 		],
         "client": [
-            "net.fernando.cobaltrails.CobaltRailsClient"
+            "net.fernando.cobaltage.CobaltAgeClient"
         ]
 	},
 	"mixins": [

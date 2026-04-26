@@ -1,0 +1,17 @@
+{
+  "item.cobaltage.cobalt_ingot": "Cobalt Ingot",
+  "item.cobaltage.cobalt_nugget": "Cobalt Nugget",
+  "item.cobaltage.raw_cobalt": "Raw Cobalt",
+  "item.cobaltage.cobalt_dust_block": "Block of Cobalt Dust",
+  "item.cobaltage.cobalt_rail": "Cobalt Rail",
+
+  "item.cobaltage.deepslate_cobalt_ore": "Deepslate Cobalt Ore",
+  "item.cobaltage.cobalt_ore": "Cobalt Ore",
+  "item.cobaltage.cobalt_block": "Block of Cobalt",
+  "item.cobaltage.raw_cobalt_block": "Block of Raw Cobalt",
+  "item.cobaltage.cobalt_dust": "Cobalt Dust",
+  "item.cobaltage.cobalt_repeater": "Cobalt Repeater",
+  "item.cobaltage.cobalt_comparator": "Cobalt Comparator",
+  "item.cobaltage.cobalt_torch": "Cobalt Torch",
+  "item.cobaltage.converter": "Converter"
+}

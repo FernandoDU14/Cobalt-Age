@@ -1,0 +1,16 @@
+{
+  "item.cobaltage.cobalt_ingot": "Lingote de cobalto",
+  "item.cobaltage.cobalt_nugget": "Pepita de cobalto",
+  "item.cobaltage.raw_cobalt": "Cobalto en bruto",
+  "item.cobaltage.cobalt_dust_block": "Bloque cobalto en polvo",
+  "item.cobaltage.cobalt_rail": "Raíl de cobalto",
+  "item.cobaltage.deepslate_cobalt_ore": "Mineral de pizarra profunda de cobalto",
+  "item.cobaltage.cobalt_ore": "Mineral de cobalto",
+  "item.cobaltage.cobalt_block": "Bloque de cobalto",
+  "item.cobaltage.raw_cobalt_block": "Block de cobalto en bruto",
+  "item.cobaltage.cobalt_dust": "Polvo de cobalto",
+  "item.cobaltage.cobalt_repeater": "Repetidor de cobalto",
+  "item.cobaltage.cobalt_comparator": "Comparador de cobalto",
+  "item.cobaltage.cobalt_torch": "Antorcha de cobalto",
+  "item.cobaltage.converter": "Adaptador"
+}

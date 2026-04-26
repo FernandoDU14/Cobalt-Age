@@ -1,6 +1,6 @@
 // 1.21.11	-999999999-01-01T00:00:00	Cobalt Age/Block Loot Tables
-f647be5cffb8fb2313c7e3684b517256a060ddb7 data/cobaltrails/loot_table/blocks/cobalt_block.json
-10f610cc414f2a6bf11026aba1e5ba85d7bc8286 data/cobaltrails/loot_table/blocks/cobalt_dust_block.json
-ddc6c3fb7ecdab815550e1cc452db91f345ff344 data/cobaltrails/loot_table/blocks/cobalt_ore.json
-e97d3d7875e53792f8d533b6161c7911340438e7 data/cobaltrails/loot_table/blocks/deepslate_cobalt_ore.json
-2a628797e8f04ec48eb624fb21b079956f9d0ae3 data/cobaltrails/loot_table/blocks/raw_cobalt_block.json
+097072bbdc598c0afe5898d020854e406b5c300d data/cobaltage/loot_table/blocks/cobalt_block.json
+56d6cd0dafd7ff9f9322cb881f785231eaf302bc data/cobaltage/loot_table/blocks/cobalt_dust_block.json
+581afbcfb076efc5051bf8e3707b5b698c3b1060 data/cobaltage/loot_table/blocks/cobalt_ore.json
+6ef65b9ee8852fc314d06eed1a630a80eb49d0ca data/cobaltage/loot_table/blocks/deepslate_cobalt_ore.json
+e902ef3a09ef6aa21c91c53c98d048aa478bc762 data/cobaltage/loot_table/blocks/raw_cobalt_block.json

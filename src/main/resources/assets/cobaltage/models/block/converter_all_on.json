@@ -1,0 +1,9 @@
+{
+  "parent": "cobaltage:block/converter_base",
+  "textures": {
+    "top": "cobaltage:block/converter_top",
+    "slab": "minecraft:block/smooth_stone",
+    "redstone_torch": "minecraft:block/redstone_torch",
+    "cobalt_torch": "cobaltage:block/cobalt_torch"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    "cobaltage:cobalt_nugget",
+    "minecraft:redstone"
+  ],
+  "result": {
+    "count": 1,
+    "id": "cobaltage:cobalt_dust"
+  }
+}

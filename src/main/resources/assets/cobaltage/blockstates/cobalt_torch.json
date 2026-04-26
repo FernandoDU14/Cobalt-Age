@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "cobaltage:block/cobalt_torch_off"
+    },
+    "lit=true": {
+      "model": "cobaltage:block/cobalt_torch"
+    }
+  }
+}

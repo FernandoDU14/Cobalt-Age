@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:block/template_torch_unlit",
-  "textures": {
-    "torch": "cobaltrails:block/cobalt_torch_off"
-  }
-}

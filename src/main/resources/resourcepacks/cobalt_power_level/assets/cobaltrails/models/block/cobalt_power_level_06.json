@@ -1,6 +1,0 @@
-{
-  "parent": "cobaltrails:block/template_cobalt_power_level",
-  "textures": {
-    "level": "cobaltrails:block/cobalt_power_level_06"
-  }
-}

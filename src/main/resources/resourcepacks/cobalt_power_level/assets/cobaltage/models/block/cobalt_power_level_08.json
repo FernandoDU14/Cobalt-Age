@@ -1,0 +1,6 @@
+{
+  "parent": "cobaltage:block/template_cobalt_power_level",
+  "textures": {
+    "level": "cobaltage:block/cobalt_power_level_08"
+  }
+}
