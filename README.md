@@ -11,7 +11,7 @@ This mod adds a new mineral to the game, the cobalt, which can be found in the o
 
 </details>
 
-It also comes with a new set of redstone components, similar to their redstone counterpart, that react with cobalt, a converter, which works as a bridge between cobalt and redstone,and a new type of rail: the cobalt rail.
+It also comes with a new set of redstone components, similar to their redstone counterpart, that react with cobalt, a converter, which works as a bridge between cobalt and redstone, and a new type of rail: the cobalt rail.
 
 <details>
   <summary><b>Here the full cobalt set:</b></summary>
