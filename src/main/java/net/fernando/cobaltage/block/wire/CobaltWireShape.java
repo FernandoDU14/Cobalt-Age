@@ -102,6 +102,7 @@ public class CobaltWireShape {
             if (stateAboveNeighbor.getBlock() instanceof CobaltWireBlock) { // <--- RESTRIZIONE
 
                 if (neighborState.getBlock() instanceof TransparentBlock ||
+                        neighborState.getBlock() instanceof IceBlock ||
                         neighborState.isSolidBlock(world, neighborPos)) {
                     return WireConnection.UP;
                 }
@@ -119,6 +120,7 @@ public class CobaltWireShape {
                 // Il cavo cerca di collegarsi (DA SOPRA) solo se il blocco SOTTO il cavo attuale è solido o glass.
                 if (stateBelowMe.getBlock() instanceof TransparentBlock ||
                         stateBelowMe.getBlock() instanceof SlabBlock ||
+                        stateBelowMe.getBlock() instanceof IceBlock ||
                         stateBelowMe.isSolidBlock(world, pos.down())) {
                     return WireConnection.SIDE;
                 }

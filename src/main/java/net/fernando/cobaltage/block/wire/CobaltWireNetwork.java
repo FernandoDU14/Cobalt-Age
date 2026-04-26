@@ -33,6 +33,21 @@ public class CobaltWireNetwork {
             CobaltWireNode startNode = getOrAddWireNode(world, startPos);
             if (startNode == null) return;
 
+            // ⚡ LAG FIX 1: FAST ABORT ⚡
+            // Calcola subito la potenza esterna del nodo di partenza
+            startNode.externalPower = calculateExternalPower(world, startNode.pos);
+            startNode.virtualPower = startNode.externalPower;
+            startNode.externalCalculated = true;
+
+            // Il "potenziale" di questo nodo è il massimo tra quello che aveva prima e quello nuovo
+            startNode.potentialPower = Math.max(startNode.currentPower, startNode.externalPower);
+
+            // Se questo blocco è a 0 e non riceve energia, NON POTRÀ MAI accendere i suoi vicini.
+            // Questo ferma il lag quando usi il comando /fill per 10.000 blocchi!
+            if (startNode.potentialPower == 0) {
+                return;
+            }
+
             startNode.discovered = true;
             searchQueue.add(startNode);
 
@@ -58,10 +73,15 @@ public class CobaltWireNetwork {
             CobaltWireNode node = searchQueue.poll();
             node.searched = true;
 
-            // Calcola potenza esterna usando la tua logica preesistente
-            node.externalPower = calculateExternalPower(world, node.pos);
-            node.virtualPower = node.externalPower;
+            // Calcola potenza esterna solo se non l'abbiamo già fatto
+            if (!node.externalCalculated) {
+                node.externalPower = calculateExternalPower(world, node.pos);
+                node.virtualPower = node.externalPower;
+                node.externalCalculated = true;
 
+                // Aggiorniamo il potenziale se l'energia esterna è maggiore
+                node.potentialPower = Math.max(node.potentialPower, node.externalPower);
+            }
             // Trova vicini e mettili in cache nel nodo!
             findAndCacheConnectedWires(world, node);
 
@@ -152,11 +172,23 @@ public class CobaltWireNetwork {
         CobaltWireNode target = getOrAddWireNode(world, targetPos);
         if (target != null) {
             // --- 1. SCOPERTA (Sempre bidirezionale) ---
+
+            // ⚡ LAG FIX 2: BOUNDED SEARCH (Ricerca Delimitata) ⚡
+            // Calcoliamo quanta energia teorica massima questo ramo può propagare (1 in meno del padre)
+            int powerToTransmit = source.potentialPower - 1;
+
+            // Il potenziale del target è il massimo tra la sua energia reale e quella che stiamo esplorando
+            int targetPotential = Math.max(target.currentPower, powerToTransmit);
+
             // Aggiungiamo il vicino alla coda di ricerca a prescindere dal diodo.
             // Questo serve per "trovare" il cavo e aggiornarlo se la corrente viene troncata.
-            if (!target.discovered) {
+            if (targetPotential > 0 && !target.discovered) {
                 target.discovered = true;
+                target.potentialPower = targetPotential;
                 searchQueue.add(target);
+            } else if (target.discovered && targetPotential > target.potentialPower) {
+                // Se lo avevamo già scoperto ma troviamo un percorso energeticamente migliore
+                target.potentialPower = targetPotential;
             }
 
             // --- 2. PROPAGAZIONE (Logica del Diodo) ---
@@ -307,6 +339,11 @@ public class CobaltWireNetwork {
 
             // Cobalt Firewall
             if (isVanillaRedstone(neighborState)) continue;
+
+            // ⚡ LAG FIX DEFINITIVO: Salta le polveri di Cobalto! ⚡
+            // Le polveri sono GIÀ state aggiornate dal nostro algoritmo (Fase 2 e 3).
+            // Se le avvisiamo, scateniamo un nuovo updateNetwork a catena.
+            if (neighborState.getBlock() instanceof CobaltWireBlock) continue;
 
             // Notifica il blocco vicino che l'energia è cambiata
             world.updateNeighbor(neighborPos, world.getBlockState(node.pos).getBlock(), null);
