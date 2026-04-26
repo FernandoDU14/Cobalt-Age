@@ -132,8 +132,11 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
     }
 
 
-    protected int getCobaltInputPower(World world, BlockPos pos, BlockState state) {
+    protected int getCobaltInputPower(World world, BlockPos pos, BlockState state, Boolean InvertFacing) {
         Direction direction = state.get(FACING);
+        if(InvertFacing){
+            direction = direction.getOpposite();
+        }
         BlockPos rearPos = pos.offset(direction);
         BlockState rearState = world.getBlockState(rearPos);
 
@@ -209,11 +212,14 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
         BlockPos redstoneSideBlockPos = pos.offset(redstoneSide);
 
         // 1. Leggi segnali
-        int cobaltIn = getCobaltInputPower(world, pos, state);
+        int cobaltIn = getCobaltInputPower(world, pos, state, false);
         int redstoneIn = world.getEmittedRedstonePower(redstoneSideBlockPos, redstoneSide);
 
-        int currentPower = state.get(POWER);
+
+        int currentPower = 0;
         boolean isCobaltInputMode = state.get(COBALT_INPUT);
+        boolean actualRedstoneLit = state.get(REDSTONE_LIT);
+        boolean actualCobaltLit = state.get(COBALT_LIT);
 
         int newPower = 0;
         boolean nextCobaltInput = isCobaltInputMode;
@@ -223,18 +229,19 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
             // Stiamo traducendo da Cobalt a Redstone
             if (cobaltIn > 0) {
                 newPower = cobaltIn - 1;
-            } else {
-                // Cobalt si è spento. Spegniamo immediatamente SENZA leggere redstoneIn.
-                // Questo impedisce al convertitore di leggere la sua stessa Redstone in uscita.
-                newPower = 0;
             }
+            currentPower = state.get(POWER);
         } else {
             // Stiamo traducendo da Redstone a Cobalt
             if (redstoneIn > 0) {
-                newPower = redstoneIn - 1;
+                // ulteriore controllo che non sia sorgente cobalt:
+                if(getCobaltInputPower(world, pos, state, true) == 0){
+                    currentPower = state.get(POWER);
+                    newPower = redstoneIn - 1;
+                }
             } else {
                 // Redstone spenta. Spegniamo tutto.
-                newPower = 0;
+                currentPower = state.get(POWER);
             }
         }
 
@@ -246,8 +253,10 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
                 newPower = cobaltIn - 1;
                 nextCobaltInput = true;
             } else if (redstoneIn > 0) {
-                newPower = redstoneIn - 1;
-                nextCobaltInput = false;
+                if(getCobaltInputPower(world, pos, state, true) == 0){
+                    newPower = redstoneIn - 1;
+                    nextCobaltInput = false;
+                }
             }
         }
 
@@ -256,6 +265,22 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
 
         // Se qualcosa è cambiato, aggiorniamo il mondo
         if (currentPower != newPower || isCobaltInputMode != nextCobaltInput) {
+
+
+            if (actualRedstoneLit == actualCobaltLit) {
+                // se è tutto spento
+                if(!actualRedstoneLit){
+                    // però mi sto accendendo
+                    world.playSound(null, pos, SoundEvents.BLOCK_COMPARATOR_CLICK, SoundCategory.BLOCKS, 0.1F, 0.55F);
+                }
+            }else{
+                // se è acceso, e mi sto spegnendo
+                if(!actualRedstoneLit){
+                    world.playSound(null, pos, SoundEvents.BLOCK_CRAFTER_FAIL, SoundCategory.BLOCKS, 0.9F, 0.55F);
+                }
+            }
+
+
             BlockState newState = state
                     .with(POWER, newPower)
                     .with(COBALT_INPUT, nextCobaltInput)
@@ -264,9 +289,6 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
 
             world.setBlockState(pos, newState, Block.NOTIFY_ALL);
             updateNeighbors(world, pos, newState);
-            if(nextCobaltLit || nextRedstoneLit){
-                world.playSound(null, pos, SoundEvents.BLOCK_COMPARATOR_CLICK, SoundCategory.BLOCKS, 0.3F, 0.6F);
-            }
         }
     }
 

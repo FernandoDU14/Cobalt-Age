@@ -4,7 +4,6 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.fernando.cobaltrails.block.ModBlocks;
 import net.fernando.cobaltrails.item.ModItems;
-import net.minecraft.block.Blocks;
 import net.minecraft.data.recipe.RecipeExporter;
 import net.minecraft.data.recipe.RecipeGenerator;
 import net.minecraft.item.ItemConvertible;
@@ -14,6 +13,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
+import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -27,7 +27,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
 
     @Override
-    protected RecipeGenerator getRecipeGenerator(RegistryWrapper.WrapperLookup registries, RecipeExporter exporter) {
+    protected @NonNull RecipeGenerator getRecipeGenerator(RegistryWrapper.@NonNull WrapperLookup registries, @NonNull RecipeExporter exporter) {
         return new RecipeGenerator(registries, exporter) {
             @Override
             public void generate() {
@@ -78,7 +78,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 createShaped(RecipeCategory.REDSTONE, ModBlocks.CONVERTER)
                         .pattern("CQT")
                         .pattern("SSS")
-                        .input('C', ModBlocks.COBALT_TORCH)
+                        .input('C', ModItems.COBALT_TORCH)
                         .input('Q', Items.QUARTZ)
                         .input('T', Items.REDSTONE_TORCH)
                         .input('S', Items.STONE)
@@ -89,10 +89,19 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .pattern(" C ")
                         .pattern("CQC")
                         .pattern("SSS")
-                        .input('C', ModBlocks.COBALT_TORCH)
-                        .input('S', Blocks.STONE)
+                        .input('C', ModItems.COBALT_TORCH)
+                        .input('S', Items.STONE)
                         .input('Q', Items.QUARTZ)
-                        .criterion(hasItem(ModBlocks.COBALT_TORCH), conditionsFromItem(ModBlocks.COBALT_TORCH))
+                        .criterion(hasItem(ModItems.COBALT_TORCH), conditionsFromItem(ModItems.COBALT_TORCH))
+                        .offerTo(exporter);
+
+                createShaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_REPEATER)
+                        .pattern("CDC")
+                        .pattern("SSS")
+                        .input('C', ModItems.COBALT_TORCH)
+                        .input('S', Items.STONE)
+                        .input('D', ModItems.COBALT_DUST)
+                        .criterion(hasItem(ModItems.COBALT_TORCH), conditionsFromItem(ModItems.COBALT_TORCH))
                         .offerTo(exporter);
             }
         };
