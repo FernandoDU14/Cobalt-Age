@@ -57,4 +57,6 @@ We have included two optional resource packs on this mod. One makes the cobalt r
 
 You can use this mod freely in your modpacks, but please give credit to the original author and link back to this page. If you want to make a video about this mod, please also give credit and link back to this page.
 
+If you want to suggest a feature or report a bug, please open an issue on the GitHub repository.
+
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Cobalt--Age-blue?style=for-the-badge&logo=github)](https://github.com/FernandoDU14/Cobalt-Age)
