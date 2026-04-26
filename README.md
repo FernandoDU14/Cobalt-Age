@@ -60,3 +60,8 @@ You can use this mod freely in your modpacks, but please give credit to the orig
 If you want to suggest a feature or report a bug, please open an issue on the GitHub repository.
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Cobalt--Age-blue?style=for-the-badge&logo=github)](https://github.com/FernandoDU14/Cobalt-Age)
+<center>
+  <a href="https://www.patreon.com/cobaltage">
+    <img src="https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Support me on Patreon">
+  </a>
+</center>
