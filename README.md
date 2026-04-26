@@ -1,31 +1,60 @@
-The first redstone alternative, finally waterloggable and faster, comes with a new mineral: The Cobalt. Cobalt Dust uses a modern system to compute results, resulting huge performance gain respect Redstone. Cobalt sets comes waterloggable.
+![Cobalt Age Title](./src/images/cobalt_age_title.png)
 
-# Cobalt Age: The Faster Transport System Alternative
-CobaltAge isn't just a transport mod; it's a complete rewrite of energy and non-energy transport in Minecraft. Based on the magnetic and conductive power of cobalt, this mod introduces Cobalt Dust, a completely **parallel and independent energy system from Redstone**, designed for Minecrafters seeking precision, speed, and technical isolation. This Dust is up to 1000 times faster than Redstone in Huge closed circuits, and it is waterloggable!
-This mod also introdues the Cobalt Rails. They can push the carts up to 24 B/s!
+# About
 
-### The First Waterloggable Redstone Alternative
-Cobalt Dust, and all its components (Cobalt Repeater, Cobalt Comparator, and Cobalt Converter), are the cornerstone of a new technological era. Every component forged from this material guarantees complete optimization and waterlogging properties.
+This mod adds a new mineral to the game, the cobalt, which can be found in the overworld. The main feature of this mod is to work on a similar way to redstone, being different on the aspect that it can be waterlogged and the fact that it is completely independent of redstone, making it possible to have parallel lines without them interfering each-other.
 
-### An Independent Energy System
-The main feature of Cobalt Dust is its complete **independence from Redstone**. **Zero Interference**: Cobalt wires will never connect to Redstone dust. You can run the two circuits side by side without any risk of cross-talk.
+<details>
+  <summary><b>Showcase</b></summary>
 
-### The Alternative for Huge Machines
-Thanks to the complete different update system, the Cobalt Dust speed is pushed to the limit. Every closed circuit is computed in a single tick without experiencing the huge redstone lags, but keeping the same update rules of the classical redstone
+<img src="./src/images/Cobalt-redstone%20independence.png" width="600">
 
-### Components (all waterloggable)
+</details>
 
-- Cobalt Repeater
-- Cobalt Comparator
-- Converter
-- Cobalt Torches
-- Block of Cobalt Dust
-- Block of Cobalt
-- Raw Cobalt Block, Cobalt Ingot, Cobalt Nuggets
+It also comes with a new set of redstone components, similar to their redstone counterpart, that react with cobalt, a converter, which works as a bridge between cobalt and redstone,and a new type of rail: the cobalt rail.
 
-### The Converter: The Bridge Between Two Systems
-Despite the isolated nature of Cobalt, integration is essential: this is why the Converter is present: this directional block acts as a universal "translator" and a bridge between the two independent energy systems: Isolation is a choice, communication is a possibility.
+<details>
+  <summary><b>Here the full cobalt set:</b></summary>
 
-# Installation
+<img src="./src/images/cobalt set.png" width="600">
 
-Put in mods folder and launch your game. You can use 2 optional resource packs. One for rendering 3D Cobalt Rails (useful if you use 3D Rails Resource Packs to have consistency) and another one for seeing the cobalt wire power (If you need that!)
+</details>
+
+### Cobalt Rail
+This new rail works on a similar way to the powered rail, with the main difference between them being the speed of the cobalt rail, which is of 24BPS, as it is meant for long distance travels.
+
+**IMPORTANT!**
+To make the cobalt rail reach the speed of 24BPS, it is necessary to activate the experimental minecart improvements.
+
+There is also a new custom gamerule added that lets modify both the speed of both type of rails (powered and cobalt one).
+Which is this one: `gamerule cobaltAgeRailSpeed <value>`, being the value the speed in BPS (blocks per second). Keep in mind that is also necessary to modify the gamerule `max_minecart_speed`. 
+
+Although the speed of both type of rails can be modified, we recommend that at least one of the rails keeps the vanilla speed (8BPS).
+
+### Converter
+The converter is a block that works as a bridge between redstone and cobalt, letting players transform the energy source from type to the other. This also helps as ensure there is a way to connect cobalt to modded redstone machinery.
+<details>
+  <summary><b>Showcase:</b></summary>
+
+<img src="./src/images/converter.png" width="600">
+
+</details>
+
+---
+# Resource packs
+
+We have included two optional resource packs on this mod. One makes the cobalt rails have a 3D appereance. The other one lets the player see the power level the cobalt dust is emitting on a similar way to how the VanillaTweaks resource pack does.
+
+<details>
+  <summary><b>Showcase</b></summary>
+
+<img src="./src/images/cobalt power level.png" width="600">
+<img src="./src/images/cobalt rails 3D.png" width="200">
+
+</details>
+
+---
+
+You can use this mod freely in your modpacks, but please give credit to the original author and link back to this page. If you want to make a video about this mod, please also give credit and link back to this page.
+
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Cobalt--Age-blue?style=for-the-badge&logo=github)](https://github.com/FernandoDU14/Cobalt-Age)

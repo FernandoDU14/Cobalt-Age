@@ -48,7 +48,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 offerReversibleCompactingRecipes(RecipeCategory.MISC, ModItems.RAW_COBALT,
                         RecipeCategory.BUILDING_BLOCKS, ModBlocks.RAW_COBALT_BLOCK);
 
-                createShaped(RecipeCategory.MISC, ModBlocks.COBALT_RAIL)
+                createShaped(RecipeCategory.MISC, ModBlocks.COBALT_RAIL, 6)
                         .pattern("C C")
                         .pattern("CBC")
                         .pattern("CRC")
