@@ -28,7 +28,9 @@ import net.minecraft.world.RedstoneView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.block.WireOrientation;
+import net.minecraft.world.tick.OrderedTick;
 import net.minecraft.world.tick.ScheduledTickView;
+import net.minecraft.world.tick.TickPriority;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -175,12 +177,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
             // Se il segnale è cambiato, programmiamo un tick per aggiornare
             world.getBlockTickScheduler().scheduleTick(
 
-                    new net.minecraft.world.tick.OrderedTick<>(
-                            this,           // Il blocco (CobaltComparatorBlock)
-                            pos,            // La posizione
-                            world.getTime() + 2, // La priorità
-                            net.minecraft.world.tick.TickPriority.NORMAL, // Il tempo esatto in cui deve scattare (Tempo attuale + 2 tick)
-                            0L
+                    new OrderedTick<>(this, pos, world.getTime() + 2,
+                            TickPriority.NORMAL, 0L
                     )
 
             );

@@ -84,6 +84,16 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .input('S', Items.STONE)
                         .criterion(hasItem(ModItems.COBALT_TORCH), conditionsFromItem(ModItems.COBALT_TORCH))
                         .offerTo(exporter);
+
+                createShaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_COMPARATOR)
+                        .pattern(" C ")
+                        .pattern("CQC")
+                        .pattern("SSS")
+                        .input('C', ModBlocks.COBALT_TORCH)
+                        .input('S', Blocks.STONE)
+                        .input('Q', Items.QUARTZ)
+                        .criterion(hasItem(ModBlocks.COBALT_TORCH), conditionsFromItem(ModBlocks.COBALT_TORCH))
+                        .offerTo(exporter);
             }
         };
     }

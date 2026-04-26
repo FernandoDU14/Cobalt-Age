@@ -1,6 +1,6 @@
 The first redstone alternative, finally waterloggable and faster, comes with a new mineral: The Cobalt. Cobalt Dust uses a modern system to compute results, resulting huge performance gain respect Redstone. Cobalt sets comes waterloggable.
 
-# Cobalt Age: The Faster Transport System Alternative 
+# Cobalt Age: The Faster Transport System Alternative
 CobaltAge isn't just a transport mod; it's a complete rewrite of energy and non-energy transport in Minecraft. Based on the magnetic and conductive power of cobalt, this mod introduces Cobalt Dust, a completely **parallel and independent energy system from Redstone**, designed for Minecrafters seeking precision, speed, and technical isolation. This Dust is up to 1000 times faster than Redstone in Huge closed circuits, and it is waterloggable!
 This mod also introdues the Cobalt Rails. They can push the carts up to 24 B/s!
 
@@ -20,7 +20,7 @@ Thanks to the complete different update system, the Cobalt Dust speed is pushed 
 - Converter
 - Cobalt Torches
 - Block of Cobalt Dust
-- Block of Cobalt 
+- Block of Cobalt
 - Raw Cobalt Block, Cobalt Ingot, Cobalt Nuggets
 
 ### The Converter: The Bridge Between Two Systems
