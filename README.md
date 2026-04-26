@@ -16,7 +16,7 @@ It also comes with a new set of redstone components, similar to their redstone c
 <details>
   <summary><b>Here the full cobalt set:</b></summary>
 
-<img src="./src/images/cobalt set.png" width="600">
+<img src="./src/images/Cobalt%20set.png" width="600">
 
 </details>
 
@@ -36,7 +36,7 @@ The converter is a block that works as a bridge between redstone and cobalt, let
 <details>
   <summary><b>Showcase:</b></summary>
 
-<img src="./src/images/converter.png" width="600">
+<img src="./src/images/Converter.png" width="600">
 
 </details>
 
@@ -48,8 +48,8 @@ We have included two optional resource packs on this mod. One makes the cobalt r
 <details>
   <summary><b>Showcase</b></summary>
 
-<img src="./src/images/cobalt power level.png" width="600">
-<img src="./src/images/cobalt rails 3D.png" width="200">
+<img src="./src/images/Cobalt%20power%20level.png" width="600">
+<img src="./src/images/Cobalt%20rails%203D.png" width="200">
 
 </details>
 
