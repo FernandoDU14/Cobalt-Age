@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "cobaltage:cobalt_ingot"
+  ],
+  "result": {
+    "count": 9,
+    "id": "cobaltage:cobalt_nugget"
+  }
+}

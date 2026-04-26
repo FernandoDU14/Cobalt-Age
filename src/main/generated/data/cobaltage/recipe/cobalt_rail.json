@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:breeze_rod",
+    "C": "cobaltage:cobalt_ingot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "C C",
+    "CBC",
+    "CRC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "cobaltage:cobalt_rail"
+  }
+}

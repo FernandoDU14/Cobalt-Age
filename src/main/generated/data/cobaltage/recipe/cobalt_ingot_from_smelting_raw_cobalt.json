@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 1.0,
+  "group": "cobalt_ingot",
+  "ingredient": "cobaltage:raw_cobalt",
+  "result": {
+    "id": "cobaltage:cobalt_ingot"
+  }
+}
