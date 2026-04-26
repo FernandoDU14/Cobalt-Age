@@ -32,7 +32,7 @@ Which is this one: `gamerule cobaltAgeRailSpeed <value>`, being the value the sp
 Although the speed of both type of rails can be modified, we recommend that at least one of the rails keeps the vanilla speed (8BPS).
 
 ### Converter
-The converter is a block that works as a bridge between redstone and cobalt, letting players transform the energy source from type to the other. This also helps as ensure there is a way to connect cobalt to modded redstone machinery.
+The converter is a block that works as a bridge between redstone and cobalt, letting players transform the energy source from one type to the other. This also helps as ensure there is a way to connect cobalt to modded redstone machinery.
 <details>
   <summary><b>Spoiler</b></summary>
 
