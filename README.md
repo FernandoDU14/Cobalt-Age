@@ -1,11 +1,20 @@
 ![Cobalt Age Title](./src/images/cobalt_age_title.png)
 
-# About
+# What does it do?
 
-This mod adds a new mineral to the game, the cobalt, which can be found in the overworld. The main feature of this mineral is to work on a similar way to redstone, being different on the aspect that it can be waterlogged and the fact that it is completely independent of redstone, making it possible to have parallel lines without them interfering each-other.
+This mod adds a new mineral to the game, the cobalt, which can be found in the overworld. The main feature of this mineral is to work on a similar way to redstone, being different on the aspect that it can be waterlogged and the fact that it is completely independent of redstone, making it possible to have parallel lines without them interfering each-other. Plus, cobalt wires uses another system to optimize power calculations, resulting up to 1000 times faster than redstone!
 
 <details>
-  <summary><b>Spoiler</b></summary>
+  <summary><b>Performance Tests</b></summary>
+
+<img src="./src/images/scatter_redstone.gif" width="600">
+<img src="./src/images/scatter_cobalt.gid" width="600">
+
+- Scatter Test in a 100 x 100 wire linked web with 20 observer clocks. Cobalt dust does not cause not even a minimum server lag or client FPS drops, while redstone dust cause a huge lag and a huge delay of 2.8 seconds from a tick to another one.
+</details>
+
+<details>
+  <summary><b>Spoiler Prallel Wires</b></summary>
 
 <img src="./src/images/Cobalt-redstone%20independence.png" width="600">
 
@@ -55,7 +64,7 @@ We have included two optional resource packs on this mod. One makes the cobalt r
 
 ---
 
-You can use this mod freely in your modpacks, but please give credit to the original author and link back to this page. If you want to make a video about this mod, please also give credit and link back to this page.
+You can use this mod freely in your modpacks, but please give credit to the original author and link back to this page. If you want to make a video about this mod, please also give credit and link back to this page. It is not allowed to take the code, either in whole or by parts, regardless of its extension, without permission for both Creators.
 
 If you want to suggest a feature or report a bug, please open an issue on the GitHub repository.
 
