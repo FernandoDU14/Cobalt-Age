@@ -143,58 +143,6 @@ public class CobaltWireNetwork {
         }
     }
 
-    /*
-    private void searchAndDepowerNetwork(World world) {
-        while (!searchQueue.isEmpty()) {
-            CobaltWireNode node = searchQueue.poll();
-            node.searched = true;
-
-            // Calcola potenza esterna solo se non l'abbiamo già fatto
-            if (!node.externalCalculated) {
-                node.externalPower = calculateExternalPower(world, node.pos);
-                node.virtualPower = node.externalPower;
-                node.externalCalculated = true;
-
-                // Aggiorniamo il potenziale se l'energia esterna è maggiore
-                node.potentialPower = Math.max(node.potentialPower, node.externalPower);
-            }
-            // Trova vicini e mettili in cache nel nodo!
-            findAndCacheConnectedWires(world, node);
-
-            // Mettiamo il nodo nel bucket giusto per la propagazione iniziale
-            if (node.virtualPower > 0) {
-                priorityBuckets[node.virtualPower].add(node);
-            }
-        }
-    }
-
-    private void propagatePower() {
-        // Leggiamo dai bucket partendo dal più alto (15) a scendere (1).
-        for (int p = 15; p > 0; p--) {
-            Queue<CobaltWireNode> currentBucket = priorityBuckets[p];
-
-            while (!currentBucket.isEmpty()) {
-                CobaltWireNode node = currentBucket.poll();
-
-                // Se la potenza virtuale è scesa (es. un altro nodo lo ha sovrascritto male), ignoriamo
-                if (node.virtualPower != p) continue;
-
-                int powerToTransmit = node.virtualPower - 1;
-                if (powerToTransmit <= 0) continue;
-
-                // Usiamo la cache, niente chiamate al World!
-                for (CobaltWireNode neighbor : node.connectedWires) {
-                    if (powerToTransmit > neighbor.virtualPower) {
-                        neighbor.virtualPower = powerToTransmit;
-                        // Aggiungiamo al bucket corrispondente. È O(1)!
-                        priorityBuckets[powerToTransmit].add(neighbor);
-                    }
-                }
-            }
-        }
-    }
-    */
-
     private void applyPowerChanges(World world) {
         if (!(world instanceof ServerWorld serverLevel)) return;
         List<CobaltWireNode> changedWires = new ArrayList<>();
