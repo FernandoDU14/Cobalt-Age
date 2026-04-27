@@ -8,7 +8,7 @@ This mod adds a new mineral to the game, the cobalt, which can be found in the o
   <summary><b>Performance Tests</b></summary>
 
 <img src="./src/images/scatter_redstone.gif" width="600">
-<img src="./src/images/scatter_cobalt.gid" width="600">
+<img src="./src/images/scatter_cobalt.gif" width="600">
 
 - Scatter Test in a 100 x 100 wire linked web with 20 observer clocks. Cobalt dust does not cause not even a minimum server lag or client FPS drops, while redstone dust cause a huge lag and a huge delay of 2.8 seconds from a tick to another one.
 </details>
