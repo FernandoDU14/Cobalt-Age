@@ -66,10 +66,16 @@ public class CobaltWireShape {
     }
 
     private static WireConnection getRenderConnection(BlockView world, BlockPos pos, Direction direction) {
-        BlockPos neighborPos = pos.offset(direction);
-        BlockState neighborState = world.getBlockState(neighborPos);
-        BlockState stateBelowMe = world.getBlockState(pos.down());
-        BlockState stateAboveNeighbor = world.getBlockState(neighborPos.up());
+        BlockPos.Mutable mutable = new BlockPos.Mutable();
+
+        mutable.set(pos, direction);
+        BlockState neighborState = world.getBlockState(mutable);
+
+        mutable.set(pos, Direction.DOWN);
+        BlockState stateBelowMe = world.getBlockState(mutable);
+
+        mutable.set(pos, direction).move(Direction.UP);
+        BlockState stateAboveNeighbor = world.getBlockState(mutable);
 
         // 1. CONNESSIONE ORIZZONTALE (SIDE)
         // Accetta connessioni da Cavi E Sorgenti (Torce, Repeater, ecc.)
@@ -77,18 +83,15 @@ public class CobaltWireShape {
             return WireConnection.SIDE;
         }
         // 1.BIS: CONNESSIONE ORIZZONTALE (SIDE) PER CONNETTERSI SE CI SONO BLOCCHI CON SLAB E SOPRA WIRE
-        if (stateAboveNeighbor.getBlock() instanceof CobaltWireBlock) { // <--- RESTRIZIONE
+        if (stateAboveNeighbor.getBlock() instanceof CobaltWireBlock) {
             if (neighborState.getBlock() instanceof SlabBlock) {
-                    return WireConnection.SIDE;
+                return WireConnection.SIDE;
             }
         }
         // 1.TRIS: CONNESSIONE ORIZZONTALE (SIDE) SOLO OBSERVER FACING
 
         // SE IL VICINO È UN OBSERVER
         if (neighborState.isOf(Blocks.OBSERVER)) {
-            // L'Observer dà energia solo se la sua faccia posteriore punta verso il cavo.
-            // dirFromWire è la direzione dal cavo verso observer,
-            // quindi dobbiamo controllare se observer "guarda" dalla parte opposta.
             if (neighborState.get(ObserverBlock.FACING) == direction) {
                 return WireConnection.SIDE;
             }
@@ -98,30 +101,31 @@ public class CobaltWireShape {
         // 2. CONNESSIONE VERSO L'ALTO (UP)
         // La polvere sale SOLO se sopra il vicino c'è un'altra POLVERE.
         // Ignora Torce o altre sorgenti poste in alto.
-        if (!world.getBlockState(pos.up()).isSolidBlock(world, pos.up())) {
-            if (stateAboveNeighbor.getBlock() instanceof CobaltWireBlock) { // <--- RESTRIZIONE
-
+        mutable.set(pos, Direction.UP);
+        if (!world.getBlockState(mutable).isSolidBlock(world, mutable)) {
+            if (stateAboveNeighbor.getBlock() instanceof CobaltWireBlock) {
+                mutable.set(pos, direction); // Ritorna alla posizione del vicino
                 if (neighborState.getBlock() instanceof TransparentBlock ||
                         neighborState.getBlock() instanceof IceBlock ||
-                        neighborState.isSolidBlock(world, neighborPos)) {
+                        neighborState.isSolidBlock(world, mutable)) {
                     return WireConnection.UP;
                 }
-
             }
         }
 
         // 3. CONNESSIONE VERSO IL BASSO (SIDE)
         // La polvere scende SOLO se sotto il vicino c'è un'altra POLVERE.
-        if (!neighborState.isSolidBlock(world, neighborPos)) {
-            BlockState stateBelowNeighbor = world.getBlockState(neighborPos.down());
+        mutable.set(pos, direction);
+        if (!neighborState.isSolidBlock(world, mutable)) {
+            mutable.move(Direction.DOWN);
+            BlockState stateBelowNeighbor = world.getBlockState(mutable);
 
-            if (stateBelowNeighbor.getBlock() instanceof CobaltWireBlock) { // <--- RESTRIZIONE
-                // --- FIX VETRO / SLAB (Vertical Diode) ---
-                // Il cavo cerca di collegarsi (DA SOPRA) solo se il blocco SOTTO il cavo attuale è solido o glass.
+            if (stateBelowNeighbor.getBlock() instanceof CobaltWireBlock) {
+                mutable.set(pos, Direction.DOWN);
                 if (stateBelowMe.getBlock() instanceof TransparentBlock ||
                         stateBelowMe.getBlock() instanceof SlabBlock ||
                         stateBelowMe.getBlock() instanceof IceBlock ||
-                        stateBelowMe.isSolidBlock(world, pos.down())) {
+                        stateBelowMe.isSolidBlock(world, mutable)) {
                     return WireConnection.SIDE;
                 }
             }

@@ -168,13 +168,13 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         }
     }
 
+
     @Override
     public boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
-        BlockPos floorPos = pos.down();
-        BlockState floorState = world.getBlockState(floorPos);
-
-        // This will allow the placement only and only if the block under is valid and is not another Cobalt Dust
-        return floorState.isSideSolidFullSquare(world, floorPos, Direction.UP) || floorState.isOf(Blocks.HOPPER);
+        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        mutable.set(pos, Direction.DOWN);
+        BlockState floorState = world.getBlockState(mutable);
+        return floorState.isSideSolidFullSquare(world, mutable, Direction.UP) || floorState.isOf(Blocks.HOPPER);
     }
 
     @Override
@@ -347,18 +347,21 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
     }
 
     private void updateAllNeighbors(World world, BlockPos pos) {
-        // 1. Aggiorna i vicini diretti (6 posizioni: N, S, E, W, UP, DOWN)
+
+        // Update of the next 6 neighbors
         world.updateNeighborsAlways(pos, this, null);
 
-        // 2. Aggiorna i vicini diagonali (8 posizioni: sopra e sotto i 4 lati orizzontali)
+        // Update of the next 8 diagonals neighbors
+        BlockPos.Mutable mutable = new BlockPos.Mutable();
         for (Direction dir : Direction.Type.HORIZONTAL) {
-            BlockPos sidePos = pos.offset(dir);
+            mutable.set(pos, dir);
 
-            // Notifica il blocco accanto (già fatto sopra, ma raddoppiare non guasta)
-            world.updateNeighborsAlways(sidePos, this, null);
-            // Notifica i blocchi diagonali (fondamentali per lo scalino)
-            world.updateNeighborsAlways(sidePos.up(), this, null);
-            world.updateNeighborsAlways(sidePos.down(), this, null);
+            // Per updateNeighborsAlways, Minecraft Vanilla preferisce gli Immutable per evitare side-effect asincroni.
+            BlockPos immutableSide = mutable.toImmutable();
+
+            world.updateNeighborsAlways(immutableSide, this, null);
+            world.updateNeighborsAlways(immutableSide.up(), this, null);
+            world.updateNeighborsAlways(immutableSide.down(), this, null);
         }
     }
 
@@ -387,16 +390,20 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
     // --- NUOVI METODI PER FORZARE LA GRAFICA ---
 
     private void updateDiagonalShapes(World world, BlockPos pos) {
-        // 1. Forza l'aggiornamento dei 6 vicini diretti
+        BlockPos.Mutable mutable = new BlockPos.Mutable();
+
+        // Update of the next 6 neighbors
         for (Direction dir : Direction.values()) {
-            forceShapeUpdate(world, pos.offset(dir));
+            forceShapeUpdate(world, mutable.set(pos, dir));
         }
 
-        // 2. Forza l'aggiornamento dei vicini diagonali (Lo scalino!)
+        // Update of the next 8 diagonals neighbors
         for (Direction dir : Direction.Type.HORIZONTAL) {
-            BlockPos sidePos = pos.offset(dir);
-            forceShapeUpdate(world, sidePos.up());
-            forceShapeUpdate(world, sidePos.down());
+            mutable.set(pos, dir);
+            forceShapeUpdate(world, mutable.move(Direction.UP));
+
+            mutable.set(pos, dir);
+            forceShapeUpdate(world, mutable.move(Direction.DOWN));
         }
     }
 
