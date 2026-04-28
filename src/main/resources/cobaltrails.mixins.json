@@ -24,6 +24,7 @@
     "consumers.ShelfBlockMixin",
     "consumers.TntBlockMixin",
     "consumers.TrapdoorBlockMixin",
+    "gui.BeaconScreenMixin",
     "particles.LeverBlockMixin"
   ],
   "injectors": {

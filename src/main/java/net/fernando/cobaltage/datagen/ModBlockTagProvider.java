@@ -32,5 +32,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 
         valueLookupBuilder(BlockTags.RAILS)
                 .add(ModBlocks.COBALT_RAIL);
+
+        valueLookupBuilder(BlockTags.BEACON_BASE_BLOCKS)
+                .add(ModBlocks.COBALT_BLOCK);
     }
 }
