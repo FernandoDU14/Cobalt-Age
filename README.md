@@ -1,6 +1,6 @@
 ![Cobalt Age Title](./src/images/cobalt_age_title.png)
 
-# What does it do?
+# About
 
 This mod adds a new mineral to the game, the cobalt, which can be found in the overworld. The main feature of this mineral is to work on a similar way to redstone, being different on the aspect that it can be waterlogged and the fact that it is completely independent of redstone, making it possible to have parallel lines without them interfering each-other. Plus, cobalt wires uses another system to optimize power calculations, resulting up to 1000 times faster than redstone!
 
@@ -8,9 +8,9 @@ This mod adds a new mineral to the game, the cobalt, which can be found in the o
   <summary><b>Performance Tests</b></summary>
 
 <img src="./src/images/scatter_redstone.gif" width="600">
-<img src="./src/images/scatter_cobalt.gif" width="600">
+<img src="./src/images/dynamic_scatter_cobalt.gif" width="600">
 
-- Scatter Test in a 100 x 100 wire linked web with 20 observer clocks. Cobalt dust does not cause not even a minimum server lag or client FPS drops, while redstone dust cause a huge lag and a huge delay of 2.8 seconds from a tick to another one.
+- Scatter Test in a 100 x 100 wire linked web with 20 observer clocks. Cobalt dust does not cause not even a minimum server lag or client FPS drops (10 ms over 50 ms), while redstone dust cause a huge lag and a huge delay of 2.8 seconds from a tick to another one (130+ ms over 50ms). You can see the delay in the redstone update signals in the shown videos.
 </details>
 
 <details>
