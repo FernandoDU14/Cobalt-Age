@@ -1,13 +1,13 @@
-package net.fernando.cobaltage.mixin;
+package net.fernando.cobaltage.mixin.railsandveichles;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.fernando.cobaltage.CobaltAgeConfig;
+import net.fernando.cobaltage.block.ModBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.PoweredRailBlock;
 import net.minecraft.entity.vehicle.AbstractMinecartEntity;
 import net.minecraft.entity.vehicle.ExperimentalMinecartController;
 import net.minecraft.server.MinecraftServer;
@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-@Mixin(ExperimentalMinecartController.class)
+@Mixin(value = ExperimentalMinecartController.class, priority = 1500)
 public abstract class NewMinecartBehaviorMixin extends MinecartBehaviorMixin {
 
     protected NewMinecartBehaviorMixin(AbstractMinecartEntity minecart) {
@@ -37,16 +37,16 @@ public abstract class NewMinecartBehaviorMixin extends MinecartBehaviorMixin {
             )
     )
     private boolean redirectIsPoweredRail(BlockState instance, Block block, Operation<Boolean> original) {
-
-        if (block == Blocks.POWERED_RAIL) {
-            return instance.getBlock() instanceof PoweredRailBlock;
+        // Se il blocco nel mondo è il NOSTRO Cobalto, diciamo SÌ (è alimentata)
+        if (instance.isOf(ModBlocks.COBALT_RAIL) || instance.isOf(Blocks.POWERED_RAIL)) {
+            return true;
         }
-
+        // In ogni altro caso (Rame di altre mod, ecc.), lascia decidere all'originale
         return original.call(instance, block);
     }
 
     @Unique
-    public int getMaxRailSpeed(BlockState blockState) {
+    public int getCobaltOrGoldMaxRailSpeed(BlockState blockState) {
 
         MinecraftServer server = this.minecart.getEntityWorld().getServer();
 
@@ -55,7 +55,7 @@ public abstract class NewMinecartBehaviorMixin extends MinecartBehaviorMixin {
         }
 
         GameRules gamerules = server.getOverworld().getGameRules();
-        int maxSpeed = getMaxSpeedByRailType(blockState.getBlock(), gamerules);
+        int maxSpeed = getCobaltOrGoldMaxSpeedByRailType(blockState.getBlock(), gamerules);
         return Math.min(maxSpeed, gamerules.getValue(GameRules.MAX_MINECART_SPEED));
     }
 
@@ -64,10 +64,16 @@ public abstract class NewMinecartBehaviorMixin extends MinecartBehaviorMixin {
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/util/math/Vec3d;length()D",
-                    ordinal = 0),
-            argsOnly = true)
-    private Vec3d limitSpeed(Vec3d velocity, @Local(argsOnly = true) BlockState railState) {
-        double maxSpeedPerTick = getMaxRailSpeed(railState) / 20.0;
+                    ordinal = 0))
+    private Vec3d limitSpeed(Vec3d velocity, @Local BlockState railState) {
+
+        // Imma interrupt if is not a thing of this mod
+        Block block = railState.getBlock();
+        if (block != Blocks.POWERED_RAIL && block != ModBlocks.COBALT_RAIL) {
+            return velocity;
+        }
+
+        double maxSpeedPerTick = getCobaltOrGoldMaxRailSpeed(railState) / 20.0;
         double currentSpeed = velocity.length();
 
         if (currentSpeed > maxSpeedPerTick) {

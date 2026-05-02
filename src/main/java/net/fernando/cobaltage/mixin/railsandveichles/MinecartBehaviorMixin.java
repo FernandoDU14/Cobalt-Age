@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.mixin;
+package net.fernando.cobaltage.mixin.railsandveichles;
 
 import net.fernando.cobaltage.CobaltAgeConfig;
 import net.fernando.cobaltage.block.ModBlocks;
@@ -22,7 +22,7 @@ public abstract class MinecartBehaviorMixin {
     @Shadow public abstract void setPos(double d, double e, double f);
 
     @Unique
-    public int getMaxSpeedByRailType(Block block, GameRules gamerules){
+    public int getCobaltOrGoldMaxSpeedByRailType(Block block, GameRules gamerules){
         int answer = CobaltAgeConfig.MAX_RAIL_SPEED_NOT_EXPERIMENTAL_BPS;
         if (block == ModBlocks.COBALT_RAIL) {
             answer = gamerules.getValue(CobaltRailsGameRules.MAX_MINECART_SPEED_COBALT);

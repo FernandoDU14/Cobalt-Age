@@ -27,7 +27,7 @@
         ]
 	},
 	"mixins": [
-		"cobaltrails.mixins.json"
+		"cobaltage.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.18.5",
