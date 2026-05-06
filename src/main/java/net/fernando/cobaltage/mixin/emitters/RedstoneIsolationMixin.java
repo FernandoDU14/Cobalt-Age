@@ -40,6 +40,10 @@ public class RedstoneIsolationMixin {
                 state.isOf(ModBlocks.COBALT_WALL_TORCH)) {
             cir.setReturnValue(false);
         }
+
+        if(state.isOf(ModBlocks.CONVERTER)){
+            cir.setReturnValue(direction == state.get(Properties.HORIZONTAL_FACING));
+        }
     }
 }
 
