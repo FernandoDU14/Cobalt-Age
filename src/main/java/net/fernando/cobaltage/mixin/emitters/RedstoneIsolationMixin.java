@@ -3,6 +3,7 @@ package net.fernando.cobaltage.mixin.emitters;
 import net.fernando.cobaltage.block.ModBlocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.RedstoneWireBlock;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
