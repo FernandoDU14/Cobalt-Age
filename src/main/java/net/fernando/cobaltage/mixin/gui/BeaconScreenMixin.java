@@ -35,7 +35,7 @@ public abstract class BeaconScreenMixin extends HandledScreen<BeaconScreenHandle
         return BEACON_CUSTOM_GUI_BACKGROUND_LIGHT;
     }
 
-    // Intercettiamo il momento esatto PRIMA che venga chiamato il primo drawItem vanilla
+    // Intercepting the exact moment before vanilla drawItem is called
     @Inject(
             method = "drawBackground",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawItem(Lnet/minecraft/item/ItemStack;II)V", ordinal = 0),
@@ -45,19 +45,15 @@ public abstract class BeaconScreenMixin extends HandledScreen<BeaconScreenHandle
         int i = (this.width - this.backgroundWidth) / 2;
         int j = (this.height - this.backgroundHeight) / 2;
 
-        // Ridisegniamo tutti gli item riducendo la distanza tra di essi a 18 pixel.
-        // In questo modo l'ultimo lingotto arriverà a 110, lasciando spazio pulito prima dello slot a 136.
+        // Custom Item Display made by KanieOutis
         context.drawItem(new ItemStack(Items.NETHERITE_INGOT), i + 7, j + 109);
         context.drawItem(new ItemStack(Items.EMERALD),         i + 28, j + 109);
         context.drawItem(new ItemStack(Items.DIAMOND),         i + 49, j + 109);
         context.drawItem(new ItemStack(ModItems.COBALT_INGOT),      i + 70, j + 109);
         context.drawItem(new ItemStack(Items.GOLD_INGOT),      i + 91, j + 109);
-
-        // Il tuo Cobalt Ingot alla fine della fila
         context.drawItem(new ItemStack(Items.IRON_INGOT), i + 112, j + 109);
 
-        // Blocchiamo il resto dell'esecuzione di drawBackground per evitare che
-        // il gioco disegni i lingotti originali sovrapponendoli ai nostri.
+        // Blocking drawBackground execution to prevent the drawing of original ingots over custom ones
         ci.cancel();
     }
 }

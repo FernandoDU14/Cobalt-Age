@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.block.entity;
+package net.fernando.cobaltage.block.blockentities;
 
 import net.fernando.cobaltage.block.CobaltComparatorBlock;
 import net.minecraft.block.BlockState;

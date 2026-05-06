@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.block.entity;
+package net.fernando.cobaltage.block.blockentities;
 
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fernando.cobaltage.CobaltAge;

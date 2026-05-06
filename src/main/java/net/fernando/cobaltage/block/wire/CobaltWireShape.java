@@ -1,5 +1,6 @@
 package net.fernando.cobaltage.block.wire;
 
+import net.fernando.cobaltage.block.CobaltConverterBlock;
 import net.fernando.cobaltage.block.CobaltPowerSource;
 import net.fernando.cobaltage.block.CobaltRepeaterBlock;
 import net.fernando.cobaltage.block.CobaltWireBlock;
@@ -65,7 +66,7 @@ public class CobaltWireShape {
                 state.get(CobaltWireBlock.WEST) == WireConnection.NONE;
     }
 
-    private static WireConnection getRenderConnection(BlockView world, BlockPos pos, Direction direction) {
+    public static WireConnection getRenderConnection(BlockView world, BlockPos pos, Direction direction) {
         BlockPos.Mutable mutable = new BlockPos.Mutable();
 
         mutable.set(pos, direction);
@@ -143,6 +144,14 @@ public class CobaltWireShape {
             if (dir == null) return true;
             // La polvere si connette solo se è davanti o dietro al repeater/comparator
             return dir == facing || dir == facing.getOpposite();
+        }
+
+        if(state.getBlock() instanceof CobaltConverterBlock){
+            Direction facing = state.get(Properties.HORIZONTAL_FACING);
+            // Se dir è null, stiamo solo controllando se il blocco è compatibile in generale
+            if (dir == null) return true;
+            // La polvere si connette solo se è al lato cobalt del converter
+            return dir == facing.getOpposite();
         }
 
         return state.getBlock() instanceof CobaltPowerSource ||

@@ -3,7 +3,7 @@ package net.fernando.cobaltage;
 import net.fabricmc.api.ModInitializer;
 
 import net.fernando.cobaltage.block.ModBlocks;
-import net.fernando.cobaltage.block.entity.ModBlockEntities;
+import net.fernando.cobaltage.block.blockentities.ModBlockEntities;
 import net.fernando.cobaltage.gamerules.CobaltRailsGameRules;
 import net.fernando.cobaltage.item.ModItems;
 import net.fernando.cobaltage.world.gen.ModWorldGeneration;
@@ -17,7 +17,7 @@ public class CobaltAge implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("Inizializzazione Cobalt Rails...");
+		LOGGER.info("Initialization of Cobalt Age...");
 
 		// 1. Blocks and Block Entities
 		ModBlocks.registerModBlocks();
@@ -29,6 +29,6 @@ public class CobaltAge implements ModInitializer {
 		CobaltRailsGameRules.registerGameRules();
 		ModWorldGeneration.generateWorldGen();
 
-		LOGGER.info("Cobalt Rails inizializzato con successo!");
+		LOGGER.info("Cobalt Age initialized successfully!");
 	}
 }

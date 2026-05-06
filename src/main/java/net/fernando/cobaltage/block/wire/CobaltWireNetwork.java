@@ -65,20 +65,38 @@ public class CobaltWireNetwork {
             while (!depletionQueue.isEmpty()) {
                 CobaltWireNode node = depletionQueue.poll();
 
-                // Se questo blocco ha ancora energia residua (es. da un'altra fonte), la immettiamo per propagarla
                 if (node.virtualPower > 0) {
                     addToBucket(node, node.virtualPower);
                 }
 
-                // Trova vicini FISICI (senza scatenare reazioni a catena, solo caching)
                 findAndCacheConnectedWires(world, node);
+
+                boolean cachedCanGoDown = true;
+                boolean hasCheckedDown = false;
 
                 for (CobaltWireNode neighbor : node.connectedWires) {
                     if (neighbor.discoveredAsDependent) continue;
 
-                    // Se il vicino aveva un'energia compatibile col fatto di essere stato alimentato da noi (massimo node.oldPower - 1)
+                    // Possiamo INVIARE energia a lui? (Serve per capire se dipendeva da noi)
+                    boolean weCanSendToNeighbor = true;
+                    if (neighbor.pos.getY() < node.pos.getY()) {
+                        if (!hasCheckedDown) {
+                            cachedCanGoDown = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
+                            hasCheckedDown = true;
+                        }
+                        weCanSendToNeighbor = cachedCanGoDown;
+                    }
+
+                    // Lui può INVIARE energia a noi? (Serve per il Backfill)
+                    boolean neighborCanSendToUs = true;
+                    if (neighbor.pos.getY() > node.pos.getY()) {
+                        neighborCanSendToUs = world.getBlockState(neighbor.pos.down()).isSolidBlock(world, neighbor.pos.down());
+                    }
+
                     if (neighbor.currentPower > 0 && neighbor.currentPower <= node.oldPower - 1) {
-                        // Lo tiriamo giù temporaneamente
+                        // Se il vetro ci impediva di passargli energia, non poteva dipendere da noi!
+                        if (!weCanSendToNeighbor) continue;
+
                         neighbor.discoveredAsDependent = true;
                         neighbor.oldPower = neighbor.currentPower;
 
@@ -90,8 +108,10 @@ public class CobaltWireNetwork {
                         depletionQueue.add(neighbor);
 
                     } else if (neighbor.currentPower > node.oldPower - 1) {
-                        // Il vicino ha energia ALTA. Non dipendeva da noi.
-                        // Significa che è alimentato da un'altra parte della rete! Gli chiediamo di darci energia ("Backfill")
+                        // BACKFILL: Il vicino ha energia ALTA!
+                        // Ma può aiutarci SOLO se il suo blocco gli permette di inviare energia in basso.
+                        if (!neighborCanSendToUs) continue;
+
                         neighbor.virtualPower = neighbor.currentPower;
                         addToBucket(neighbor, neighbor.virtualPower);
                     }
@@ -104,9 +124,9 @@ public class CobaltWireNetwork {
 
                 while (!currentBucket.isEmpty()) {
                     CobaltWireNode node = currentBucket.poll();
-                    node.addedToBucket = false; // Reset per future collisioni
+                    node.addedToBucket = false;
 
-                    if (node.virtualPower != p) continue; // Un altro nodo lo ha sovrascritto meglio
+                    if (node.virtualPower != p) continue;
 
                     int powerToTransmit = node.virtualPower - 1;
                     if (powerToTransmit <= 0) continue;
@@ -115,7 +135,22 @@ public class CobaltWireNetwork {
                         findAndCacheConnectedWires(world, node);
                     }
 
+                    boolean cachedCanGoDown = true;
+                    boolean hasCheckedDown = false;
+
                     for (CobaltWireNode neighbor : node.connectedWires) {
+
+                        // 🛑 FIX DIODO VERTICALE: Controllo flusso in discesa
+                        // Se stiamo cercando di alimentare un cavo più in basso...
+                        if (neighbor.pos.getY() < node.pos.getY()) {
+                            if (!hasCheckedDown) {
+                                cachedCanGoDown = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
+                                hasCheckedDown = true;
+                            }
+                            // ...e poggiamo sul vetro, saltiamo!
+                            if (!cachedCanGoDown) continue;
+                        }
+
                         if (powerToTransmit > neighbor.virtualPower) {
                             neighbor.virtualPower = powerToTransmit;
                             addToBucket(neighbor, powerToTransmit);
@@ -167,39 +202,36 @@ public class CobaltWireNetwork {
     }
 
     private void findAndCacheConnectedWires(World world, CobaltWireNode node) {
-        if (!node.connectedWires.isEmpty()) return; // Se già riempito nella Fase 1, salta! Costo ZERO.
+        if (!node.connectedWires.isEmpty()) return; // Se già riempito, salta! Costo ZERO.
 
         BlockPos pos = node.pos;
         BlockPos.Mutable mutable = new BlockPos.Mutable();
-        BlockState stateBelowMe = world.getBlockState(mutable.set(pos, Direction.DOWN));
 
         for (Direction dir : Direction.Type.HORIZONTAL) {
             mutable.set(pos, dir);
             BlockState neighborState = world.getBlockState(mutable);
 
             // 1. CONNESSIONE ORIZZONTALE
-            checkAndLink(world, node, mutable.toImmutable(), true);
+            checkAndLink(world, node, mutable.toImmutable());
 
             // 2. DISCESA
             if (!neighborState.isSolidBlock(world, mutable)) {
-                boolean canGoDown = stateBelowMe.isSolidBlock(world, mutable.set(pos, Direction.DOWN));
+                // 🛑 FIX: Non controlliamo 'canGoDown' qui!
+                // Memorizziamo il vicino a prescindere per poter ricevere eventuale Backfill
                 mutable.set(pos, dir).move(Direction.DOWN);
-                checkAndLink(world, node, mutable.toImmutable(), canGoDown);
+                checkAndLink(world, node, mutable.toImmutable());
             }
 
             // 3. SALITA
             mutable.set(pos, Direction.UP);
             if (!world.getBlockState(mutable).isSolidBlock(world, mutable)) {
                 mutable.set(pos, dir).move(Direction.UP);
-                checkAndLink(world, node, mutable.toImmutable(), true);
+                checkAndLink(world, node, mutable.toImmutable());
             }
         }
     }
 
-    // NESSUNA LOGICA COMPLESSA QUI. Collega e basta.
-    private void checkAndLink(World world, CobaltWireNode source, BlockPos targetPos, boolean flowAllowed) {
-        if (!flowAllowed) return;
-
+    private void checkAndLink(World world, CobaltWireNode source, BlockPos targetPos) {
         CobaltWireNode target = getOrAddWireNode(world, targetPos);
         if (target != null) {
             source.connectedWires.add(target);
@@ -347,6 +379,7 @@ public class CobaltWireNetwork {
 
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         BlockPos.Mutable farMutable = new BlockPos.Mutable();
+        Block block = world.getBlockState(node.pos).getBlock();
 
         for (Direction dir : Direction.values()) {
             mutable.set(node.pos, dir);
@@ -355,15 +388,30 @@ public class CobaltWireNetwork {
             // Cobalt Firewall
             if (isVanillaRedstone(neighborState)) continue;
 
-            // ⚡ LAG FIX DEFINITIVO: Salta le polveri di Cobalto! ⚡
-            // Le polveri sono GIÀ state aggiornate dal nostro algoritmo (Fase 2 e 3).
-            // Se le avvisiamo, scateniamo un nuovo updateNetwork a catena.
+            // Salta le polveri di Cobalto (sono già aggiornate dal Network Handler)
             if (neighborState.getBlock() instanceof CobaltWireBlock) continue;
 
             // Notifica il blocco vicino che l'energia è cambiata
-            world.updateNeighbor(mutable.toImmutable(), world.getBlockState(node.pos).getBlock(), null);
+            world.updateNeighbor(mutable.toImmutable(), block, null);
 
-            // Se è un blocco solido, dobbiamo aggiornare anche i blocchi DOPO di lui (Strong Power)
+            // Quasi-Neighbor update
+            if (dir == Direction.DOWN) {
+                // 1. Notifica il blocco a 2 blocchi di distanza in basso (Pistone dritto sotto, separato da aria/vetro)
+                farMutable.set(mutable, Direction.DOWN);
+                if (!isVanillaRedstone(world.getBlockState(farMutable))) {
+                    world.updateNeighbor(farMutable.toImmutable(), block, null);
+                }
+
+                // 2. Notifica i blocchi in diagonale in basso (Pistoni laterali sotto il cavo)
+                for (Direction horizontalDir : Direction.Type.HORIZONTAL) {
+                    farMutable.set(mutable, horizontalDir);
+                    if (!isVanillaRedstone(world.getBlockState(farMutable))) {
+                        world.updateNeighbor(farMutable.toImmutable(), block, null);
+                    }
+                }
+            }
+
+            // Aggiornamento anche i blocchi DOPO di lui (Strong Power)
             if (neighborState.isSolidBlock(world, mutable)) {
                 for (Direction sideDir : Direction.values()) {
                     if (sideDir == dir.getOpposite()) continue;
@@ -413,7 +461,8 @@ public class CobaltWireNetwork {
                 state.getBlock() instanceof DaylightDetectorBlock ||
                 state.getBlock() instanceof JukeboxBlock ||
                 state.getBlock() instanceof LightningRodBlock ||
-                state.getBlock() instanceof TrappedChestBlock;
+                state.getBlock() instanceof TrappedChestBlock ||
+                state.getBlock() instanceof LecternBlock;
     }
 
 }

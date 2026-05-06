@@ -435,6 +435,9 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
 
         // Se è un cross completo o un puntino, permettiamo il toggle
         if (isFullyConnected(state) || isNotConnected(state)) {
+            if(hasNeighborSignals(world, pos)){
+                return ActionResult.PASS;
+            }
             // Se è cross -> diventa puntino. Se è puntino -> torna cross.
             BlockState newState = isFullyConnected(state) ? getDotState(state) : getCrossState(state);
 
@@ -455,6 +458,18 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         }
 
         return ActionResult.PASS;
+    }
+
+    // Helper per capire se lo stato è 4 libero o 4 forzato da connessioni esterne
+    private boolean hasNeighborSignals(World world, BlockPos pos) {
+        for (Direction direction : Direction.Type.HORIZONTAL) {
+            // Se getRenderConnection (quello che usi per la forma) restituisce qualcosa
+            // di diverso da NONE per una direzione, allora c'è un vicino.
+            if (CobaltWireShape.getRenderConnection(world, pos, direction) != WireConnection.NONE) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Helper per creare lo stato a puntino (tutti NONE)

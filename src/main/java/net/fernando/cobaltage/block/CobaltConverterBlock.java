@@ -120,6 +120,14 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
     }
 
     @Override
+    public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
+        if (!oldState.isOf(state.getBlock()) && !world.isClient()) {
+            updateConverterState(state, world, pos);
+            NETWORK_HANDLER.updateNetwork(world, pos.offset(state.get(FACING).getOpposite()));
+        }
+    }
+
+    @Override
     public BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
         if (state.get(WATERLOGGED)) {
             tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
@@ -202,9 +210,7 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
         return property != null && dustState.get(property).isConnected();
     }
 
-
-    @Override
-    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation orientation, boolean notify) {
+    private void updateConverterState(BlockState state, World world, BlockPos pos){
         if (world.isClient()) return;
 
         Direction cobaltSide = state.get(FACING);
@@ -290,6 +296,12 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
             world.setBlockState(pos, newState, Block.NOTIFY_ALL);
             updateNeighbors(world, pos, newState);
         }
+    }
+
+    @Override
+    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation orientation, boolean notify) {
+        if (world.isClient()) return;
+        updateConverterState(state, world, pos);
     }
 
     private void updateNeighbors(World world, BlockPos pos, BlockState state) {

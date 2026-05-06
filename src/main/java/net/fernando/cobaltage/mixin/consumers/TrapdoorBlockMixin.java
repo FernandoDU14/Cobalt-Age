@@ -1,5 +1,5 @@
 package net.fernando.cobaltage.mixin.consumers;
-import net.fernando.cobaltage.util.CobaltPowerHelperForMixin;
+import net.fernando.cobaltage.util.CobaltPowerHelper;
 import net.minecraft.block.TrapdoorBlock;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -15,6 +15,6 @@ public abstract class TrapdoorBlockMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;isReceivingRedstonePower(Lnet/minecraft/util/math/BlockPos;)Z")
     )
     private boolean cobalt$combinePowerSources(World world, BlockPos pos) {
-        return world.isReceivingRedstonePower(pos) || CobaltPowerHelperForMixin.isPoweredByCobalt(world, pos);
+        return world.isReceivingRedstonePower(pos) || CobaltPowerHelper.isPoweredByCobalt(world, pos);
     }
 }

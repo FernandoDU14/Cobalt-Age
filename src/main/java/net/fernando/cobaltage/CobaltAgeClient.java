@@ -40,8 +40,6 @@ public class CobaltAgeClient implements ClientModInitializer {
     // Function to compute the color gradient of the Cobalt Dust
     private static int getCobaltColor(int power) {
         float f = (float)power / 15.0F;
-        // Calcoliamo le componenti R, G, B basandoci sul livello di carica
-        // Per il cobalto: poco rosso, medio verde, molto blu
         float r = f * 0.1f + 0.1f;
         float g = f * 0.5f + 0.3f;
         float b = f * 1.1f + 0.4f;

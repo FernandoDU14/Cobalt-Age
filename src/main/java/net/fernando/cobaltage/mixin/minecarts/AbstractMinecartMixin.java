@@ -18,11 +18,11 @@ public abstract class AbstractMinecartMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;isOf(Lnet/minecraft/block/Block;)Z")
     )
     public boolean isPoweringRail(BlockState state, Block block, Operation<Boolean> original) {
-        // Se l'originale (o Copper Rails) dice già true, non interferire.
+        // Not touching the call of other rails that aren't Powered and Cobalt
         if (original.call(state, block)) {
             return true;
         }
-        // Aggiungiamo il supporto al cobalto solo se l'originale ha detto false.
+        // Cobalt Support only and only if original call has said no
         return block == Blocks.POWERED_RAIL && state.isOf(ModBlocks.COBALT_RAIL);
     }
 }

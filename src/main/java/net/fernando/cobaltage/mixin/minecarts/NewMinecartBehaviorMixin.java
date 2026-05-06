@@ -37,11 +37,9 @@ public abstract class NewMinecartBehaviorMixin extends MinecartBehaviorMixin {
             )
     )
     private boolean redirectIsPoweredRail(BlockState instance, Block block, Operation<Boolean> original) {
-        // Se il blocco nel mondo è il NOSTRO Cobalto, diciamo SÌ (è alimentata)
         if (instance.isOf(ModBlocks.COBALT_RAIL) || instance.isOf(Blocks.POWERED_RAIL)) {
             return true;
         }
-        // In ogni altro caso (Rame di altre mod, ecc.), lascia decidere all'originale
         return original.call(instance, block);
     }
 
@@ -67,9 +65,9 @@ public abstract class NewMinecartBehaviorMixin extends MinecartBehaviorMixin {
                     ordinal = 0))
     private Vec3d limitSpeed(Vec3d velocity, @Local BlockState railState) {
 
-        // Imma interrupt if is not a thing of this mod
         Block block = railState.getBlock();
         if (block != Blocks.POWERED_RAIL && block != ModBlocks.COBALT_RAIL) {
+            // Not touching the velocity of other rails that aren't Powered and Cobalt
             return velocity;
         }
 

@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.block.entity.CobaltComparatorBlockEntity;
-import net.fernando.cobaltage.block.entity.ModBlockEntities;
+import net.fernando.cobaltage.block.blockentities.CobaltComparatorBlockEntity;
+import net.fernando.cobaltage.block.blockentities.ModBlockEntities;
 import net.fernando.cobaltage.block.wire.CobaltWireNetwork;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
