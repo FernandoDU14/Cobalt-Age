@@ -22,7 +22,7 @@ public class LeverBlockMixin {
 
     @Inject(method = "randomDisplayTick", at = @At("HEAD"), cancellable = true)
     private void cobalt$replaceLeverParticles(BlockState state, World world, BlockPos pos, Random random, CallbackInfo ci) {
-        // Se la leva è attiva
+        // If Lever is Active
         if (state.get(POWERED) && random.nextFloat() < 0.25F) {
 
             // 1. Calcolo posizione (copiato dalla logica vanilla per precisione millimetrica)
