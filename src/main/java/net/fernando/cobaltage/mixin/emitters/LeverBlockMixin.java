@@ -25,7 +25,7 @@ public class LeverBlockMixin {
         // If Lever is Active
         if (state.get(POWERED) && random.nextFloat() < 0.25F) {
 
-            // 1. Calcolo posizione (copiato dalla logica vanilla per precisione millimetrica)
+            // 1. Position compute
             Direction facing = state.get(FACING);
             BlockFace face = state.get(FACE);
             Direction oppositeFacing = facing.getOpposite();
