@@ -22,8 +22,7 @@ public class CalibratedSculkSensorCallbackMixin {
             remap = true
     )
     private void cobalt_injectCobaltFrequency(World world, BlockPos pos, BlockState state, CallbackInfoReturnable<Integer> cir) {
-        // 1. Recuperiamo la direzione (lato ametista) come fa il codice originale
-        // direction è il lato opposto al FACING del sensore
+        // 1. Retrieve the direction (amethyst side)
         Direction direction = state.get(CalibratedSculkSensorBlock.FACING).getOpposite();
         BlockPos inputPos = pos.offset(direction);
         BlockState inputState = world.getBlockState(inputPos);
