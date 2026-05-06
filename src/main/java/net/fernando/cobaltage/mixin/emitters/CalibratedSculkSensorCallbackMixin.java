@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-// NOTA: Il target deve essere la classe interna Callback
 @Mixin(targets = "net.minecraft.block.entity.CalibratedSculkSensorBlockEntity$Callback")
 public class CalibratedSculkSensorCallbackMixin {
 
