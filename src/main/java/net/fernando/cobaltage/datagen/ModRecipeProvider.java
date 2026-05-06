@@ -109,6 +109,6 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
     @Override
     public String getName() {
-        return "Cobalt rails recipes";
+        return "Cobalt Age recipes";
     }
 }
