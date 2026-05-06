@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.mixin.particles;
+package net.fernando.cobaltage.mixin.emitters;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.LeverBlock;

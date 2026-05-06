@@ -3,13 +3,13 @@
   "package": "net.fernando.cobaltage.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "railsandveichles.AbstractMinecartMixin",
-    "BlockPowerFilterMixin",
-    "CalibratedSculkSensorCallbackMixin",
+    "minecarts.AbstractMinecartMixin",
+    "emitters.BlockPowerFilterMixin",
+    "emitters.CalibratedSculkSensorCallbackMixin",
     "ExampleMixin",
-    "railsandveichles.MinecartBehaviorMixin",
-    "railsandveichles.NewMinecartBehaviorMixin",
-    "RedstoneIsolationMixin",
+    "minecarts.MinecartBehaviorMixin",
+    "minecarts.NewMinecartBehaviorMixin",
+    "emitters.RedstoneIsolationMixin",
     "consumers.BellBlockMixin",
     "consumers.CopperBulbMixin",
     "consumers.CrafterBlockMixin",
@@ -25,7 +25,7 @@
     "consumers.TntBlockMixin",
     "consumers.TrapdoorBlockMixin",
     "gui.BeaconScreenMixin",
-    "particles.LeverBlockMixin"
+    "emitters.LeverBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1

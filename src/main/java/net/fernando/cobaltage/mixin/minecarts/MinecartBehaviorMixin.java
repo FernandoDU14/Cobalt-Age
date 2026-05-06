@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.mixin.railsandveichles;
+package net.fernando.cobaltage.mixin.minecarts;
 
 import net.fernando.cobaltage.CobaltAgeConfig;
 import net.fernando.cobaltage.block.ModBlocks;

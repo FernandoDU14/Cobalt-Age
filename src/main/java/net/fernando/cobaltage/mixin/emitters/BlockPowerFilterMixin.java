@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.mixin;
+package net.fernando.cobaltage.mixin.emitters;
 
 import net.fernando.cobaltage.block.ModBlocks;
 import net.minecraft.block.BlockState;

@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class BeaconScreenMixin extends HandledScreen<BeaconScreenHandler> {
 
     @Unique
-    private static final Identifier BEACON_CUSTOM_GUI_BACKGROUND = Identifier.of("cobaltage", "textures/gui/beacon.png");
+    private static final Identifier BEACON_CUSTOM_GUI_BACKGROUND_LIGHT = Identifier.of("cobaltage", "textures/gui/beacon.png");
 
     public BeaconScreenMixin(BeaconScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -32,7 +32,7 @@ public abstract class BeaconScreenMixin extends HandledScreen<BeaconScreenHandle
             at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/screen/ingame/BeaconScreen;TEXTURE:Lnet/minecraft/util/Identifier;")
     )
     private Identifier useMyCustomTexture() {
-        return BEACON_CUSTOM_GUI_BACKGROUND;
+        return BEACON_CUSTOM_GUI_BACKGROUND_LIGHT;
     }
 
     // Intercettiamo il momento esatto PRIMA che venga chiamato il primo drawItem vanilla

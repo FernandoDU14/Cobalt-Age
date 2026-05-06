@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.mixin.railsandveichles;
+package net.fernando.cobaltage.mixin.minecarts;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
