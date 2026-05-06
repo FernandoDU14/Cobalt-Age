@@ -32,8 +32,7 @@ public class CalibratedSculkSensorCallbackMixin {
         if (inputState.getBlock() instanceof CobaltWireBlock) {
             int cobaltPower = inputState.get(CobaltWireBlock.POWER);
 
-            // 3. Se il cobalto ha energia, sovrascriviamo il valore di calibrazione
-            // Anche se la Redstone vanilla darebbe 0, il cobalto "vince"
+            // 3. If cobalt has energy, override the calibration value
             if (cobaltPower > 0) {
                 cir.setReturnValue(cobaltPower);
             }
