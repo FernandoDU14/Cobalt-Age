@@ -40,7 +40,7 @@ public class LeverBlockMixin {
             DustParticleEffect particle;
             int cobaltBlue = (0) | (153 << 8) | 255;
             if (random.nextBoolean()) {
-                particle = DustParticleEffect.DEFAULT; // Rosso Vanilla
+                particle = DustParticleEffect.DEFAULT; // 3. vanilla red
             } else {
                 // 4. Creiamo la tua particella personalizzata
                 particle = new DustParticleEffect(cobaltBlue, 1.0f);
