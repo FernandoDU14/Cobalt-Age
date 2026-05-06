@@ -36,7 +36,7 @@ public class LeverBlockMixin {
             double y = (double)pos.getY() + 0.5 + 0.1 * (double)oppositeFacing.getOffsetY() + 0.2 * (double)horizontalOffsetDir.getOffsetY();
             double z = (double)pos.getZ() + 0.5 + 0.1 * (double)oppositeFacing.getOffsetZ() + 0.2 * (double)horizontalOffsetDir.getOffsetZ();
 
-            // 2. Selezione Colore: 50% Rosso, 50% Blu Cobalto
+            // 2. Color selection: 50% red, 50% cobalt
             DustParticleEffect particle;
             int cobaltBlue = (0) | (153 << 8) | 255;
             if (random.nextBoolean()) {
