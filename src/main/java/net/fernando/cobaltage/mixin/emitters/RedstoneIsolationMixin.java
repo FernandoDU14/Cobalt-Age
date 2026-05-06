@@ -30,7 +30,7 @@ public class RedstoneIsolationMixin {
     }
 
 
-    // 1. This will allow the Cobalt Dust to connect to this blocks
+    // 1. This will allow the Redstone Dust to Avoid these Energy-Like blocks
     @Inject(at = @At("HEAD"), method = "connectsTo(Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/Direction;)Z", cancellable = true)
     private static void redstone$canConnectTo(BlockState state, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         if (state.isOf(ModBlocks.COBALT_DUST) ||
