@@ -48,8 +48,7 @@ public class LeverBlockMixin {
 
             world.addParticleClient(particle, x, y, z, 0.0, 0.0, 0.0);
 
-            // 3. CANCELLIAMO l'esecuzione del metodo originale
-            // In questo modo le particelle vanilla non vengono generate due volte
+            // 5. Blocking the original particle spawn
             ci.cancel();
         }
     }
