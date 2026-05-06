@@ -28,7 +28,7 @@ public class CalibratedSculkSensorCallbackMixin {
         BlockPos inputPos = pos.offset(direction);
         BlockState inputState = world.getBlockState(inputPos);
 
-        // 2. Se lì c'è il nostro cavo di cobalto, leggiamo il suo potere
+        // 2. If cobalt wire, read power
         if (inputState.getBlock() instanceof CobaltWireBlock) {
             int cobaltPower = inputState.get(CobaltWireBlock.POWER);
 
