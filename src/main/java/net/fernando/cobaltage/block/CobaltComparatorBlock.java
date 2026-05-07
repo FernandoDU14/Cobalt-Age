@@ -286,7 +286,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
         } else if (CobaltWireNetwork.compatibleCobaltPowerSource(rearState)) {
             // Legge leve o bottoni piazzati direttamente dietro
             power = rearState.getWeakRedstonePower(world, rearPos, direction);
-        } else if (rearState.isSolidBlock(world, rearPos)) {
+        } else if (rearState.isSolidBlock(world, rearPos) || rearState.getBlock() instanceof RedstoneBlock) {
             for (Direction dir : Direction.values()) {
                 BlockPos neighborPos = rearPos.offset(dir);
                 BlockState neighborState = world.getBlockState(neighborPos);
@@ -456,13 +456,11 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
         return super.getStrongRedstonePower(state, world, pos, direction);
     }
 
-    // Lista dei blocchi vanilla da tenere isolati
     private static boolean isVanillaRedstone(BlockState state) {
         return state.isOf(Blocks.REDSTONE_WIRE) ||
                 state.isOf(Blocks.REPEATER) ||
                 state.isOf(Blocks.COMPARATOR) ||
                 state.isOf(Blocks.REDSTONE_TORCH) ||
-                state.isOf(Blocks.REDSTONE_WALL_TORCH) ||
-                state.isOf(Blocks.REDSTONE_BLOCK);
+                state.isOf(Blocks.REDSTONE_WALL_TORCH);
     }
 }

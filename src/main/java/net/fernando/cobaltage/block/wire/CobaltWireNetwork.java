@@ -284,7 +284,7 @@ public class CobaltWireNetwork {
             }
             // 3. Se è un blocco solido, controlla se è alimentato FORTEMENTE da una fonte Cobalt
             // MAI controllare world.getReceivedRedstonePower() perché includerebbe le polveri!
-            else if (neighborState.isSolidBlock(world, mutable)) {
+            else if (neighborState.isSolidBlock(world, mutable) || neighborState.getBlock() instanceof RedstoneBlock) {
                 maxPower = Math.max(maxPower, getStrongPowerFromNeighbors(world, mutable));
             }
 
@@ -339,7 +339,7 @@ public class CobaltWireNetwork {
         if (world.getBlockState(solidPos).isOf(ModBlocks.COBALT_DUST_BLOCK)) { // Usa il riferimento corretto al tuo blocco solido
             return true;
         }
-        if(!world.getBlockState(solidPos).isSolidBlock(world, solidPos)){
+        if(!world.getBlockState(solidPos).isSolidBlock(world, solidPos) && !(world.getBlockState(solidPos).getBlock() instanceof RedstoneBlock)){
             return false;
         }
 
@@ -412,7 +412,7 @@ public class CobaltWireNetwork {
             }
 
             // Aggiornamento anche i blocchi DOPO di lui (Strong Power)
-            if (neighborState.isSolidBlock(world, mutable)) {
+            if (neighborState.isSolidBlock(world, mutable) || neighborState.getBlock() instanceof RedstoneBlock) {
                 for (Direction sideDir : Direction.values()) {
                     if (sideDir == dir.getOpposite()) continue;
                     farMutable.set(mutable, sideDir);
@@ -442,12 +442,12 @@ public class CobaltWireNetwork {
     }
 
     public static boolean isVanillaRedstone(BlockState state) {
+        // Here we DO NOT want to add REDSTONE BLOCK
         return state.isOf(net.minecraft.block.Blocks.REDSTONE_WIRE) ||
                 state.isOf(net.minecraft.block.Blocks.REPEATER) ||
                 state.isOf(net.minecraft.block.Blocks.COMPARATOR) ||
                 state.isOf(net.minecraft.block.Blocks.REDSTONE_TORCH) ||
-                state.isOf(net.minecraft.block.Blocks.REDSTONE_WALL_TORCH) ||
-                state.isOf(net.minecraft.block.Blocks.REDSTONE_BLOCK);
+                state.isOf(net.minecraft.block.Blocks.REDSTONE_WALL_TORCH);
     }
 
     public static boolean compatibleCobaltPowerSource(BlockState state) {

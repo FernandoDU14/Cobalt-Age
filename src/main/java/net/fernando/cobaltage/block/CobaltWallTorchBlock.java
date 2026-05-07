@@ -132,6 +132,7 @@ public class CobaltWallTorchBlock extends WallRedstoneTorchBlock implements Wate
     }
 
     private boolean isVanillaRedstone(BlockState state) {
+        // Here we need REDSTONE BLOCK
         return state.isOf(Blocks.REDSTONE_WIRE) ||
                 state.isOf(Blocks.REPEATER) ||
                 state.isOf(Blocks.COMPARATOR) ||

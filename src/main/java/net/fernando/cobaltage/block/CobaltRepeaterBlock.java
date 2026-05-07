@@ -123,7 +123,7 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
             power = rearState.getWeakRedstonePower(world, rearPos, direction);
         }
         // 🟦 4. Blocco Solido caricato da energia forte
-        else if (rearState.isSolidBlock(world, rearPos)) {
+        else if (rearState.isSolidBlock(world, rearPos) || rearState.getBlock() instanceof RedstoneBlock) {
             for (Direction dir : Direction.values()) {
                 BlockPos neighborPos = rearPos.offset(dir);
                 BlockState neighborState = world.getBlockState(neighborPos);
@@ -243,6 +243,7 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements Waterloggable,
 
     // Lista dei blocchi vanilla da tenere isolati
     private static boolean isVanillaRedstone(BlockState state) {
+        // Here we need REDSTONE BLOCK
         return state.isOf(Blocks.REDSTONE_WIRE) ||
                 state.isOf(Blocks.REPEATER) ||
                 state.isOf(Blocks.COMPARATOR) ||

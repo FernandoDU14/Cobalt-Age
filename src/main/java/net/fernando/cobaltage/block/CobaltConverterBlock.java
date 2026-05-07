@@ -165,7 +165,7 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
             // FIX: Usiamo rearState e rearPos invece di state e pos!
             power = rearState.getWeakRedstonePower(world, rearPos, direction);
         }
-        // 🟦 4. Blocco Solido caricato da energia forte
+        // 🟦 4. Blocco Solido caricato da energia forte di tipo cobalt o compatibile
         else if (rearState.isSolidBlock(world, rearPos)) {
             for (Direction dir : Direction.values()) {
                 BlockPos neighborPos = rearPos.offset(dir);
@@ -305,18 +305,16 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
     }
 
     private void updateNeighbors(World world, BlockPos pos, BlockState state) {
-        Direction redstoneSide = state.get(FACING);
-        Direction cobaltSide = redstoneSide.getOpposite();
+        Direction cobaltSide = state.get(FACING);
+        Direction redstoneSide = cobaltSide.getOpposite();
 
-        // Aggiorna Redstone
+        // Aggiorna Tutti i Primi Vicini e Primi Vicini Diagonali
         world.updateNeighborsAlways(pos, this, null);
         world.updateNeighborsAlways(pos.offset(redstoneSide), this, null);
 
         // Aggiorna Cobalt Network
         NETWORK_HANDLER.updateNetwork(world, pos.offset(cobaltSide));
     }
-
-
 
     // --- VANILLA REDSTONE OUTPUT ---
     @Override

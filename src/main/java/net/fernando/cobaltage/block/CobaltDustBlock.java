@@ -10,15 +10,15 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
-public class CobaltBlock extends Block implements CobaltPowerSource {
-    public static final MapCodec<CobaltBlock> CODEC = createCodec(CobaltBlock::new);
+public class CobaltDustBlock extends Block implements CobaltPowerSource {
+    public static final MapCodec<CobaltDustBlock> CODEC = createCodec(CobaltDustBlock::new);
 
     @Override
-    public MapCodec<CobaltBlock> getCodec() {
+    public MapCodec<CobaltDustBlock> getCodec() {
         return CODEC;
     }
 
-    public CobaltBlock(AbstractBlock.Settings settings) {
+    public CobaltDustBlock(AbstractBlock.Settings settings) {
         super(settings);
     }
 
@@ -57,8 +57,8 @@ public class CobaltBlock extends Block implements CobaltPowerSource {
         return 15;
     }
 
-    // Il fidato metodo di isolamento usato in tutti gli altri tuoi componenti
     private boolean isVanillaRedstone(BlockState state) {
+        // Here we need REDSTONE BLOCK
         return state.isOf(Blocks.REDSTONE_WIRE) ||
                 state.isOf(Blocks.REPEATER) ||
                 state.isOf(Blocks.COMPARATOR) ||

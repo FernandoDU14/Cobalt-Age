@@ -93,9 +93,9 @@ public class ModBlocks {
             ));
 
     public static final Block COBALT_DUST_BLOCK = registerBlock("cobalt_dust_block",
-            settings -> new CobaltBlock(settings.mapColor(MapColor.LAPIS_BLUE)
+            settings -> new CobaltDustBlock(settings.mapColor(MapColor.LAPIS_BLUE)
                     .requiresTool().strength(5.0F, 6.0F)
-                    .sounds(BlockSoundGroup.METAL).solidBlock(Blocks::never)));
+                    .sounds(BlockSoundGroup.METAL)));
 
 
     // La torcia verticale può restare così (ma usa registerBlockWithoutItem se vuoi gestire l'item in ModItems)
