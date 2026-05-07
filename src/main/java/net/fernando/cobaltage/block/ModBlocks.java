@@ -92,6 +92,11 @@ public class ModBlocks {
                     ))
             ));
 
+
+    public static final Block COBALT_RELAY = registerBlock("cobalt_relay",
+            settings -> new CobaltRelayBlock(AbstractBlock.Settings.copy(Blocks.GLASS)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(CobaltAge.MOD_ID, "cobalt_relay")))));
+
     public static final Block COBALT_DUST_BLOCK = registerBlock("cobalt_dust_block",
             settings -> new CobaltDustBlock(settings.mapColor(MapColor.LAPIS_BLUE)
                     .requiresTool().strength(5.0F, 6.0F)
@@ -128,11 +133,13 @@ public class ModBlocks {
             entries.addAfter(COBALT_REPEATER, CONVERTER);
             entries.addAfter(Items.COMPARATOR, COBALT_COMPARATOR);
             entries.addAfter(Blocks.REDSTONE_BLOCK, COBALT_DUST_BLOCK);
+            entries.addAfter(ModBlocks.COBALT_DUST_BLOCK, COBALT_RELAY);
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(entries -> {
             entries.addBefore(Blocks.GOLD_BLOCK, COBALT_BLOCK);
         });
 
+        CobaltAge.LOGGER.info("Successfully registered mod blocks for " + CobaltAge.MOD_ID);
     }
 }

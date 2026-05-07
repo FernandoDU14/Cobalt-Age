@@ -81,7 +81,8 @@ public class CobaltWireNetwork {
                     boolean weCanSendToNeighbor = true;
                     if (neighbor.pos.getY() < node.pos.getY()) {
                         if (!hasCheckedDown) {
-                            cachedCanGoDown = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
+                            cachedCanGoDown = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down()) ||
+                                    (world.getBlockState(neighbor.pos).getBlock() instanceof CobaltRelayBlock);;
                             hasCheckedDown = true;
                         }
                         weCanSendToNeighbor = cachedCanGoDown;
@@ -90,7 +91,8 @@ public class CobaltWireNetwork {
                     // Lui può INVIARE energia a noi? (Serve per il Backfill)
                     boolean neighborCanSendToUs = true;
                     if (neighbor.pos.getY() > node.pos.getY()) {
-                        neighborCanSendToUs = world.getBlockState(neighbor.pos.down()).isSolidBlock(world, neighbor.pos.down());
+                        neighborCanSendToUs = world.getBlockState(neighbor.pos.down()).isSolidBlock(world, neighbor.pos.down()) ||
+                                (world.getBlockState(neighbor.pos).getBlock() instanceof CobaltRelayBlock);;
                     }
 
                     if (neighbor.currentPower > 0 && neighbor.currentPower <= node.oldPower - 1) {
@@ -141,13 +143,12 @@ public class CobaltWireNetwork {
                     for (CobaltWireNode neighbor : node.connectedWires) {
 
                         // 🛑 FIX DIODO VERTICALE: Controllo flusso in discesa
-                        // Se stiamo cercando di alimentare un cavo più in basso...
                         if (neighbor.pos.getY() < node.pos.getY()) {
                             if (!hasCheckedDown) {
-                                cachedCanGoDown = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
+                                cachedCanGoDown = (world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down())) ||
+                                        (world.getBlockState(neighbor.pos).getBlock() instanceof CobaltRelayBlock);
                                 hasCheckedDown = true;
                             }
-                            // ...e poggiamo sul vetro, saltiamo!
                             if (!cachedCanGoDown) continue;
                         }
 
@@ -206,6 +207,13 @@ public class CobaltWireNetwork {
 
         BlockPos pos = node.pos;
         BlockPos.Mutable mutable = new BlockPos.Mutable();
+
+        // ---- NUOVO: CONNESSIONE DIRETTA VERTICALE (Per i Relay Block) ----
+        mutable.set(pos, Direction.UP);
+        checkAndLink(world, node, mutable.toImmutable());
+
+        mutable.set(pos, Direction.DOWN);
+        checkAndLink(world, node, mutable.toImmutable());
 
         for (Direction dir : Direction.Type.HORIZONTAL) {
             mutable.set(pos, dir);
