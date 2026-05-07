@@ -35,6 +35,7 @@ public class CobaltAgeClient implements ClientModInitializer {
 
         initialize3dCobaltRailsResourcePack();
         initializeCobaltWirePowerLevelResourcePack();
+        initializeCobaltAgeDDMResourcePack();
     }
 
     // Function to compute the color gradient of the Cobalt Dust
@@ -66,6 +67,12 @@ public class CobaltAgeClient implements ClientModInitializer {
         Identifier id = Identifier.of(CobaltAge.MOD_ID, "cobalt_power_level");
         ModContainer modContainer = FabricLoader.getInstance().getModContainer(CobaltAge.MOD_ID).orElseThrow();
         ResourceLoader.registerBuiltinPack(id, modContainer, Text.of("Cobalt Wire Power Level"), PackActivationType.NORMAL);
+    }
+
+    private static void initializeCobaltAgeDDMResourcePack() {
+        Identifier id = Identifier.of(CobaltAge.MOD_ID, "cobalt_age_ddm");
+        ModContainer modContainer = FabricLoader.getInstance().getModContainer(CobaltAge.MOD_ID).orElseThrow();
+        ResourceLoader.registerBuiltinPack(id, modContainer, Text.of("Cobalt Age DDM GUIs"), PackActivationType.NORMAL);
     }
 
 
