@@ -1,9 +1,6 @@
 package net.fernando.cobaltage.block.wire;
 
-import net.fernando.cobaltage.block.CobaltConverterBlock;
-import net.fernando.cobaltage.block.CobaltPowerSource;
-import net.fernando.cobaltage.block.CobaltRepeaterBlock;
-import net.fernando.cobaltage.block.CobaltWireBlock;
+import net.fernando.cobaltage.block.*;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.WireConnection;
 import net.minecraft.state.property.Properties;
@@ -69,6 +66,8 @@ public class CobaltWireShape {
     public static WireConnection getRenderConnection(BlockView world, BlockPos pos, Direction direction) {
         BlockPos.Mutable mutable = new BlockPos.Mutable();
 
+        BlockState sourceState = world.getBlockState(pos);
+
         mutable.set(pos, direction);
         BlockState neighborState = world.getBlockState(mutable);
 
@@ -80,7 +79,7 @@ public class CobaltWireShape {
 
         // 1. CONNESSIONE ORIZZONTALE (SIDE)
         // Accetta connessioni da Cavi E Sorgenti (Torce, Repeater, ecc.)
-        if (canConnectTo(neighborState, direction)) {
+        if (canConnectTo(sourceState, neighborState, direction)) {
             return WireConnection.SIDE;
         }
         // 1.BIS: CONNESSIONE ORIZZONTALE (SIDE) PER CONNETTERSI SE CI SONO BLOCCHI CON SLAB E SOPRA WIRE
@@ -127,30 +126,31 @@ public class CobaltWireShape {
         return WireConnection.NONE;
     }
 
-    private static boolean canConnectTo(BlockState state, @Nullable Direction dir) {
-        if (state.getBlock() instanceof CobaltWireBlock) return true;
+    private static boolean canConnectTo(BlockState sourceState, BlockState targetState, @Nullable Direction dir) {
 
-        if (state.getBlock() instanceof CobaltRepeaterBlock) {
-            Direction facing = state.get(Properties.HORIZONTAL_FACING);
-            // Se dir è null, stiamo solo controllando se il blocco è compatibile in generale
+        if (sourceState.isOf(ModBlocks.COBALT_RELAY) && targetState.isOf(ModBlocks.COBALT_RELAY)) {
+            return false;
+        }
+
+        // Da qui in poi la tua logica originale
+        if (targetState.getBlock() instanceof CobaltWireBlock) return true;
+
+        if (targetState.getBlock() instanceof CobaltRepeaterBlock) {
+            Direction facing = targetState.get(Properties.HORIZONTAL_FACING);
             if (dir == null) return true;
-            // La polvere si connette solo se è davanti o dietro al repeater/comparator
             return dir == facing || dir == facing.getOpposite();
         }
 
-        if(state.getBlock() instanceof CobaltConverterBlock){
-            Direction facing = state.get(Properties.HORIZONTAL_FACING);
-            // Se dir è null, stiamo solo controllando se il blocco è compatibile in generale
+        if(targetState.getBlock() instanceof CobaltConverterBlock){
+            Direction facing = targetState.get(Properties.HORIZONTAL_FACING);
             if (dir == null) return true;
-            // La polvere si connette solo se è al lato cobalt del converter
             return dir == facing.getOpposite();
         }
 
-        if (state.isOf(Blocks.OBSERVER)) return dir == state.get(ObserverBlock.FACING);
+        if (targetState.isOf(Blocks.OBSERVER)) return dir == targetState.get(ObserverBlock.FACING);
 
-
-        return state.getBlock() instanceof CobaltPowerSource ||
-                CobaltWireNetwork.compatibleCobaltPowerSource(state);
+        return targetState.getBlock() instanceof CobaltPowerSource ||
+                CobaltWireNetwork.compatibleCobaltPowerSource(targetState);
     }
 
 }

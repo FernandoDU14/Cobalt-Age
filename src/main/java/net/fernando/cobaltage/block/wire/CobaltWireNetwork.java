@@ -80,27 +80,19 @@ public class CobaltWireNetwork {
 
                     // Possiamo INVIARE energia a lui? (Serve per capire se dipendeva da noi)
                     boolean weCanSendToNeighbor = true;
-                    if (neighbor.pos.getY() < node.pos.getY()) {
-                        if((neighbor.pos.getX() == node.pos.getX()) && (neighbor.pos.getZ() == node.pos.getZ())){ // This happens only and only when Relays
-                            weCanSendToNeighbor = true; // FIX: Flusso diretto verticale tra Relays
-                        }else{ // This happens in the diagonal shape case
-                            if (!hasCheckedSolidBelow) {
-                                isSolidBelow = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
-                                hasCheckedSolidBelow = true;
-                            }
-                            weCanSendToNeighbor = isSolidBelow && !(world.getBlockState(neighbor.pos).getBlock() instanceof CobaltRelayBlock);
+                    boolean differentXZ = node.pos.getX() != neighbor.pos.getX() || node.pos.getZ() != neighbor.pos.getZ();
+                    if (neighbor.pos.getY() < node.pos.getY() && differentXZ) {
+                        if (!hasCheckedSolidBelow) {
+                            isSolidBelow = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
+                            hasCheckedSolidBelow = true;
                         }
+                        weCanSendToNeighbor = isSolidBelow;
                     }
-
 
                     // Lui può INVIARE energia a noi? (Serve per il Backfill)
                     boolean neighborCanSendToUs = true;
-                    if (neighbor.pos.getY() > node.pos.getY()) {
-                        if ((neighbor.pos.getX() == node.pos.getX()) && (neighbor.pos.getZ() == node.pos.getZ())) {
-                            neighborCanSendToUs = true; // FIX: Ricezione diretta verticale dal Relay sopra!
-                        } else {
-                            neighborCanSendToUs = world.getBlockState(neighbor.pos.down()).isSolidBlock(world, neighbor.pos.down());
-                        }
+                    if (neighbor.pos.getY() > node.pos.getY() && differentXZ){
+                        neighborCanSendToUs = world.getBlockState(neighbor.pos.down()).isSolidBlock(world, neighbor.pos.down());
                     }
 
                     if (neighbor.currentPower > 0 && neighbor.currentPower <= node.oldPower - 1) {
@@ -151,19 +143,14 @@ public class CobaltWireNetwork {
 
                     for (CobaltWireNode neighbor : node.connectedWires) {
 
-                        // 🛑 FIX DIODO VERTICALE: Controllo flusso in discesa
-                        if (neighbor.pos.getY() < node.pos.getY()) {
-                            boolean canGoDown;
-                            if((neighbor.pos.getX() == node.pos.getX()) && (neighbor.pos.getZ() == node.pos.getZ())) {
-                                canGoDown = true; // Flusso diretto Relay
-                            } else {
-                                if (!hasCheckedSolidBelow) {
-                                    isSolidBelow = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
-                                    hasCheckedSolidBelow = true;
-                                }
-                                canGoDown = isSolidBelow && !(world.getBlockState(neighbor.pos).getBlock() instanceof CobaltRelayBlock);
+                        // Glass Diode
+                        boolean differentXZ = node.pos.getX() != neighbor.pos.getX() || node.pos.getZ() != neighbor.pos.getZ();
+                        if (neighbor.pos.getY() < node.pos.getY() && differentXZ) {
+                            if (!hasCheckedSolidBelow) {
+                                isSolidBelow = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
+                                hasCheckedSolidBelow = true;
                             }
-                            if (!canGoDown) continue;
+                            if (!isSolidBelow) continue;
                         }
 
                         if (powerToTransmit > neighbor.virtualPower) {
@@ -221,7 +208,6 @@ public class CobaltWireNetwork {
 
         BlockPos pos = node.pos;
         BlockPos.Mutable mutable = new BlockPos.Mutable();
-        BlockState originalNodeState = world.getBlockState(pos);
 
         // ---- NUOVO: CONNESSIONE DIRETTA VERTICALE (Per i Relay Block) ----
         mutable.set(pos, Direction.UP);
@@ -234,7 +220,7 @@ public class CobaltWireNetwork {
             mutable.set(pos, dir);
             BlockState neighborState = world.getBlockState(mutable);
 
-            // 1. CONNESSIONE ORIZZONTALE
+            // Orizzontale
             checkAndLink(world, node, mutable.toImmutable());
 
             // 2. DISCESA
@@ -256,9 +242,36 @@ public class CobaltWireNetwork {
 
     private void checkAndLink(World world, CobaltWireNode source, BlockPos targetPos) {
         CobaltWireNode target = getOrAddWireNode(world, targetPos);
-        if (target != null) {
-            source.connectedWires.add(target);
+        if (target == null) return;
+
+        boolean sourceIsRelay = source.state.isOf(ModBlocks.COBALT_RELAY);
+        boolean targetIsRelay = target.state.isOf(ModBlocks.COBALT_RELAY);
+        boolean sourceIsDust = source.state.isOf(ModBlocks.COBALT_DUST);
+        boolean targetIsDust = target.state.isOf(ModBlocks.COBALT_DUST);
+
+        boolean diffXZ = source.pos.getX() != target.pos.getX() || source.pos.getZ() != target.pos.getZ();
+        boolean diffY = source.pos.getY() != target.pos.getY();
+
+        // 1. Relay <-> Relay: Solo verticale puro
+        if (sourceIsRelay && targetIsRelay) {
+            if (diffXZ) return;
         }
+
+        // 2. Relay <-> Dust: Isolamento verticale inferiore
+        if ((sourceIsRelay && targetIsDust) || (sourceIsDust && targetIsRelay)) {
+            // Niente diagonali se c'è un relay di mezzo
+            if (diffY && diffXZ) return;
+
+            // Logica richiesta: Se sono uno sopra l'altro (Verticale puro)
+            if (!diffXZ && diffY) {
+                // Se il Relay sta SOPRA la Dust, blocchiamo il link in ENTRAMBE le direzioni.
+                // Così il Relay non alimenta sotto e non riceve da sotto.
+                if (sourceIsRelay && source.pos.getY() > target.pos.getY()) return;
+                if (targetIsRelay && target.pos.getY() > source.pos.getY()) return;
+            }
+        }
+
+        source.connectedWires.add(target);
     }
 
 

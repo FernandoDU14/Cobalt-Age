@@ -34,9 +34,6 @@ public class CobaltLevelHelper {
 
         if (state == prevState) return false;
 
-        // 🛑 FIX Sincronizzazione Client: Invia il pacchetto BlockUpdateS2CPacket istantaneo!
-        world.updateListeners(pos, prevState, state, net.minecraft.block.Block.NOTIFY_LISTENERS);
-
         // Notifica i client (altrimenti il cavo non cambia colore visivamente)
         world.getChunkManager().markForUpdate(pos);
 
