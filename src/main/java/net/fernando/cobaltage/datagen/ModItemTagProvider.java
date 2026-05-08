@@ -16,7 +16,6 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
     @Override
     protected void configure(RegistryWrapper.@NonNull WrapperLookup lookup) {
-        // Aggiungi il lingotto di Cobalt ai pagamenti validi per il beacon
         valueLookupBuilder(ItemTags.BEACON_PAYMENT_ITEMS)
                 .add(ModItems.COBALT_INGOT);
     }

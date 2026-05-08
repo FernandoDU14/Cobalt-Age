@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.resource.v1.pack.PackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.fernando.cobaltage.block.CobaltWireBlock;
 import net.fernando.cobaltage.block.ModBlocks;
 import net.minecraft.block.RedstoneWireBlock;
 import net.minecraft.client.render.BlockRenderLayer;
@@ -24,14 +25,26 @@ public class CobaltAgeClient implements ClientModInitializer {
                 ModBlocks.COBALT_TORCH,
                 ModBlocks.COBALT_WALL_TORCH,
                 ModBlocks.COBALT_REPEATER,
-                ModBlocks.COBALT_COMPARATOR
+                ModBlocks.COBALT_COMPARATOR,
+                ModBlocks.COBALT_RELAY
         );
 
         // Dynamic Color for the Cobalt Dust
         ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
-            int power = state.get(RedstoneWireBlock.POWER);
+            int power = state.get(CobaltWireBlock.POWER);
             return getCobaltColor(power);
         }, ModBlocks.COBALT_DUST);
+
+        // Registrazione per il Cobalt Relay
+        ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
+            // Se il tintIndex è 0 (quello che abbiamo messo nel JSON della dust), calcola il colore
+            if (tintIndex == 0) {
+                int power = state.get(CobaltWireBlock.POWER);
+                return getCobaltColor(power);
+            }
+            // Altrimenti, restituisci -1 per non applicare alcuna tinta (mantiene i colori originali delle texture)
+            return -1;
+        }, ModBlocks.COBALT_RELAY);
 
         initialize3dCobaltRailsResourcePack();
         initializeCobaltWirePowerLevelResourcePack();

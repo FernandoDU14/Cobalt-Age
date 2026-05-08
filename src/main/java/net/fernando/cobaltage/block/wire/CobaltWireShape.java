@@ -89,14 +89,6 @@ public class CobaltWireShape {
                 return WireConnection.SIDE;
             }
         }
-        // 1.TRIS: CONNESSIONE ORIZZONTALE (SIDE) SOLO OBSERVER FACING
-
-        // SE IL VICINO È UN OBSERVER
-        if (neighborState.isOf(Blocks.OBSERVER)) {
-            if (neighborState.get(ObserverBlock.FACING) == direction) {
-                return WireConnection.SIDE;
-            }
-        }
 
 
         // 2. CONNESSIONE VERSO L'ALTO (UP)
@@ -153,6 +145,9 @@ public class CobaltWireShape {
             // La polvere si connette solo se è al lato cobalt del converter
             return dir == facing.getOpposite();
         }
+
+        if (state.isOf(Blocks.OBSERVER)) return dir == state.get(ObserverBlock.FACING);
+
 
         return state.getBlock() instanceof CobaltPowerSource ||
                 CobaltWireNetwork.compatibleCobaltPowerSource(state);

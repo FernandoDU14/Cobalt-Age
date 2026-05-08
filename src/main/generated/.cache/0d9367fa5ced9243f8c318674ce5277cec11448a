@@ -1,4 +1,4 @@
-// 1.21.11	-999999999-01-01T00:00:00	Cobalt Age/Cobalt rails recipes
+// 1.21.11	-999999999-01-01T00:00:00	Cobalt Age/Cobalt Age recipes
 75e1cc7501b63bb46ddc3732835ea8607f58c060 data/cobaltage/advancement/recipes/building_blocks/cobalt_block.json
 8fe05ef246648a18fffaee579d1fa5d68f4b18a6 data/cobaltage/advancement/recipes/building_blocks/raw_cobalt_block.json
 d662054ce176bf6388160e6ed6add0d85665b0c2 data/cobaltage/advancement/recipes/misc/cobalt_block_from_blasting_raw_cobalt_block.json
@@ -16,6 +16,7 @@ b21eef9076e4990e0d7de5698f33ed9e1b9206be data/cobaltage/advancement/recipes/misc
 61ad987b51b8bb4b2ca153679825f8915aa3e63a data/cobaltage/advancement/recipes/redstone/cobalt_comparator.json
 e520bee4f9ce63c97c70d32b6dd587500a465b49 data/cobaltage/advancement/recipes/redstone/cobalt_dust.json
 893372e5ece01852c176b44e774dd581943edbc7 data/cobaltage/advancement/recipes/redstone/cobalt_dust_block.json
+4bde79d02cafc2b1b4c51f688b6a4bd3cb04839c data/cobaltage/advancement/recipes/redstone/cobalt_relay.json
 fa288f8c3ca55ccdb25a1eaa0a551b3f9d2921bd data/cobaltage/advancement/recipes/redstone/cobalt_repeater.json
 0a6c6508b88c9bd772a626f5420c20cdefa7b0c4 data/cobaltage/advancement/recipes/redstone/converter.json
 f44887517d52c18054b7753a46c5c98ff4e778d2 data/cobaltage/recipe/cobalt_block.json
@@ -33,6 +34,7 @@ d88816b1f02ba2047c06bbd7d19fbd32e542e4a9 data/cobaltage/recipe/cobalt_ingot_from
 1f4ecc8b042023d596a1286a42ddebe0228121c5 data/cobaltage/recipe/cobalt_ingot_from_smelting_raw_cobalt.json
 773a2fbcc67b1d5db8287e67c7e1206ffb7b146c data/cobaltage/recipe/cobalt_nugget.json
 889bd08b4d128bc75b36af1ed4af21eede84945c data/cobaltage/recipe/cobalt_rail.json
+4bd5874bbea956a992535ddb58aa7bdb10d9dc98 data/cobaltage/recipe/cobalt_relay.json
 dea9c80938359de1d15852102d33e37ce48727c5 data/cobaltage/recipe/cobalt_repeater.json
 3f6b9c1167f487636944427d9f12db119eb35e1c data/cobaltage/recipe/converter.json
 5951a97277becd53e43c00f1711d4d59bc8e33ab data/cobaltage/recipe/raw_cobalt.json

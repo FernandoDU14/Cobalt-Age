@@ -71,8 +71,9 @@ public class CobaltWireNetwork {
 
                 findAndCacheConnectedWires(world, node);
 
-                boolean cachedCanGoDown = true;
-                boolean hasCheckedDown = false;
+                // Variabili di cache pulite per questo nodo specifico
+                boolean isSolidBelow = false;
+                boolean hasCheckedSolidBelow = false;
 
                 for (CobaltWireNode neighbor : node.connectedWires) {
                     if (neighbor.discoveredAsDependent) continue;
@@ -80,19 +81,26 @@ public class CobaltWireNetwork {
                     // Possiamo INVIARE energia a lui? (Serve per capire se dipendeva da noi)
                     boolean weCanSendToNeighbor = true;
                     if (neighbor.pos.getY() < node.pos.getY()) {
-                        if (!hasCheckedDown) {
-                            cachedCanGoDown = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down()) ||
-                                    (world.getBlockState(neighbor.pos).getBlock() instanceof CobaltRelayBlock);;
-                            hasCheckedDown = true;
+                        if((neighbor.pos.getX() == node.pos.getX()) && (neighbor.pos.getZ() == node.pos.getZ())){ // This happens only and only when Relays
+                            weCanSendToNeighbor = true; // FIX: Flusso diretto verticale tra Relays
+                        }else{ // This happens in the diagonal shape case
+                            if (!hasCheckedSolidBelow) {
+                                isSolidBelow = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
+                                hasCheckedSolidBelow = true;
+                            }
+                            weCanSendToNeighbor = isSolidBelow && !(world.getBlockState(neighbor.pos).getBlock() instanceof CobaltRelayBlock);
                         }
-                        weCanSendToNeighbor = cachedCanGoDown;
                     }
+
 
                     // Lui può INVIARE energia a noi? (Serve per il Backfill)
                     boolean neighborCanSendToUs = true;
                     if (neighbor.pos.getY() > node.pos.getY()) {
-                        neighborCanSendToUs = world.getBlockState(neighbor.pos.down()).isSolidBlock(world, neighbor.pos.down()) ||
-                                (world.getBlockState(neighbor.pos).getBlock() instanceof CobaltRelayBlock);;
+                        if ((neighbor.pos.getX() == node.pos.getX()) && (neighbor.pos.getZ() == node.pos.getZ())) {
+                            neighborCanSendToUs = true; // FIX: Ricezione diretta verticale dal Relay sopra!
+                        } else {
+                            neighborCanSendToUs = world.getBlockState(neighbor.pos.down()).isSolidBlock(world, neighbor.pos.down());
+                        }
                     }
 
                     if (neighbor.currentPower > 0 && neighbor.currentPower <= node.oldPower - 1) {
@@ -137,19 +145,25 @@ public class CobaltWireNetwork {
                         findAndCacheConnectedWires(world, node);
                     }
 
-                    boolean cachedCanGoDown = true;
-                    boolean hasCheckedDown = false;
+                    // Cache isolata per prevenire leak sui blocchi diagonali
+                    boolean isSolidBelow = false;
+                    boolean hasCheckedSolidBelow = false;
 
                     for (CobaltWireNode neighbor : node.connectedWires) {
 
                         // 🛑 FIX DIODO VERTICALE: Controllo flusso in discesa
                         if (neighbor.pos.getY() < node.pos.getY()) {
-                            if (!hasCheckedDown) {
-                                cachedCanGoDown = (world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down())) ||
-                                        (world.getBlockState(neighbor.pos).getBlock() instanceof CobaltRelayBlock);
-                                hasCheckedDown = true;
+                            boolean canGoDown;
+                            if((neighbor.pos.getX() == node.pos.getX()) && (neighbor.pos.getZ() == node.pos.getZ())) {
+                                canGoDown = true; // Flusso diretto Relay
+                            } else {
+                                if (!hasCheckedSolidBelow) {
+                                    isSolidBelow = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
+                                    hasCheckedSolidBelow = true;
+                                }
+                                canGoDown = isSolidBelow && !(world.getBlockState(neighbor.pos).getBlock() instanceof CobaltRelayBlock);
                             }
-                            if (!cachedCanGoDown) continue;
+                            if (!canGoDown) continue;
                         }
 
                         if (powerToTransmit > neighbor.virtualPower) {
@@ -207,6 +221,7 @@ public class CobaltWireNetwork {
 
         BlockPos pos = node.pos;
         BlockPos.Mutable mutable = new BlockPos.Mutable();
+        BlockState originalNodeState = world.getBlockState(pos);
 
         // ---- NUOVO: CONNESSIONE DIRETTA VERTICALE (Per i Relay Block) ----
         mutable.set(pos, Direction.UP);
@@ -223,7 +238,7 @@ public class CobaltWireNetwork {
             checkAndLink(world, node, mutable.toImmutable());
 
             // 2. DISCESA
-            if (!neighborState.isSolidBlock(world, mutable)) {
+            if (!neighborState.isSolidBlock(world, mutable)) { // The Diagonal Block That Could Interrupt The Wire Web
                 // 🛑 FIX: Non controlliamo 'canGoDown' qui!
                 // Memorizziamo il vicino a prescindere per poter ricevere eventuale Backfill
                 mutable.set(pos, dir).move(Direction.DOWN);
@@ -232,7 +247,7 @@ public class CobaltWireNetwork {
 
             // 3. SALITA
             mutable.set(pos, Direction.UP);
-            if (!world.getBlockState(mutable).isSolidBlock(world, mutable)) {
+            if (!world.getBlockState(mutable).isSolidBlock(world, mutable)) { // The Diagonal Block That Could Interrupt The Wire Web
                 mutable.set(pos, dir).move(Direction.UP);
                 checkAndLink(world, node, mutable.toImmutable());
             }
@@ -246,7 +261,6 @@ public class CobaltWireNetwork {
         }
     }
 
-    // --- MANUTENZIONE DEI TUOI METODI ESISTENTI ---
 
     private int calculateExternalPower(World world, BlockPos pos) {
         int maxPower = 0;

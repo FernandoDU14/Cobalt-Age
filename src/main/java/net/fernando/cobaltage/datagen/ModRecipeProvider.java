@@ -103,6 +103,16 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .input('D', ModItems.COBALT_DUST)
                         .criterion(hasItem(ModItems.COBALT_TORCH), conditionsFromItem(ModItems.COBALT_TORCH))
                         .offerTo(exporter);
+
+                createShaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_RELAY)
+                        .pattern("GCG")
+                        .pattern("GDG")
+                        .pattern("GCG")
+                        .input('C', ModItems.COBALT_INGOT)
+                        .input('G', Items.GLASS_PANE)
+                        .input('D', ModItems.COBALT_DUST)
+                        .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
+                        .offerTo(exporter);
             }
         };
     }

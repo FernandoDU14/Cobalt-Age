@@ -35,6 +35,7 @@ public class RedstoneIsolationMixin {
     @Inject(at = @At("HEAD"), method = "connectsTo(Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/Direction;)Z", cancellable = true)
     private static void redstone$canConnectTo(BlockState state, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         if (state.isOf(ModBlocks.COBALT_DUST) ||
+                state.isOf(ModBlocks.COBALT_RELAY) ||
                 state.isOf(ModBlocks.COBALT_TORCH) ||
                 state.isOf(ModBlocks.COBALT_REPEATER) ||
                 state.isOf(ModBlocks.COBALT_COMPARATOR) ||

@@ -94,11 +94,20 @@ public class ModBlocks {
 
 
     public static final Block COBALT_RELAY = registerBlock("cobalt_relay",
-            settings -> new CobaltRelayBlock(AbstractBlock.Settings.copy(Blocks.GLASS)
+            settings -> new CobaltRelayBlock(AbstractBlock.Settings.create()
+                    .instrument(NoteBlockInstrument.HAT)
+                    .strength(0.3F)
+                    .sounds(BlockSoundGroup.GLASS)
+                    .nonOpaque()
+                    .allowsSpawning(Blocks::never)
+                    .solidBlock(Blocks::never)
+                    .suffocates(Blocks::never)
+                    .blockVision(Blocks::never)
+                    .mapColor(MapColor.DARK_AQUA)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(CobaltAge.MOD_ID, "cobalt_relay")))));
 
     public static final Block COBALT_DUST_BLOCK = registerBlock("cobalt_dust_block",
-            settings -> new CobaltDustBlock(settings.mapColor(MapColor.LAPIS_BLUE)
+            settings -> new CobaltDustBlock(settings.mapColor(MapColor.DARK_AQUA)
                     .requiresTool().strength(5.0F, 6.0F)
                     .sounds(BlockSoundGroup.METAL)));
 
