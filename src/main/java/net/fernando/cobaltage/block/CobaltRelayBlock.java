@@ -80,7 +80,7 @@ public class CobaltRelayBlock extends CobaltWireBlock {
 
     // Controlla se il vicino supporta la rete Cobalt
     private boolean canConnectTo(BlockState state, Direction from) {
-        if (state.getBlock() instanceof CobaltWireBlock) return true; // Include anche altri Relay Block!
+        if (state.isOf(ModBlocks.COBALT_DUST)) return true; // Include anche altri Relay Block!
         if (state.getBlock() instanceof CobaltPowerSource) return true;
         return CobaltWireNetwork.compatibleCobaltPowerSource(state);
     }

@@ -1,7 +1,49 @@
 {
-  "variants": {
-    "": {
-      "model": "cobaltage:block/cobalt_relay_side_none"
+  "multipart": [
+    {
+      "comment": "Il nucleo centrale viene renderizzato SEMPRE a prescindere dalle connessioni.",
+      "apply": {
+        "model": "cobaltage:block/cobalt_relay_base"
+      }
+    },
+    {
+      "comment": "Se a NORD c'è una connessione, aggiungi il pezzetto di cavo dritto.",
+      "when": {
+        "north": "side|up"
+      },
+      "apply": {
+        "model": "cobaltage:block/cobalt_relay_side"
+      }
+    },
+    {
+      "comment": "Se a EST c'è una connessione, aggiungi il pezzetto ruotato di 90 gradi.",
+      "when": {
+        "east": "side|up"
+      },
+      "apply": {
+        "model": "cobaltage:block/cobalt_relay_side",
+        "y": 90
+      }
+    },
+    {
+      "comment": "Se a SUD c'è una connessione, aggiungi il pezzetto ruotato di 180 gradi.",
+      "when": {
+        "south": "side|up"
+      },
+      "apply": {
+        "model": "cobaltage:block/cobalt_relay_side",
+        "y": 180
+      }
+    },
+    {
+      "comment": "Se a OVEST c'è una connessione, aggiungi il pezzetto ruotato di 270 gradi.",
+      "when": {
+        "west": "side|up"
+      },
+      "apply": {
+        "model": "cobaltage:block/cobalt_relay_side",
+        "y": 270
+      }
     }
-  }
+  ]
 }
