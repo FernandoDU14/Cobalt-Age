@@ -61,7 +61,7 @@ public class CobaltRelayBlock extends CobaltWireBlock {
     }
 
     // Calcolo delle 6 connessioni per la grafica/logica direzionale
-    private BlockState calculateConnections(WorldView world, BlockPos pos, BlockState state) {
+    private BlockState calculateConnections(BlockView world, BlockPos pos, BlockState state) {
         boolean up = true; // forced state
         boolean down = true; // forced state
         boolean north = canConnectTo(world.getBlockState(pos.north()), Direction.SOUTH);
@@ -78,9 +78,15 @@ public class CobaltRelayBlock extends CobaltWireBlock {
                 .with(WEST, west ? WireConnection.SIDE : WireConnection.NONE);
     }
 
+    // Questo farà sì che forceShapeUpdate e i neighbor update usino la logica del Relay!
+    @Override
+    public BlockState getWireShapeState(BlockView world, BlockPos pos, BlockState state) {
+        return calculateConnections(world, pos, state);
+    }
+
     // Controlla se il vicino supporta la rete Cobalt
     private boolean canConnectTo(BlockState state, Direction from) {
-        if (state.isOf(ModBlocks.COBALT_DUST)) return true; // Include anche altri Relay Block!
+        if (state.isOf(ModBlocks.COBALT_DUST)) return true; // Includes only Dust Wires and not Relays
         if (state.getBlock() instanceof CobaltPowerSource) return true;
         return CobaltWireNetwork.compatibleCobaltPowerSource(state);
     }

@@ -91,6 +91,10 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         };
     }
 
+    public BlockState getWireShapeState(BlockView world, BlockPos pos, BlockState state) {
+        return CobaltWireShape.getUpdatedState(world, pos, state);
+    }
+
     // Helper to create the vertical wall hitboxes
     private VoxelShape getVerticalStub(Direction direction) {
         return switch (direction) {
@@ -217,7 +221,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         }
 
         // 🔌 aggiorna connessioni (la TUA logica, non vanilla)
-        BlockState newState = CobaltWireShape.getUpdatedState(world, pos, state);
+        BlockState newState = this.getWireShapeState(world, pos, state);
 
         // 💧 preserva waterlogged
         return newState.with(WATERLOGGED, state.get(WATERLOGGED));
@@ -229,7 +233,7 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         BlockPos pos = ctx.getBlockPos();
 
         // 1. stato base con shape corretta (connessioni)
-        BlockState state = CobaltWireShape.getUpdatedState(world, pos, this.getDefaultState());
+        BlockState state = this.getWireShapeState(world, pos, this.getDefaultState());
 
         // 2. gestione waterlogged
         FluidState fluidState = world.getFluidState(pos);
@@ -411,9 +415,9 @@ public class CobaltWireBlock extends Block  implements Waterloggable {
         BlockState state = world.getBlockState(pos);
 
         // Controlliamo se il blocco in questa posizione è una tua polvere
-        if (state.getBlock() instanceof CobaltWireBlock) {
+        if (state.getBlock() instanceof CobaltWireBlock wireBlock) {
             // Calcoliamo la nuova forma (Punto, Linea, Rampa, ecc.)
-            BlockState newState = CobaltWireShape.getUpdatedState(world, pos, state);
+            BlockState newState = wireBlock.getWireShapeState(world, pos, state);
 
             // Se la forma calcolata è diversa da quella attuale, applichiamola immediatamente!
             if (state != newState) {

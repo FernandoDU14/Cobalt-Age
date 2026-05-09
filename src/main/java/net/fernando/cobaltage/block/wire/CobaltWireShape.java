@@ -83,7 +83,7 @@ public class CobaltWireShape {
             return WireConnection.SIDE;
         }
         // 1.BIS: CONNESSIONE ORIZZONTALE (SIDE) PER CONNETTERSI SE CI SONO BLOCCHI CON SLAB E SOPRA WIRE
-        if (stateAboveNeighbor.getBlock() instanceof CobaltWireBlock) {
+        if (stateAboveNeighbor.isOf(ModBlocks.COBALT_DUST)) {
             if (neighborState.getBlock() instanceof SlabBlock) {
                 return WireConnection.SIDE;
             }
@@ -92,10 +92,9 @@ public class CobaltWireShape {
 
         // 2. CONNESSIONE VERSO L'ALTO (UP)
         // La polvere sale SOLO se sopra il vicino c'è un'altra POLVERE.
-        // Ignora Torce o altre sorgenti poste in alto.
         mutable.set(pos, Direction.UP);
         if (!world.getBlockState(mutable).isSolidBlock(world, mutable)) {
-            if (stateAboveNeighbor.getBlock() instanceof CobaltWireBlock) {
+            if (stateAboveNeighbor.isOf(ModBlocks.COBALT_DUST)) {
                 mutable.set(pos, direction); // Ritorna alla posizione del vicino
                 if (neighborState.getBlock() instanceof TransparentBlock ||
                         neighborState.getBlock() instanceof IceBlock ||
@@ -112,7 +111,7 @@ public class CobaltWireShape {
             mutable.move(Direction.DOWN);
             BlockState stateBelowNeighbor = world.getBlockState(mutable);
 
-            if (stateBelowNeighbor.getBlock() instanceof CobaltWireBlock) {
+            if (stateBelowNeighbor.isOf(ModBlocks.COBALT_DUST)) {
                 mutable.set(pos, Direction.DOWN);
                 if (stateBelowMe.getBlock() instanceof TransparentBlock ||
                         stateBelowMe.getBlock() instanceof SlabBlock ||
