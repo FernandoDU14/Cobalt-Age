@@ -3,6 +3,7 @@ package net.fernando.cobaltage.item;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fernando.cobaltage.CobaltAge;
 import net.fernando.cobaltage.block.ModBlocks;
+import net.fernando.cobaltage.trim.ModTrimMaterials;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -15,12 +16,15 @@ import java.util.function.Function;
 
 public class ModItems {
 
-    public static final Item COBALT_INGOT = registerItem("cobalt_ingot", Item::new);
+    public static final Item COBALT_INGOT = registerItem("cobalt_ingot",
+            settings -> new Item(settings.trimMaterial(ModTrimMaterials.COBALT_INGOT))
+    );
     public static final Item COBALT_NUGGET = registerItem("cobalt_nugget", Item::new);
     public static final Item RAW_COBALT = registerItem("raw_cobalt", Item::new);
 
     public static final Item COBALT_DUST = registerItem("cobalt_dust",
-            settings -> new BlockItem(ModBlocks.COBALT_DUST, settings));
+            settings -> new BlockItem(ModBlocks.COBALT_DUST,
+                    settings.trimMaterial(ModTrimMaterials.COBALT_DUST)));
 
     public static final Item COBALT_TORCH = registerItem("cobalt_torch",
             settings -> new VerticallyAttachableBlockItem(
@@ -29,6 +33,9 @@ public class ModItems {
                     Direction.DOWN,
                     settings) // Standard placement settings
     );
+
+    public static final Item DUST_SMITHING_TEMPLATE = registerItem("dust_armor_trim_smithing_template",
+            SmithingTemplateItem::of);
 
     private static Item registerItem(String name, Function<Item.Settings, Item> function) {
         Identifier id = Identifier.of(CobaltAge.MOD_ID, name);
@@ -46,6 +53,7 @@ public class ModItems {
             entries.addBefore(Items.COPPER_INGOT, COBALT_INGOT);
             entries.addAfter(Items.IRON_NUGGET, COBALT_NUGGET);
             entries.addBefore(Items.RAW_COPPER, RAW_COBALT);
+            entries.addAfter(Items.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE, DUST_SMITHING_TEMPLATE);
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(entries -> {

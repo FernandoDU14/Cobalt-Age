@@ -3,7 +3,7 @@
   "category": "misc",
   "cookingtime": 200,
   "experience": 1.0,
-  "group": "cobalt_ingot",
+  "group": "cobalt_ingot.json",
   "ingredient": "cobaltage:cobalt_ore",
   "result": {
     "id": "cobaltage:cobalt_ingot"

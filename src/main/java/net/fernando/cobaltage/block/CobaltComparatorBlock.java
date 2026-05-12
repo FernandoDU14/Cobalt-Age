@@ -74,7 +74,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
         world.updateNeighbor(outputPos, this, null);
         world.updateNeighborsExcept(outputPos, this, direction, null);
 
-        // 2. SVEGLIA LA RETE COBALT!
+        // 2. SVEGLIA LA RETE COBALT_INGOT!
         // Se non facciamo questo, il comparatore cambia ma la Cobalt Dust non lo sa.
         if (world.getBlockState(outputPos).getBlock() instanceof CobaltWireBlock) {
             NETWORK_HANDLER.updateNetwork(world, pos);
@@ -276,7 +276,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements Waterlogga
         BlockPos rearPos = pos.offset(direction);
         BlockState rearState = world.getBlockState(rearPos);
 
-        // --- 1. LEGGE RETE COBALT E BLOCCHI COMPATIBILI ---
+        // --- 1. LEGGE RETE COBALT_INGOT E BLOCCHI COMPATIBILI ---
         if (rearState.getBlock() instanceof CobaltPowerSource source) {
             if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
                 power = source.getCobaltPower(rearState, world, rearPos);

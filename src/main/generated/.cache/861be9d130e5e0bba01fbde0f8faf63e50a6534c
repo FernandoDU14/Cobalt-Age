@@ -1,0 +1,6 @@
+// 1.21.11	-999999999-01-01T00:00:00	Cobalt Age/Cobalt Age Dynamic Registries
+4f4cb97afb8ed39b808e87881805fd8a6ff54f2b data/cobaltage/trim_material/cobalt_dust.json
+9607c030841abb816d722fd8bcfcfc05de7fa3a4 data/cobaltage/trim_material/cobalt_ingot.json
+b04eb7ece59ab2d72f044d85098d2ee997503097 data/cobaltage/trim_pattern/dust.json
+7f7317d37e3211538cb4e3dcccf526ca1f76cba6 data/cobaltage/worldgen/configured_feature/cobalt_ore.json
+fb548fade51bc56f57e91968677d6decfce92802 data/cobaltage/worldgen/placed_feature/cobalt_ore_placed.json

@@ -322,7 +322,7 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
         return true;
     }
 
-    // --- COBALT OUTPUT ---
+    // --- COBALT_INGOT OUTPUT ---
     @Override
     public int getCobaltPower(BlockState state, World world, BlockPos pos) {
         // Emette Cobalt solo se la modalità è Redstone -> Cobalt

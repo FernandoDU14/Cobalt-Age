@@ -4,6 +4,10 @@
   "item.cobaltage.raw_cobalt": "Cobalto en bruto",
   "item.cobaltage.cobalt_dust_block": "Bloque cobalto en polvo",
   "item.cobaltage.cobalt_rail": "Raíl de cobalto",
+  "item.cobaltage.dust_armor_trim_smithing_template": "Diseño de herrería de recorte de polvo",
+  "trim_material.cobaltage.cobalt_ingot": "Incrustaciones de cobalto",
+  "trim_material.cobaltage.cobalt_dust": "Incrustaciones de polvo de cobalto",
+  "trim_pattern.cobaltage.dust": "Diseño de armadura de polvo",
   "item.cobaltage.deepslate_cobalt_ore": "Mineral de pizarra profunda de cobalto",
   "item.cobaltage.cobalt_ore": "Mineral de cobalto",
   "item.cobaltage.cobalt_block": "Bloque de cobalto",
@@ -12,5 +16,6 @@
   "item.cobaltage.cobalt_repeater": "Repetidor de cobalto",
   "item.cobaltage.cobalt_comparator": "Comparador de cobalto",
   "item.cobaltage.cobalt_torch": "Antorcha de cobalto",
-  "item.cobaltage.converter": "Adaptador"
+  "item.cobaltage.converter": "Adaptador",
+  "item.cobaltage.cobalt_relay": "Relé de cobalto"
 }

@@ -29,5 +29,6 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.COBALT_INGOT, Models.GENERATED);
         itemModelGenerator.register(ModItems.RAW_COBALT, Models.GENERATED);
         itemModelGenerator.register(ModItems.COBALT_NUGGET, Models.GENERATED);
+        itemModelGenerator.register(ModItems.DUST_SMITHING_TEMPLATE, Models.GENERATED);
     }
 }

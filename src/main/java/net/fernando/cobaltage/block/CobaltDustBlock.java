@@ -22,7 +22,7 @@ public class CobaltDustBlock extends Block implements CobaltPowerSource {
         super(settings);
     }
 
-    // --- COBALT POWER SYSTEM ---
+    // --- COBALT_INGOT POWER SYSTEM ---
 
     @Override
     public int getCobaltPower(BlockState state, World world, BlockPos pos) {

@@ -2,8 +2,10 @@ package net.fernando.cobaltage.datagen;
 
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
+import net.fernando.cobaltage.CobaltAge;
 import net.fernando.cobaltage.block.ModBlocks;
 import net.fernando.cobaltage.item.ModItems;
+import net.fernando.cobaltage.trim.ModTrimPatterns;
 import net.minecraft.data.recipe.RecipeExporter;
 import net.minecraft.data.recipe.RecipeGenerator;
 import net.minecraft.item.ItemConvertible;
@@ -35,10 +37,10 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         ModBlocks.COBALT_ORE, ModBlocks.DEEPSLATE_COBALT_ORE);
 
                 offerSmelting(COBALT_ORSE_SMELTABLES, RecipeCategory.MISC, ModItems.COBALT_INGOT,
-                        1.0f, 200, "cobalt_ingot");
+                        1.0f, 200, "cobalt_ingot.json");
 
                 offerBlasting(COBALT_ORSE_SMELTABLES, RecipeCategory.MISC, ModItems.COBALT_INGOT,
-                        1.0f, 100, "cobalt_ingot");
+                        1.0f, 100, "cobalt_ingot.json");
                 offerBlasting(List.of(ModBlocks.RAW_COBALT_BLOCK), RecipeCategory.MISC, ModBlocks.COBALT_BLOCK,
                         1.0f, 100, "cobalt_block");
 
@@ -113,7 +115,21 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .input('D', ModItems.COBALT_DUST)
                         .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
                         .offerTo(exporter);
-            }
+
+                offerSmithingTrimRecipe(ModItems.DUST_SMITHING_TEMPLATE, ModTrimPatterns.DUST,
+                        RegistryKey.of(RegistryKeys.RECIPE, Identifier.of(CobaltAge.MOD_ID, "dust_trim")));
+
+                createShaped(RecipeCategory.MISC, ModItems.DUST_SMITHING_TEMPLATE, 2)
+                        .pattern("DTD")
+                        .pattern("DCD")
+                        .pattern("DDD")
+                        .input('C', ModBlocks.COBALT_BLOCK)
+                        .input('T', ModItems.DUST_SMITHING_TEMPLATE)
+                        .input('D', Items.DIAMOND)
+                        .criterion(hasItem(ModItems.DUST_SMITHING_TEMPLATE), conditionsFromItem(ModItems.DUST_SMITHING_TEMPLATE))
+                        .offerTo(exporter);
+
+                }
         };
     }
 

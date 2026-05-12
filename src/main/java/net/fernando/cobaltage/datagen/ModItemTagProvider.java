@@ -18,5 +18,9 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
     protected void configure(RegistryWrapper.@NonNull WrapperLookup lookup) {
         valueLookupBuilder(ItemTags.BEACON_PAYMENT_ITEMS)
                 .add(ModItems.COBALT_INGOT);
+
+        valueLookupBuilder(ItemTags.TRIM_MATERIALS)
+                .add(ModItems.COBALT_INGOT)
+                .add(ModItems.COBALT_DUST);
     }
 }
