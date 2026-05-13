@@ -1,12 +1,15 @@
 package net.fernando.cobaltage.block.wire;
 
+import com.sun.jna.platform.unix.solaris.Kstat2StatusException;
 import net.fernando.cobaltage.block.*;
 import net.minecraft.block.*;
+import net.minecraft.block.enums.PistonType;
 import net.minecraft.block.enums.WireConnection;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.gen.feature.GlowstoneBlobFeature;
 import org.jetbrains.annotations.Nullable;
 
 public class CobaltWireShape {
@@ -84,20 +87,19 @@ public class CobaltWireShape {
         }
         // 1.BIS: CONNESSIONE ORIZZONTALE (SIDE) PER CONNETTERSI SE CI SONO BLOCCHI CON SLAB E SOPRA WIRE
         if (stateAboveNeighbor.isOf(ModBlocks.COBALT_DUST)) {
-            if (neighborState.getBlock() instanceof SlabBlock) {
+            if (isSlabbyRedstoneBehaviour(neighborState)) {
                 return WireConnection.SIDE;
             }
         }
 
 
-        // 2. CONNESSIONE VERSO L'ALTO (UP)
+        // 2. CONNESSIONE VERSO L'ALTO (UP) - RUN ON TOP CONNECTION
         // La polvere sale SOLO se sopra il vicino c'è un'altra POLVERE.
         mutable.set(pos, Direction.UP);
         if (!world.getBlockState(mutable).isSolidBlock(world, mutable)) {
             if (stateAboveNeighbor.isOf(ModBlocks.COBALT_DUST)) {
                 mutable.set(pos, direction); // Ritorna alla posizione del vicino
-                if (neighborState.getBlock() instanceof TransparentBlock ||
-                        neighborState.getBlock() instanceof IceBlock ||
+                if (isGlassyRedstoneBehaviour(neighborState) ||
                         neighborState.isSolidBlock(world, mutable)) {
                     return WireConnection.UP;
                 }
@@ -113,9 +115,8 @@ public class CobaltWireShape {
 
             if (stateBelowNeighbor.isOf(ModBlocks.COBALT_DUST)) {
                 mutable.set(pos, Direction.DOWN);
-                if (stateBelowMe.getBlock() instanceof TransparentBlock ||
-                        stateBelowMe.getBlock() instanceof SlabBlock ||
-                        stateBelowMe.getBlock() instanceof IceBlock ||
+                if (isSlabbyRedstoneBehaviour(stateBelowMe) ||
+                        isGlassyRedstoneBehaviour(stateBelowMe) ||
                         stateBelowMe.isSolidBlock(world, mutable)) {
                     return WireConnection.SIDE;
                 }
@@ -150,6 +151,22 @@ public class CobaltWireShape {
 
         return targetState.getBlock() instanceof CobaltPowerSource ||
                 CobaltWireNetwork.compatibleCobaltPowerSource(targetState);
+    }
+
+    public static boolean isGlassyRedstoneBehaviour(BlockState state){
+        return state.getBlock() instanceof TransparentBlock ||
+                state.getBlock() instanceof BulbBlock ||
+                state.isOf(Blocks.GLOWSTONE) ||
+                state.getBlock() instanceof TntBlock ||
+                state.getBlock() instanceof IceBlock;
+    }
+
+    public static boolean isSlabbyRedstoneBehaviour(BlockState state){
+        return state.getBlock() instanceof SlabBlock ||
+                state.getBlock() instanceof HopperBlock ||
+                state.getBlock() instanceof PistonBlock ||
+                state.getBlock() instanceof StairsBlock ||
+                state.getBlock() instanceof ScaffoldingBlock;
     }
 
 }

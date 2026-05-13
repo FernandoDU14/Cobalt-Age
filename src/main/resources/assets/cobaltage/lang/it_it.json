@@ -1,0 +1,24 @@
+{
+  "item.cobaltage.cobalt_ingot": "Lingotto di cobalto",
+  "item.cobaltage.cobalt_nugget": "Pepita di cobalto",
+  "item.cobaltage.raw_cobalt": "Cobalto grezzo",
+  "item.cobaltage.cobalt_dust_block": "Blocco di povere di cobalto",
+  "item.cobaltage.cobalt_rail": "Rotaie di cobalto",
+
+  "item.cobaltage.dust_armor_trim_smithing_template": "Ornamento stile polvere",
+
+  "trim_material.cobaltage.cobalt_ingot": "Incisione in cobalto",
+  "trim_material.cobaltage.cobalt_dust": "Incisione in polvere di cobalto",
+  "trim_pattern.cobaltage.dust": "Ornamento stile polvere",
+
+  "item.cobaltage.deepslate_cobalt_ore": "Minerale di cobalto in ardesia profonda",
+  "item.cobaltage.cobalt_ore": "Minerale di cobalto",
+  "item.cobaltage.cobalt_block": "Blocco di cobalto",
+  "item.cobaltage.raw_cobalt_block": "Blocco di cobalto grezzo",
+  "item.cobaltage.cobalt_dust": "Polvere di cobalto",
+  "item.cobaltage.cobalt_repeater": "Ripetitore di cobalto",
+  "item.cobaltage.cobalt_comparator": "Comparatore di cobalto",
+  "item.cobaltage.cobalt_torch": "Torcia di cobalto",
+  "item.cobaltage.converter": "Convertitore",
+  "item.cobaltage.cobalt_relay": "Relè di cobalto"
+}

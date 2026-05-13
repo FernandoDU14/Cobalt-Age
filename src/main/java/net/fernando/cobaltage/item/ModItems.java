@@ -10,6 +10,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
 import net.minecraft.util.math.Direction;
 
 import java.util.function.Function;
@@ -23,8 +24,7 @@ public class ModItems {
     public static final Item RAW_COBALT = registerItem("raw_cobalt", Item::new);
 
     public static final Item COBALT_DUST = registerItem("cobalt_dust",
-            settings -> new BlockItem(ModBlocks.COBALT_DUST,
-                    settings.trimMaterial(ModTrimMaterials.COBALT_DUST)));
+            settings -> new BlockItem(ModBlocks.COBALT_DUST, settings.trimMaterial(ModTrimMaterials.COBALT_DUST)));
 
     public static final Item COBALT_TORCH = registerItem("cobalt_torch",
             settings -> new VerticallyAttachableBlockItem(
@@ -35,7 +35,7 @@ public class ModItems {
     );
 
     public static final Item DUST_SMITHING_TEMPLATE = registerItem("dust_armor_trim_smithing_template",
-            SmithingTemplateItem::of);
+            settings -> SmithingTemplateItem.of(settings.rarity(Rarity.UNCOMMON)));
 
     private static Item registerItem(String name, Function<Item.Settings, Item> function) {
         Identifier id = Identifier.of(CobaltAge.MOD_ID, name);
