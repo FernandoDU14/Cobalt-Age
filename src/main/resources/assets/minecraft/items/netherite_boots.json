@@ -1,0 +1,292 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "cases": [
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_quartz_trim"
+        },
+        "when": "minecraft:quartz"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_iron_trim"
+        },
+        "when": "minecraft:iron"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_netherite_trim"
+        },
+        "when": "minecraft:netherite"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_redstone_trim"
+        },
+        "when": "minecraft:redstone"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_copper_trim"
+        },
+        "when": "minecraft:copper"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_gold_trim"
+        },
+        "when": "minecraft:gold"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_emerald_trim"
+        },
+        "when": "minecraft:emerald"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_diamond_trim"
+        },
+        "when": "minecraft:diamond"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_lapis_trim"
+        },
+        "when": "minecraft:lapis"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_amethyst_trim"
+        },
+        "when": "minecraft:amethyst"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "minecraft:item/netherite_boots_resin_trim"
+        },
+        "when": "minecraft:resin"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_armadillo_scute_trim"
+        },
+        "when": "more_colors:armadillo_scute"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_blaze_trim"
+        },
+        "when": "more_colors:blaze"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_breeze_trim"
+        },
+        "when": "more_colors:breeze"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_crying_obsidian_trim"
+        },
+        "when": "more_colors:crying_obsidian"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_echo_trim"
+        },
+        "when": "more_colors:echo"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_end_crystal_trim"
+        },
+        "when": "more_colors:end_crystal"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_glowstone_trim"
+        },
+        "when": "more_colors:glowstone"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_leather_trim"
+        },
+        "when": "more_colors:leather"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_magma_trim"
+        },
+        "when": "more_colors:magma"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_nautilus_trim"
+        },
+        "when": "more_colors:nautilus"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_nether_star_trim"
+        },
+        "when": "more_colors:nether_star"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_netherite_scrap_trim"
+        },
+        "when": "more_colors:netherite_scrap"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_obsidian_trim"
+        },
+        "when": "more_colors:obsidian"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_phantom_trim"
+        },
+        "when": "more_colors:phantom"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_prismarine_trim"
+        },
+        "when": "more_colors:prismarine"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_prismarine_crystal_trim"
+        },
+        "when": "more_colors:prismarine_crystal"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_rabbit_hide_trim"
+        },
+        "when": "more_colors:rabbit_hide"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_rose_gold_trim"
+        },
+        "when": "more_colors:rose_gold"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_shulker_trim"
+        },
+        "when": "more_colors:shulker"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_slime_trim"
+        },
+        "when": "more_colors:slime"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_turtle_scute_trim"
+        },
+        "when": "more_colors:turtle_scute"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_wart_trim"
+        },
+        "when": "more_colors:wart"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_ender_pearl_trim"
+        },
+        "when": "more_colors:ender_pearl"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_dripstone_trim"
+        },
+        "when": "more_colors:dripstone"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_ghast_tear_trim"
+        },
+        "when": "more_colors:ghast_tear"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_blue_ice_trim"
+        },
+        "when": "more_colors:blue_ice"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_breath_trim"
+        },
+        "when": "more_colors:breath"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_sea_heart_trim"
+        },
+        "when": "more_colors:sea_heart"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "more_colors:item/netherite_boots_glass_trim"
+        },
+        "when": "more_colors:glass"
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/netherite_boots"
+    },
+    "property": "minecraft:trim_material"
+  }
+}
