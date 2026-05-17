@@ -153,6 +153,7 @@ public class CobaltWireShape {
                 CobaltWireNetwork.compatibleCobaltPowerSource(targetState);
     }
 
+    // Prolly to change in isGlassyCobaltBehaviour
     public static boolean isGlassyRedstoneBehaviour(BlockState state){
         return state.getBlock() instanceof TransparentBlock ||
                 state.getBlock() instanceof BulbBlock ||
