@@ -147,6 +147,7 @@ public class ModBlocks {
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(entries -> {
             entries.addBefore(Blocks.GOLD_BLOCK, COBALT_BLOCK);
+            entries.addAfter(Blocks.REDSTONE_BLOCK, COBALT_DUST_BLOCK);
         });
 
         CobaltAge.LOGGER.info("Successfully registered mod blocks for " + CobaltAge.MOD_ID);

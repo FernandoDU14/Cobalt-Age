@@ -50,14 +50,19 @@ public class ModItems {
         CobaltAge.LOGGER.info("Regiestering mod items for " + CobaltAge.MOD_ID);
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(entries -> {
-            entries.addBefore(Items.COPPER_INGOT, COBALT_INGOT);
+            entries.addAfter(Items.IRON_INGOT, COBALT_INGOT);
             entries.addAfter(Items.IRON_NUGGET, COBALT_NUGGET);
-            entries.addBefore(Items.RAW_COPPER, RAW_COBALT);
+            entries.addAfter(Items.RAW_IRON, RAW_COBALT);
             entries.addAfter(Items.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE, DUST_SMITHING_TEMPLATE);
+            entries.addAfter(Items.REDSTONE, COBALT_DUST);
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(entries -> {
             entries.addAfter(Items.REDSTONE, ModItems.COBALT_DUST);
+            entries.addAfter(Items.REDSTONE_TORCH, ModItems.COBALT_TORCH);
+        });
+
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(entries -> {
             entries.addAfter(Items.REDSTONE_TORCH, ModItems.COBALT_TORCH);
         });
     }

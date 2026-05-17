@@ -79,18 +79,20 @@
         },
         "when": "minecraft:resin"
       },
-        {
-            "model": {
-            "type": "minecraft:model",
-            },
-            "when": "cobaltage:cobalt_ingot"
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "cobaltage:item/trims/chainmail_helmet_cobalt_ingot_trim"
         },
-        {
-            "model": {
-            "type": "minecraft:model",
-            },
-            "when": "cobaltage:cobalt_dust"
-        }
+        "when": "cobaltage:cobalt_ingot"
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "cobaltage:item/trims/chainmail_helmet_cobalt_dust_trim"
+        },
+        "when": "cobaltage:cobalt_dust"
+      }
     ],
     "fallback": {
       "type": "minecraft:model",
