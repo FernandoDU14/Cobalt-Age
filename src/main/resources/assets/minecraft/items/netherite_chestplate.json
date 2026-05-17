@@ -19,9 +19,9 @@
       {
         "model": {
           "type": "minecraft:model",
-          "model": "minecraft:item/netherite_chestplate_netherite_trim"
+          "model": "minecraft:item/netherite_chestplate_diamond_trim"
         },
-        "when": "minecraft:netherite"
+        "when": "minecraft:diamond"
       },
       {
         "model": {
@@ -54,9 +54,9 @@
       {
         "model": {
           "type": "minecraft:model",
-          "model": "minecraft:item/netherite_chestplate_diamond_trim"
+          "model": "minecraft:item/netherite_chestplate_netherite_trim"
         },
-        "when": "minecraft:diamond"
+        "when": "minecraft:netherite"
       },
       {
         "model": {
@@ -82,21 +82,14 @@
       {
         "model": {
           "type": "minecraft:model",
-          "model": "cobaltage:item/netherite_chestplate_cobalt_ingot_trim"
+          "model": "cobaltage:item/trims/netherite_chestplate_cobalt_ingot_trim"
         },
         "when": "cobaltage:cobalt_ingot"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "cobaltage:item/netherite_chestplate_cobalt_ingot_trim"
-        },
-        "when": "cobaltage:cobalt_ingot"
-      },
-      {
-        "model": {
-          "type": "minecraft:model",
-          "model": "cobaltage:item/netherite_chestplate_cobalt_dust_trim"
+          "model": "cobaltage:item/trims/netherite_chestplate_cobalt_dust_trim"
         },
         "when": "cobaltage:cobalt_dust"
       }

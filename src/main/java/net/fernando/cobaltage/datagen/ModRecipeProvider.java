@@ -50,6 +50,9 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 offerReversibleCompactingRecipes(RecipeCategory.MISC, ModItems.RAW_COBALT,
                         RecipeCategory.BUILDING_BLOCKS, ModBlocks.RAW_COBALT_BLOCK);
 
+                offerReversibleCompactingRecipes(RecipeCategory.REDSTONE, ModItems.COBALT_DUST,
+                        RecipeCategory.REDSTONE, ModBlocks.COBALT_DUST_BLOCK);
+
                 createShaped(RecipeCategory.MISC, ModBlocks.COBALT_RAIL, 6)
                         .pattern("C C")
                         .pattern("CBC")
@@ -68,13 +71,17 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
                         .offerTo(exporter, RegistryKey.of(RegistryKeys.RECIPE,Identifier.of("cobalt_ingot_from_cobalt_nugget")));
 
+                createShapeless(RecipeCategory.REDSTONE, ModBlocks.COBALT_DUST, 1)
+                        .input(ModItems.COBALT_NUGGET)
+                        .input(Items.REDSTONE)
+                        .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
+                        .offerTo(exporter,
+                                RegistryKey.of(RegistryKeys.RECIPE,Identifier.of("cobalt_dust_from_redstone_and_cobalt_nugget")));
+
                 createShapeless(RecipeCategory.MISC, ModItems.COBALT_NUGGET, 9)
                         .input(ModItems.COBALT_INGOT)
                         .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
                         .offerTo(exporter);
-
-                offerReversibleCompactingRecipes(RecipeCategory.REDSTONE, ModItems.COBALT_DUST,
-                        RecipeCategory.REDSTONE, ModBlocks.COBALT_DUST_BLOCK);
 
 
                 createShaped(RecipeCategory.REDSTONE, ModBlocks.CONVERTER)
@@ -85,6 +92,14 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .input('T', Items.REDSTONE_TORCH)
                         .input('S', Items.STONE)
                         .criterion(hasItem(ModItems.COBALT_TORCH), conditionsFromItem(ModItems.COBALT_TORCH))
+                        .offerTo(exporter);
+
+                createShaped(RecipeCategory.REDSTONE, ModItems.COBALT_TORCH)
+                        .pattern("C")
+                        .pattern("S")
+                        .input('C', ModBlocks.COBALT_DUST)
+                        .input('S', Items.STICK)
+                        .criterion(hasItem(ModItems.COBALT_DUST), conditionsFromItem(ModItems.COBALT_DUST))
                         .offerTo(exporter);
 
                 createShaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_COMPARATOR)
@@ -123,7 +138,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .pattern("DTD")
                         .pattern("DCD")
                         .pattern("DDD")
-                        .input('C', ModBlocks.COBALT_BLOCK)
+                        .input('C', ModBlocks.COBALT_DUST_BLOCK)
                         .input('T', ModItems.DUST_SMITHING_TEMPLATE)
                         .input('D', Items.DIAMOND)
                         .criterion(hasItem(ModItems.DUST_SMITHING_TEMPLATE), conditionsFromItem(ModItems.DUST_SMITHING_TEMPLATE))

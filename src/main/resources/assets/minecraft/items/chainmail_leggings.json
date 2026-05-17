@@ -82,14 +82,12 @@
         {
             "model": {
             "type": "minecraft:model",
-            "model": "cobaltage:item/chainmail_leggings_cobalt_ingot_trim"
             },
             "when": "cobaltage:cobalt_ingot"
         },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "cobaltage:item/chainmail_leggings_cobalt_dust_trim"
         },
         "when": "cobaltage:cobalt_dust"
       }

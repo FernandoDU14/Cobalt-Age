@@ -5,11 +5,10 @@
   "item.cobaltage.cobalt_dust_block": "Block of Cobalt Dust",
   "item.cobaltage.cobalt_rail": "Cobalt Rail",
 
-  "item.cobaltage.dust_armor_trim_smithing_template": "Dust Smithing Template",
-
-  "trim_material.cobaltage.cobalt_ingot": "Cobalt Ingot",
-  "trim_material.cobaltage.cobalt_dust": "Cobalt Dust",
-  "trim_pattern.cobaltage.dust": "Dust",
+  "item.cobaltage.dust_armor_trim_smithing_template": "Dust Armor Trim",
+  "trim_material.cobaltage.cobalt_ingot": "Cobalt Material",
+  "trim_material.cobaltage.cobalt_dust": "Cobalt Dust Material",
+  "trim_pattern.cobaltage.dust": "Dust Armor Trim",
 
   "item.cobaltage.deepslate_cobalt_ore": "Deepslate Cobalt Ore",
   "item.cobaltage.cobalt_ore": "Cobalt Ore",

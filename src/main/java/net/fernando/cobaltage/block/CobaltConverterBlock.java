@@ -153,7 +153,14 @@ public class CobaltConverterBlock extends Block implements Waterloggable, Cobalt
         // 🟦 1. Sorgenti Cobalt
         if (rearState.getBlock() instanceof CobaltPowerSource source) {
             if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                power = source.getCobaltPower(rearState, world, rearPos);
+                if (rearState.getBlock() instanceof CobaltRepeaterBlock ||
+                        rearState.getBlock() instanceof CobaltComparatorBlock) {
+                    Direction facing = rearState.get(Properties.HORIZONTAL_FACING);
+                    if (facing == direction) power = Math.max(power, source.getCobaltPower(rearState, world, rearPos));
+                }
+                else{
+                    power = Math.max(power, source.getCobaltPower(rearState, world, rearPos));
+                }
             }
         }
         // 🟦 2. Cavo Cobalt

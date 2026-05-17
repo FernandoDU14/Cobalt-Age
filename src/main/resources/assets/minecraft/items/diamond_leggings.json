@@ -82,14 +82,14 @@
       {
         "model": {
           "type": "minecraft:model",
-          "model": "cobaltage:item/diamond_leggings_cobalt_ingot_trim"
+          "model": "cobaltage:item/trims/diamond_leggings_cobalt_ingot_trim"
         },
         "when": "cobaltage:cobalt_ingot"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "cobaltage:item/diamond_leggings_cobalt_dust_trim"
+          "model": "cobaltage:item/trims/diamond_leggings_cobalt_dust_trim"
         },
         "when": "cobaltage:cobalt_dust"
       }

@@ -1,7 +1,7 @@
 {
     "ambientocclusion": false,
     "textures": {
-        "particle": "cobaltage:block/repeater_on",
+        "particle": "cobaltage:block/cobalt_repeater_on",
         "slab": "minecraft:block/smooth_stone",
         "top": "cobaltage:block/cobalt_repeater_on",
         "lit": "cobaltage:block/cobalt_torch"
