@@ -21,7 +21,7 @@ This mod adds a new mineral to the game, the cobalt, which can be found in the o
 
 </details>
 
-It also comes with a new set of redstone components, similar to their redstone counterpart, that react with cobalt, a converter, which works as a bridge between cobalt and redstone, and a new type of rail: the cobalt rail.
+As anticipated, it also comes with a new set of redstone components, similar to their redstone counterpart, that reacts only and only with cobalt. Exception has been made for Cobalt Comparator, which of couse can read the energy from Chests, Hoppers, Item Frames and more... But cannot read energy from Redstone Energy Blocks (REBs). The same way, the Redstone Comparator cannot read energy from a Cobalt Energy Block (CEB). 
 
 <details>
   <summary><b>Spoiler</b></summary>
@@ -42,7 +42,8 @@ Which is this one: `gamerule cobaltAgeRailSpeed <value>`, being the value the sp
 Although the speed of both type of rails can be modified, we recommend that at least one of the rails keeps the vanilla speed (8BPS).
 
 ### Converter
-The converter is a block that works as a bridge between redstone and cobalt, letting players transform the energy source from one type to the other. This also helps as ensure there is a way to connect cobalt to modded redstone machinery.
+The converter which works as a bridge between cobalt and redstone. It is a block that lets players transform the energy source from one type to the other. This also helps as ensure there is a way to connect cobalt to modded redstone machinery if you find any issue with cobalt. However, by default **all redstone consumer blocks can be powered by cobalt even if they are modded blocks**. A consumer is a block that can recive redstone power, for instance: piston, copper bulb, redstone lamp. While for emitters it is not guranteed that they can power cobalt emergy blocks. Indeed it should not happen, to keep balanced the separation, and to resolve that need you can use a converter. The converter has 0 ticks delay (is not like a repeater delay, is like a dust wire delay). The converter powers the block he is facing to with strong power (like a repeater, it powers the block it is facing to and if that is a solid block also the 5 next nighbors).
+
 <details>
   <summary><b>Spoiler</b></summary>
 
