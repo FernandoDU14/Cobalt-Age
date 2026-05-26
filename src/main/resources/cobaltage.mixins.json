@@ -25,7 +25,8 @@
     "consumers.TntBlockMixin",
     "consumers.TrapdoorBlockMixin",
     "gui.BeaconScreenMixin",
-    "emitters.LeverBlockMixin"
+    "emitters.LeverBlockMixin",
+    "minecarts.OldMinecartBehaviorMixin"
   ],
   "injectors": {
     "defaultRequire": 1
