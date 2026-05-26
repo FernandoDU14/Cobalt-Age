@@ -33,11 +33,6 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
     protected OldMinecartBehaviorMixin(AbstractMinecartEntity minecart) {
         super(minecart);
     }
-
-    /**
-     * Mixin to replace check if minecart should be propelled (if rail is powering rail)
-     * Uses WrapOperation to avoid collision with other rail mods.
-     */
     @WrapOperation(
             method = "moveOnRail",
             at = @At(
@@ -64,8 +59,6 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
     }
 
     /**
-     * @author Robofox / Fernando
-     * @reason Rewrite all getMaxSpeed to increase max speed for old mechanics
      */
     @Overwrite
     public double getMaxSpeed(ServerWorld serverWorld) {
