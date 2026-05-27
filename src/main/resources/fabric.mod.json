@@ -1,38 +1,37 @@
 {
-	"schemaVersion": 1,
-	"id": "cobaltage",
-	"version": "${version}",
-	"name": "Cobalt Age",
-	"description": "The first redstone alternative, finally waterloggable and faster, comes with a new mineral",
-	"authors": [
-		"JaviDP14",
-		"KanieOutis"
-	],
-	"contact": {
-		"homepage": "https://github.com/FernandoDU14/Cobalt-Age",
-		"sources": "https://github.com/FernandoDU14/Cobalt-Age"
-	},
-	"license": "GPL-3.0",
-	"icon": "assets/cobaltage/cobalt_age.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"net.fernando.cobaltage.CobaltAge"
-		],
-		"fabric-datagen": [
-			"net.fernando.cobaltage.CobaltAgeDataGenerator"
-		],
-        "client": [
-            "net.fernando.cobaltage.CobaltAgeClient"
-        ]
-	},
-	"mixins": [
-		"cobaltage.mixins.json"
-	],
-	"depends": {
-		"fabricloader": ">=0.18.5",
-		"minecraft": "~1.21.1",
-		"java": ">=21",
-		"fabric-api": "*"
-	}
+  "schemaVersion": 1,
+  "id": "cobaltage",
+  "version": "${version}",
+  "name": "Cobalt Age",
+  "description": "The first redstone alternative, finally waterloggable and optimized, comes with a new mineral",
+  "authors": [
+    "JaviDP14",
+    "KanieOutis"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/cobaltage",
+    "sources": "https://github.com/FernandoDU14/Cobalt-Age"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/cobaltage/cobalt_age.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.fernando.cobaltage.CobaltAge"
+    ],
+    "fabric-datagen": [
+      "net.fernando.cobaltage.CobaltAgeDataGenerator"
+    ],
+    "client": [
+      "net.fernando.cobaltage.CobaltAgeClient"
+    ]
+  },
+  "mixins": [
+    "cobaltage.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.5",
+    "minecraft": "1.21.11",
+    "java": ">=21"
+  }
 }
