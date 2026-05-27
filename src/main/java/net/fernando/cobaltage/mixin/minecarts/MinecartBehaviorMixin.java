@@ -8,14 +8,12 @@ import net.minecraft.world.entity.vehicle.minecart.MinecartBehavior;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.gamerules.GameRules;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 
 @Mixin(MinecartBehavior.class)
 public abstract class MinecartBehaviorMixin {
 
+    @Mutable
     @Final
     @Shadow
     protected final AbstractMinecart minecart;
