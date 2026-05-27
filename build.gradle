@@ -34,8 +34,6 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-
-    modImplementation "maven.modrinth:fusion-connected-textures:1.2.12a-fabric-mc1.21.11"
 	
 }
 
