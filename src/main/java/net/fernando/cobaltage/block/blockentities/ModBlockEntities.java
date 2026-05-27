@@ -3,10 +3,10 @@ package net.fernando.cobaltage.block.blockentities;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fernando.cobaltage.CobaltAge;
 import net.fernando.cobaltage.block.ModBlocks;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public class ModBlockEntities {
     public static BlockEntityType<CobaltComparatorBlockEntity> COBALT_COMPARATOR_ENTITY;
@@ -14,8 +14,8 @@ public class ModBlockEntities {
     public static void registerBlockEntities() {
         // Qui ASSEGNIAMO il valore alla variabile
         COBALT_COMPARATOR_ENTITY = Registry.register(
-                Registries.BLOCK_ENTITY_TYPE,
-                Identifier.of(CobaltAge.MOD_ID, "cobalt_comparator_be"),
+                BuiltInRegistries.BLOCK_ENTITY_TYPE,
+                Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_comparator_be"),
                 FabricBlockEntityTypeBuilder.create(
                         CobaltComparatorBlockEntity::new,
                         ModBlocks.COBALT_COMPARATOR // Assicurati che questo blocco non sia null!

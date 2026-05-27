@@ -7,8 +7,8 @@ import net.fernando.cobaltage.trim.ModTrimMaterials;
 import net.fernando.cobaltage.trim.ModTrimPatterns;
 import net.fernando.cobaltage.world.ModConfiguredFeatures;
 import net.fernando.cobaltage.world.ModPlacedFeatures;
-import net.minecraft.registry.RegistryBuilder;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.core.registries.Registries;
 
 public class CobaltAgeDataGenerator implements DataGeneratorEntrypoint {
 	@Override
@@ -24,11 +24,11 @@ public class CobaltAgeDataGenerator implements DataGeneratorEntrypoint {
 	}
 
     @Override
-    public void buildRegistry(RegistryBuilder registryBuilder) {
-        registryBuilder.addRegistry(RegistryKeys.TRIM_MATERIAL, ModTrimMaterials::bootstrap);
-        registryBuilder.addRegistry(RegistryKeys.TRIM_PATTERN, ModTrimPatterns::bootstrap);
+    public void buildRegistry(RegistrySetBuilder registryBuilder) {
+        registryBuilder.add(Registries.TRIM_MATERIAL, ModTrimMaterials::bootstrap);
+        registryBuilder.add(Registries.TRIM_PATTERN, ModTrimPatterns::bootstrap);
 
-        registryBuilder.addRegistry(RegistryKeys.CONFIGURED_FEATURE, ModConfiguredFeatures::bootstrap);
-        registryBuilder.addRegistry(RegistryKeys.PLACED_FEATURE, ModPlacedFeatures::bootstrap);
+        registryBuilder.add(Registries.CONFIGURED_FEATURE, ModConfiguredFeatures::bootstrap);
+        registryBuilder.add(Registries.PLACED_FEATURE, ModPlacedFeatures::bootstrap);
     }
 }

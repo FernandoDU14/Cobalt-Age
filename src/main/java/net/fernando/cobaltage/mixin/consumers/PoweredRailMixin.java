@@ -1,9 +1,9 @@
 package net.fernando.cobaltage.mixin.consumers;
 
 import net.fernando.cobaltage.util.CobaltPowerHelper;
-import net.minecraft.block.PoweredRailBlock;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.PoweredRailBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -13,12 +13,12 @@ public abstract class PoweredRailMixin {
 
     @Redirect(
             method = {
-                    "updateBlockState",
-                    "isPoweredByOtherRails(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;ZILnet/minecraft/block/enums/RailShape;)Z"
+                    "updateState",
+                    "isSameRailWithPower(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;ZILnet/minecraft/world/level/block/state/properties/RailShape;)Z"
             },
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;isReceivingRedstonePower(Lnet/minecraft/util/math/BlockPos;)Z")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;hasNeighborSignal(Lnet/minecraft/core/BlockPos;)Z")
     )
-    private boolean cobalt$combinePowerSources(World world, BlockPos pos) {
-        return world.isReceivingRedstonePower(pos) || CobaltPowerHelper.isPoweredByCobalt(world, pos);
+    private boolean cobalt$combinePowerSources(Level world, BlockPos pos) {
+        return world.hasNeighborSignal(pos) || CobaltPowerHelper.isPoweredByCobalt(world, pos);
     }
 }

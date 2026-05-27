@@ -1,34 +1,34 @@
 package net.fernando.cobaltage.mixin.emitters;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CalibratedSculkSensorBlock;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
 import net.fernando.cobaltage.block.CobaltWireBlock;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.CalibratedSculkSensorBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(targets = "net.minecraft.block.entity.CalibratedSculkSensorBlockEntity$Callback")
+@Mixin(targets = "net.minecraft.world.level.block.entity.CalibratedSculkSensorBlockEntity$VibrationUser")
 public class CalibratedSculkSensorCallbackMixin {
 
     @Inject(
-            method = "getCalibrationFrequency(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)I",
+            method = "getBackSignal(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)I",
             at = @At("RETURN"),
             cancellable = true,
             remap = true
     )
-    private void cobalt_injectCobaltFrequency(World world, BlockPos pos, BlockState state, CallbackInfoReturnable<Integer> cir) {
+    private void cobalt_injectCobaltFrequency(Level world, BlockPos pos, BlockState state, CallbackInfoReturnable<Integer> cir) {
         // 1. Retrieve the direction (amethyst side)
-        Direction direction = state.get(CalibratedSculkSensorBlock.FACING).getOpposite();
-        BlockPos inputPos = pos.offset(direction);
+        Direction direction = state.getValue(CalibratedSculkSensorBlock.FACING).getOpposite();
+        BlockPos inputPos = pos.relative(direction);
         BlockState inputState = world.getBlockState(inputPos);
 
         // 2. If cobalt wire, read power
         if (inputState.getBlock() instanceof CobaltWireBlock) {
-            int cobaltPower = inputState.get(CobaltWireBlock.POWER);
+            int cobaltPower = inputState.getValue(CobaltWireBlock.POWER);
 
             // 3. If cobalt has energy, override the calibration value
             if (cobaltPower > 0) {

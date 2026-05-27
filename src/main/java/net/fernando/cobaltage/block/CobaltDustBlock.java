@@ -1,31 +1,32 @@
 package net.fernando.cobaltage.block;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.NonNull;
 
 public class CobaltDustBlock extends Block implements CobaltPowerSource {
-    public static final MapCodec<CobaltDustBlock> CODEC = createCodec(CobaltDustBlock::new);
+    public static final MapCodec<CobaltDustBlock> CODEC = simpleCodec(CobaltDustBlock::new);
 
     @Override
-    public MapCodec<CobaltDustBlock> getCodec() {
+    public @NonNull MapCodec<CobaltDustBlock> codec() {
         return CODEC;
     }
 
-    public CobaltDustBlock(AbstractBlock.Settings settings) {
+    public CobaltDustBlock(BlockBehaviour.Properties settings) {
         super(settings);
     }
 
     // --- COBALT_INGOT POWER SYSTEM ---
 
     @Override
-    public int getCobaltPower(BlockState state, World world, BlockPos pos) {
+    public int getCobaltPower(BlockState state, Level world, BlockPos pos) {
         // Alimenta i Cobalt Wires e gli altri componenti della tua mod con potenza massima.
         return 15;
     }
@@ -37,15 +38,15 @@ public class CobaltDustBlock extends Block implements CobaltPowerSource {
     // --- VANILLA ISOLATION E MECCANISMI ---
 
     @Override
-    protected boolean emitsRedstonePower(BlockState state) {
+    protected boolean isSignalSource(@NonNull BlockState state) {
         return false;
     }
 
     @Override
-    protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+    protected int getSignal(@NonNull BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
         // Direction in getWeakRedstonePower indica la direzione DA CUI si sta chiedendo energia.
         // Usiamo l'opposto per trovare il blocco che sta cercando di prelevare energia.
-        BlockPos neighborPos = pos.offset(direction.getOpposite());
+        BlockPos neighborPos = pos.relative(direction.getOpposite());
         BlockState neighborState = world.getBlockState(neighborPos);
 
         // Se il blocco vicino è redstone vanilla, rifiutiamo di alimentarlo.
@@ -59,11 +60,11 @@ public class CobaltDustBlock extends Block implements CobaltPowerSource {
 
     private boolean isVanillaRedstone(BlockState state) {
         // Here we need REDSTONE BLOCK
-        return state.isOf(Blocks.REDSTONE_WIRE) ||
-                state.isOf(Blocks.REPEATER) ||
-                state.isOf(Blocks.COMPARATOR) ||
-                state.isOf(Blocks.REDSTONE_TORCH) ||
-                state.isOf(Blocks.REDSTONE_WALL_TORCH) ||
-                state.isOf(Blocks.REDSTONE_BLOCK);
+        return state.is(Blocks.REDSTONE_WIRE) ||
+                state.is(Blocks.REPEATER) ||
+                state.is(Blocks.COMPARATOR) ||
+                state.is(Blocks.REDSTONE_TORCH) ||
+                state.is(Blocks.REDSTONE_WALL_TORCH) ||
+                state.is(Blocks.REDSTONE_BLOCK);
     }
 }

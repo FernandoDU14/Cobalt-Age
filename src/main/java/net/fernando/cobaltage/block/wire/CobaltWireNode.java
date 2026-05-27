@@ -1,9 +1,8 @@
 package net.fernando.cobaltage.block.wire;
 
 import net.fernando.cobaltage.block.CobaltWireBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +23,7 @@ public class CobaltWireNode extends CobaltNode {
 
     public CobaltWireNode(BlockPos pos, BlockState state) {
         super(pos, state);
-        this.currentPower = state.get(CobaltWireBlock.POWER);
+        this.currentPower = state.getValue(CobaltWireBlock.POWER);
         this.virtualPower = this.currentPower;
         this.externalPower = 0;
         this.oldPower = 0;

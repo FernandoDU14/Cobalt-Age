@@ -1,13 +1,28 @@
 package net.fernando.cobaltage.block.wire;
 
 import net.fernando.cobaltage.block.*;
-import net.minecraft.block.*;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ButtonBlock;
+import net.minecraft.world.level.block.DaylightDetectorBlock;
+import net.minecraft.world.level.block.JukeboxBlock;
+import net.minecraft.world.level.block.LecternBlock;
+import net.minecraft.world.level.block.LeverBlock;
+import net.minecraft.world.level.block.LightningRodBlock;
+import net.minecraft.world.level.block.ObserverBlock;
+import net.minecraft.world.level.block.PoweredBlock;
+import net.minecraft.world.level.block.PressurePlateBlock;
+import net.minecraft.world.level.block.SculkSensorBlock;
+import net.minecraft.world.level.block.TargetBlock;
+import net.minecraft.world.level.block.TrappedChestBlock;
+import net.minecraft.world.level.block.TripWireHookBlock;
+import net.minecraft.world.level.block.WeightedPressurePlateBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import java.util.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
@@ -26,8 +41,8 @@ public class CobaltWireNetwork {
         }
     }
 
-    public void updateNetwork(World world, BlockPos startPos) {
-        if (world.isClient() || isUpdating) return;
+    public void updateNetwork(Level world, BlockPos startPos) {
+        if (world.isClientSide() || isUpdating) return;
         isUpdating = true;
 
         try {
@@ -83,7 +98,7 @@ public class CobaltWireNetwork {
                     boolean differentXZ = node.pos.getX() != neighbor.pos.getX() || node.pos.getZ() != neighbor.pos.getZ();
                     if (neighbor.pos.getY() < node.pos.getY() && differentXZ) {
                         if (!hasCheckedSolidBelow) {
-                            isSolidBelow = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
+                            isSolidBelow = world.getBlockState(node.pos.below()).isRedstoneConductor(world, node.pos.below());
                             hasCheckedSolidBelow = true;
                         }
                         weCanSendToNeighbor = isSolidBelow;
@@ -92,7 +107,7 @@ public class CobaltWireNetwork {
                     // Lui può INVIARE energia a noi? (Serve per il Backfill)
                     boolean neighborCanSendToUs = true;
                     if (neighbor.pos.getY() > node.pos.getY() && differentXZ){
-                        neighborCanSendToUs = world.getBlockState(neighbor.pos.down()).isSolidBlock(world, neighbor.pos.down());
+                        neighborCanSendToUs = world.getBlockState(neighbor.pos.below()).isRedstoneConductor(world, neighbor.pos.below());
                     }
 
                     if (neighbor.currentPower > 0 && neighbor.currentPower <= node.oldPower - 1) {
@@ -147,7 +162,7 @@ public class CobaltWireNetwork {
                         boolean differentXZ = node.pos.getX() != neighbor.pos.getX() || node.pos.getZ() != neighbor.pos.getZ();
                         if (neighbor.pos.getY() < node.pos.getY() && differentXZ) {
                             if (!hasCheckedSolidBelow) {
-                                isSolidBelow = world.getBlockState(node.pos.down()).isSolidBlock(world, node.pos.down());
+                                isSolidBelow = world.getBlockState(node.pos.below()).isRedstoneConductor(world, node.pos.below());
                                 hasCheckedSolidBelow = true;
                             }
                             if (!isSolidBelow) continue;
@@ -180,15 +195,15 @@ public class CobaltWireNetwork {
         }
     }
 
-    private void applyPowerChanges(World world) {
-        if (!(world instanceof ServerWorld serverLevel)) return;
+    private void applyPowerChanges(Level world) {
+        if (!(world instanceof ServerLevel serverLevel)) return;
         List<CobaltWireNode> changedWires = new ArrayList<>();
 
         for (CobaltNode node : nodes.values()) {
             if (node.isWire()) {
                 CobaltWireNode wireNode = node.asWire();
                 if (wireNode.virtualPower != wireNode.currentPower) {
-                    BlockState newState = wireNode.state.with(CobaltWireBlock.POWER, wireNode.virtualPower);
+                    BlockState newState = wireNode.state.setValue(CobaltWireBlock.POWER, wireNode.virtualPower);
                     if (CobaltLevelHelper.setWireState(serverLevel, wireNode.pos, newState)) {
                         wireNode.state = newState;
                         wireNode.currentPower = wireNode.virtualPower;
@@ -203,51 +218,51 @@ public class CobaltWireNetwork {
         }
     }
 
-    private void findAndCacheConnectedWires(World world, CobaltWireNode node) {
+    private void findAndCacheConnectedWires(Level world, CobaltWireNode node) {
         if (!node.connectedWires.isEmpty()) return; // Se già riempito, salta! Costo ZERO.
 
         BlockPos pos = node.pos;
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
         // ---- NUOVO: CONNESSIONE DIRETTA VERTICALE (Per i Relay Block) ----
-        mutable.set(pos, Direction.UP);
-        checkAndLink(world, node, mutable.toImmutable());
+        mutable.setWithOffset(pos, Direction.UP);
+        checkAndLink(world, node, mutable.immutable());
 
-        mutable.set(pos, Direction.DOWN);
-        checkAndLink(world, node, mutable.toImmutable());
+        mutable.setWithOffset(pos, Direction.DOWN);
+        checkAndLink(world, node, mutable.immutable());
 
-        for (Direction dir : Direction.Type.HORIZONTAL) {
-            mutable.set(pos, dir);
+        for (Direction dir : Direction.Plane.HORIZONTAL) {
+            mutable.setWithOffset(pos, dir);
             BlockState neighborState = world.getBlockState(mutable);
 
             // Orizzontale
-            checkAndLink(world, node, mutable.toImmutable());
+            checkAndLink(world, node, mutable.immutable());
 
             // 2. DISCESA
-            if (!neighborState.isSolidBlock(world, mutable)) { // The Diagonal Block That Could Interrupt The Wire Web
+            if (!neighborState.isRedstoneConductor(world, mutable)) { // The Diagonal Block That Could Interrupt The Wire Web
                 // 🛑 FIX: Non controlliamo 'canGoDown' qui!
                 // Memorizziamo il vicino a prescindere per poter ricevere eventuale Backfill
-                mutable.set(pos, dir).move(Direction.DOWN);
-                checkAndLink(world, node, mutable.toImmutable());
+                mutable.setWithOffset(pos, dir).move(Direction.DOWN);
+                checkAndLink(world, node, mutable.immutable());
             }
 
             // 3. SALITA
-            mutable.set(pos, Direction.UP);
-            if (!world.getBlockState(mutable).isSolidBlock(world, mutable)) { // The Diagonal Block That Could Interrupt The Wire Web
-                mutable.set(pos, dir).move(Direction.UP);
-                checkAndLink(world, node, mutable.toImmutable());
+            mutable.setWithOffset(pos, Direction.UP);
+            if (!world.getBlockState(mutable).isRedstoneConductor(world, mutable)) { // The Diagonal Block That Could Interrupt The Wire Web
+                mutable.setWithOffset(pos, dir).move(Direction.UP);
+                checkAndLink(world, node, mutable.immutable());
             }
         }
     }
 
-    private void checkAndLink(World world, CobaltWireNode source, BlockPos targetPos) {
+    private void checkAndLink(Level world, CobaltWireNode source, BlockPos targetPos) {
         CobaltWireNode target = getOrAddWireNode(world, targetPos);
         if (target == null) return;
 
-        boolean sourceIsRelay = source.state.isOf(ModBlocks.COBALT_RELAY);
-        boolean targetIsRelay = target.state.isOf(ModBlocks.COBALT_RELAY);
-        boolean sourceIsDust = source.state.isOf(ModBlocks.COBALT_DUST);
-        boolean targetIsDust = target.state.isOf(ModBlocks.COBALT_DUST);
+        boolean sourceIsRelay = source.state.is(ModBlocks.COBALT_RELAY);
+        boolean targetIsRelay = target.state.is(ModBlocks.COBALT_RELAY);
+        boolean sourceIsDust = source.state.is(ModBlocks.COBALT_DUST);
+        boolean targetIsDust = target.state.is(ModBlocks.COBALT_DUST);
 
         boolean diffXZ = source.pos.getX() != target.pos.getX() || source.pos.getZ() != target.pos.getZ();
         boolean diffY = source.pos.getY() != target.pos.getY();
@@ -275,12 +290,12 @@ public class CobaltWireNetwork {
     }
 
 
-    private int calculateExternalPower(World world, BlockPos pos) {
+    private int calculateExternalPower(Level world, BlockPos pos) {
         int maxPower = 0;
-        BlockPos.Mutable mutable = new BlockPos.Mutable(); // Istanza unica riutilizzata
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(); // Istanza unica riutilizzata
 
         for (Direction dir : Direction.values()) {
-            mutable.set(pos, dir); // Sposta il cursore, niente nuova RAM
+            mutable.setWithOffset(pos, dir); // Sposta il cursore, niente nuova RAM
             BlockState neighborState = world.getBlockState(mutable);
 
             // 1. Ignora le altre polveri di cobalto!
@@ -294,7 +309,7 @@ public class CobaltWireNetwork {
                 if (neighborState.getBlock() instanceof CobaltRepeaterBlock ||
                         neighborState.getBlock() instanceof CobaltComparatorBlock) {
 
-                    Direction facing = neighborState.get(Properties.HORIZONTAL_FACING);
+                    Direction facing = neighborState.getValue(BlockStateProperties.HORIZONTAL_FACING);
 
                     // Dir è la direzione dal CAVO verso il BLOCCO.
                     // Il blocco punta verso il cavo solo se la sua direzione (facing)
@@ -306,7 +321,7 @@ public class CobaltWireNetwork {
                     }
                 }
                 else if (neighborState.getBlock() instanceof CobaltConverterBlock) {
-                    Direction cobaltSide = neighborState.get(CobaltConverterBlock.FACING);
+                    Direction cobaltSide = neighborState.getValue(CobaltConverterBlock.FACING);
                     // Il convertitore cede Cobalt SOLO dalla faccia "Cobalt".
                     // dir è la direzione dal cavo verso il convertitore.
                     if (cobaltSide == dir.getOpposite()) {
@@ -319,21 +334,21 @@ public class CobaltWireNetwork {
             }
             // 3. Se è un blocco solido, controlla se è alimentato FORTEMENTE da una fonte Cobalt
             // MAI controllare world.getReceivedRedstonePower() perché includerebbe le polveri!
-            else if (neighborState.isSolidBlock(world, mutable) || neighborState.getBlock() instanceof RedstoneBlock) {
+            else if (neighborState.isRedstoneConductor(world, mutable) || neighborState.getBlock() instanceof PoweredBlock) {
                 maxPower = Math.max(maxPower, getStrongPowerFromNeighbors(world, mutable));
             }
 
             if(compatibleCobaltPowerSource(neighborState)){
-                maxPower = Math.max(maxPower, neighborState.getWeakRedstonePower(world, pos, dir.getOpposite()));
+                maxPower = Math.max(maxPower, neighborState.getSignal(world, pos, dir.getOpposite()));
             }
 
             // SE IL VICINO È UN OBSERVER
-            if (neighborState.isOf(Blocks.OBSERVER)) {
+            if (neighborState.is(Blocks.OBSERVER)) {
                 // L'Observer dà energia solo se la sua faccia posteriore punta verso il cavo.
                 // dirFromWire è la direzione dal cavo verso observer,
                 // quindi dobbiamo controllare se observer "guarda" dalla parte opposta.
-                if (neighborState.get(ObserverBlock.FACING) == dir) {
-                    return neighborState.get(ObserverBlock.POWERED) ? 15 : 0;
+                if (neighborState.getValue(ObserverBlock.FACING) == dir) {
+                    return neighborState.getValue(ObserverBlock.POWERED) ? 15 : 0;
                 }
             }
 
@@ -342,13 +357,13 @@ public class CobaltWireNetwork {
     }
 
     // Funzione helper per vedere se un blocco è alimentato da Leve/Torce (Escludendo polveri)
-    public static int getStrongPowerFromNeighbors(World world, BlockPos blockPos) {
+    public static int getStrongPowerFromNeighbors(Level world, BlockPos blockPos) {
         int maxStrong = 0;
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
         for (Direction dir : Direction.values()) {
 
-            mutable.set(blockPos, dir);
+            mutable.setWithOffset(blockPos, dir);
             BlockState sourceState = world.getBlockState(mutable);
 
             if (sourceState.getBlock() instanceof CobaltPowerSource source) {
@@ -360,43 +375,43 @@ public class CobaltWireNetwork {
 
             if (compatibleCobaltPowerSource(sourceState)) {
                 // Chiediamo solo la "Strong Power" (es. leva o torcia sotto il blocco)
-                maxStrong = Math.max(maxStrong, sourceState.getStrongRedstonePower(world, mutable, dir));
+                maxStrong = Math.max(maxStrong, sourceState.getDirectSignal(world, mutable, dir));
             }
 
         }
         return maxStrong;
     }
 
-    public static boolean isSolidBlockPoweredByCobalt(World world, BlockPos solidPos, Direction exceptDir) {
+    public static boolean isSolidBlockPoweredByCobalt(Level world, BlockPos solidPos, Direction exceptDir) {
 
 
         // Se è il blocco di alimentazione (sorgente), ritorna true a prescindere dalla "solidità"
-        if (world.getBlockState(solidPos).isOf(ModBlocks.COBALT_DUST_BLOCK)) { // Usa il riferimento corretto al tuo blocco solido
+        if (world.getBlockState(solidPos).is(ModBlocks.COBALT_DUST_BLOCK)) { // Usa il riferimento corretto al tuo blocco solido
             return true;
         }
-        if(!world.getBlockState(solidPos).isSolidBlock(world, solidPos) && !(world.getBlockState(solidPos).getBlock() instanceof RedstoneBlock)){
+        if(!world.getBlockState(solidPos).isRedstoneConductor(world, solidPos) && !(world.getBlockState(solidPos).getBlock() instanceof PoweredBlock)){
             return false;
         }
 
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
         for (Direction dir : Direction.values()) {
             if (dir == exceptDir) continue;
 
-            mutable.set(solidPos, dir);
+            mutable.setWithOffset(solidPos, dir);
             BlockState neighborState = world.getBlockState(mutable);
 
             // A. Controllo Componenti Meccanici (Leve, bottoni attaccati al blocco solido)
             if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
                 // Se la leva sta iniettando energia forte nel blocco di pietra,
                 // la torcia di cobalto attaccata ad esso deve spegnersi!
-                if (neighborState.getStrongRedstonePower(world, mutable, dir) > 0) return true;
+                if (neighborState.getDirectSignal(world, mutable, dir) > 0) return true;
             }
 
             // B. Controllo Cavo di Cobalto
             if (neighborState.getBlock() instanceof CobaltWireBlock) {
-                if (neighborState.getWeakRedstonePower(world, mutable, dir) > 0) return true;
-                if (neighborState.getStrongRedstonePower(world, mutable, dir) > 0) return true;
+                if (neighborState.getSignal(world, mutable, dir) > 0) return true;
+                if (neighborState.getDirectSignal(world, mutable, dir) > 0) return true;
             }
             // C. Controllo altre Sorgenti Cobalt
             else if (neighborState.getBlock() instanceof CobaltPowerSource source) {
@@ -410,14 +425,14 @@ public class CobaltWireNetwork {
     }
 
 
-    private void updateNeighbors(World world, CobaltWireNode node) {
+    private void updateNeighbors(Level world, CobaltWireNode node) {
 
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
-        BlockPos.Mutable farMutable = new BlockPos.Mutable();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+        BlockPos.MutableBlockPos farMutable = new BlockPos.MutableBlockPos();
         Block block = world.getBlockState(node.pos).getBlock();
 
         for (Direction dir : Direction.values()) {
-            mutable.set(node.pos, dir);
+            mutable.setWithOffset(node.pos, dir);
             BlockState neighborState = world.getBlockState(mutable);
 
             // Cobalt Firewall
@@ -427,39 +442,39 @@ public class CobaltWireNetwork {
             if (neighborState.getBlock() instanceof CobaltWireBlock) continue;
 
             // Notifica il blocco vicino che l'energia è cambiata
-            world.updateNeighbor(mutable.toImmutable(), block, null);
+            world.neighborChanged(mutable.immutable(), block, null);
 
             // Quasi-Neighbor update
             if (dir == Direction.DOWN) {
                 // 1. Notifica il blocco a 2 blocchi di distanza in basso (Pistone dritto sotto, separato da aria/vetro)
-                farMutable.set(mutable, Direction.DOWN);
+                farMutable.setWithOffset(mutable, Direction.DOWN);
                 if (!isVanillaRedstone(world.getBlockState(farMutable))) {
-                    world.updateNeighbor(farMutable.toImmutable(), block, null);
+                    world.neighborChanged(farMutable.immutable(), block, null);
                 }
 
                 // 2. Notifica i blocchi in diagonale in basso (Pistoni laterali sotto il cavo)
-                for (Direction horizontalDir : Direction.Type.HORIZONTAL) {
-                    farMutable.set(mutable, horizontalDir);
+                for (Direction horizontalDir : Direction.Plane.HORIZONTAL) {
+                    farMutable.setWithOffset(mutable, horizontalDir);
                     if (!isVanillaRedstone(world.getBlockState(farMutable))) {
-                        world.updateNeighbor(farMutable.toImmutable(), block, null);
+                        world.neighborChanged(farMutable.immutable(), block, null);
                     }
                 }
             }
 
             // Aggiornamento anche i blocchi DOPO di lui (Strong Power)
-            if (neighborState.isSolidBlock(world, mutable) || neighborState.getBlock() instanceof RedstoneBlock) {
+            if (neighborState.isRedstoneConductor(world, mutable) || neighborState.getBlock() instanceof PoweredBlock) {
                 for (Direction sideDir : Direction.values()) {
                     if (sideDir == dir.getOpposite()) continue;
-                    farMutable.set(mutable, sideDir);
+                    farMutable.setWithOffset(mutable, sideDir);
                     if (!isVanillaRedstone(world.getBlockState(farMutable))) {
-                        world.updateNeighbor(farMutable.toImmutable(), world.getBlockState(node.pos).getBlock(), null);
+                        world.neighborChanged(farMutable.immutable(), world.getBlockState(node.pos).getBlock(), null);
                     }
                 }
             }
         }
     }
 
-    private CobaltWireNode getOrAddWireNode(World world, BlockPos pos) {
+    private CobaltWireNode getOrAddWireNode(Level world, BlockPos pos) {
         long posLong = pos.asLong(); // Ottiene il long primitivo senza boxing
         CobaltNode node = nodes.get(posLong);
 
@@ -478,11 +493,11 @@ public class CobaltWireNetwork {
 
     public static boolean isVanillaRedstone(BlockState state) {
         // Here we DO NOT want to add REDSTONE BLOCK
-        return state.isOf(net.minecraft.block.Blocks.REDSTONE_WIRE) ||
-                state.isOf(net.minecraft.block.Blocks.REPEATER) ||
-                state.isOf(net.minecraft.block.Blocks.COMPARATOR) ||
-                state.isOf(net.minecraft.block.Blocks.REDSTONE_TORCH) ||
-                state.isOf(net.minecraft.block.Blocks.REDSTONE_WALL_TORCH);
+        return state.is(net.minecraft.world.level.block.Blocks.REDSTONE_WIRE) ||
+                state.is(net.minecraft.world.level.block.Blocks.REPEATER) ||
+                state.is(net.minecraft.world.level.block.Blocks.COMPARATOR) ||
+                state.is(net.minecraft.world.level.block.Blocks.REDSTONE_TORCH) ||
+                state.is(net.minecraft.world.level.block.Blocks.REDSTONE_WALL_TORCH);
     }
 
     public static boolean compatibleCobaltPowerSource(BlockState state) {
@@ -492,7 +507,7 @@ public class CobaltWireNetwork {
                 state.getBlock() instanceof WeightedPressurePlateBlock ||
                 state.getBlock() instanceof SculkSensorBlock ||
                 state.getBlock() instanceof TargetBlock ||
-                state.getBlock() instanceof TripwireHookBlock ||
+                state.getBlock() instanceof TripWireHookBlock ||
                 state.getBlock() instanceof DaylightDetectorBlock ||
                 state.getBlock() instanceof JukeboxBlock ||
                 state.getBlock() instanceof LightningRodBlock ||

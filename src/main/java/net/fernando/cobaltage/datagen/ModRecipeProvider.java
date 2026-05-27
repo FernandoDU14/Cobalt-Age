@@ -6,15 +6,15 @@ import net.fernando.cobaltage.CobaltAge;
 import net.fernando.cobaltage.block.ModBlocks;
 import net.fernando.cobaltage.item.ModItems;
 import net.fernando.cobaltage.trim.ModTrimPatterns;
-import net.minecraft.data.recipe.RecipeExporter;
-import net.minecraft.data.recipe.RecipeGenerator;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
 import org.jspecify.annotations.NonNull;
 
 import java.util.List;
@@ -22,134 +22,134 @@ import java.util.concurrent.CompletableFuture;
 
 public class ModRecipeProvider extends FabricRecipeProvider {
 
-    public ModRecipeProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+    public ModRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
 
 
     @Override
-    protected @NonNull RecipeGenerator getRecipeGenerator(RegistryWrapper.@NonNull WrapperLookup registries, @NonNull RecipeExporter exporter) {
-        return new RecipeGenerator(registries, exporter) {
+    protected @NonNull RecipeProvider createRecipeProvider(HolderLookup.@NonNull Provider registries, @NonNull RecipeOutput exporter) {
+        return new RecipeProvider(registries, exporter) {
             @Override
-            public void generate() {
-                List<ItemConvertible> COBALT_ORSE_SMELTABLES = List.of(ModItems.RAW_COBALT,
+            public void buildRecipes() {
+                List<ItemLike> COBALT_ORSE_SMELTABLES = List.of(ModItems.RAW_COBALT,
                         ModBlocks.COBALT_ORE, ModBlocks.DEEPSLATE_COBALT_ORE);
 
-                offerSmelting(COBALT_ORSE_SMELTABLES, RecipeCategory.MISC, ModItems.COBALT_INGOT,
+                oreSmelting(COBALT_ORSE_SMELTABLES, RecipeCategory.MISC, ModItems.COBALT_INGOT,
                         1.0f, 200, "cobalt_ingot.json");
 
-                offerBlasting(COBALT_ORSE_SMELTABLES, RecipeCategory.MISC, ModItems.COBALT_INGOT,
+                oreBlasting(COBALT_ORSE_SMELTABLES, RecipeCategory.MISC, ModItems.COBALT_INGOT,
                         1.0f, 100, "cobalt_ingot.json");
-                offerBlasting(List.of(ModBlocks.RAW_COBALT_BLOCK), RecipeCategory.MISC, ModBlocks.COBALT_BLOCK,
+                oreBlasting(List.of(ModBlocks.RAW_COBALT_BLOCK), RecipeCategory.MISC, ModBlocks.COBALT_BLOCK,
                         1.0f, 100, "cobalt_block");
 
-                offerReversibleCompactingRecipes(RecipeCategory.MISC, ModItems.COBALT_INGOT,
+                nineBlockStorageRecipes(RecipeCategory.MISC, ModItems.COBALT_INGOT,
                         RecipeCategory.BUILDING_BLOCKS, ModBlocks.COBALT_BLOCK);
 
-                offerReversibleCompactingRecipes(RecipeCategory.MISC, ModItems.RAW_COBALT,
+                nineBlockStorageRecipes(RecipeCategory.MISC, ModItems.RAW_COBALT,
                         RecipeCategory.BUILDING_BLOCKS, ModBlocks.RAW_COBALT_BLOCK);
 
-                offerReversibleCompactingRecipes(RecipeCategory.REDSTONE, ModItems.COBALT_DUST,
+                nineBlockStorageRecipes(RecipeCategory.REDSTONE, ModItems.COBALT_DUST,
                         RecipeCategory.REDSTONE, ModBlocks.COBALT_DUST_BLOCK);
 
-                createShaped(RecipeCategory.MISC, ModBlocks.COBALT_RAIL, 6)
+                shaped(RecipeCategory.MISC, ModBlocks.COBALT_RAIL, 6)
                         .pattern("C C")
                         .pattern("CBC")
                         .pattern("CRC")
-                        .input('C', ModItems.COBALT_INGOT)
-                        .input('B', Items.BREEZE_ROD)
-                        .input('R', Items.REDSTONE)
-                        .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
-                        .offerTo(exporter);
+                        .define('C', ModItems.COBALT_INGOT)
+                        .define('B', Items.BREEZE_ROD)
+                        .define('R', Items.REDSTONE)
+                        .unlockedBy(getHasName(ModItems.COBALT_INGOT), has(ModItems.COBALT_INGOT))
+                        .save(output);
 
-                createShaped(RecipeCategory.MISC, ModItems.COBALT_INGOT)
+                shaped(RecipeCategory.MISC, ModItems.COBALT_INGOT)
                         .pattern("CCC")
                         .pattern("CCC")
                         .pattern("CCC")
-                        .input('C', ModItems.COBALT_NUGGET)
-                        .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
-                        .offerTo(exporter, RegistryKey.of(RegistryKeys.RECIPE,Identifier.of("cobalt_ingot_from_cobalt_nugget")));
+                        .define('C', ModItems.COBALT_NUGGET)
+                        .unlockedBy(getHasName(ModItems.COBALT_INGOT), has(ModItems.COBALT_INGOT))
+                        .save(output, ResourceKey.create(Registries.RECIPE,Identifier.parse("cobalt_ingot_from_cobalt_nugget")));
 
-                createShapeless(RecipeCategory.REDSTONE, ModBlocks.COBALT_DUST, 1)
-                        .input(ModItems.COBALT_NUGGET)
-                        .input(Items.REDSTONE)
-                        .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
-                        .offerTo(exporter,
-                                RegistryKey.of(RegistryKeys.RECIPE,Identifier.of("cobalt_dust_from_redstone_and_cobalt_nugget")));
+                shapeless(RecipeCategory.REDSTONE, ModBlocks.COBALT_DUST, 1)
+                        .requires(ModItems.COBALT_NUGGET)
+                        .requires(Items.REDSTONE)
+                        .unlockedBy(getHasName(ModItems.COBALT_INGOT), has(ModItems.COBALT_INGOT))
+                        .save(output,
+                                ResourceKey.create(Registries.RECIPE,Identifier.parse("cobalt_dust_from_redstone_and_cobalt_nugget")));
 
-                createShapeless(RecipeCategory.MISC, ModItems.COBALT_NUGGET, 9)
-                        .input(ModItems.COBALT_INGOT)
-                        .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
-                        .offerTo(exporter);
+                shapeless(RecipeCategory.MISC, ModItems.COBALT_NUGGET, 9)
+                        .requires(ModItems.COBALT_INGOT)
+                        .unlockedBy(getHasName(ModItems.COBALT_INGOT), has(ModItems.COBALT_INGOT))
+                        .save(output);
 
 
-                createShaped(RecipeCategory.REDSTONE, ModBlocks.CONVERTER)
+                shaped(RecipeCategory.REDSTONE, ModBlocks.CONVERTER)
                         .pattern("CQT")
                         .pattern("SSS")
-                        .input('C', ModItems.COBALT_TORCH)
-                        .input('Q', Items.QUARTZ)
-                        .input('T', Items.REDSTONE_TORCH)
-                        .input('S', Items.STONE)
-                        .criterion(hasItem(ModItems.COBALT_TORCH), conditionsFromItem(ModItems.COBALT_TORCH))
-                        .offerTo(exporter);
+                        .define('C', ModItems.COBALT_TORCH)
+                        .define('Q', Items.QUARTZ)
+                        .define('T', Items.REDSTONE_TORCH)
+                        .define('S', Items.STONE)
+                        .unlockedBy(getHasName(ModItems.COBALT_TORCH), has(ModItems.COBALT_TORCH))
+                        .save(output);
 
-                createShaped(RecipeCategory.REDSTONE, ModItems.COBALT_TORCH)
+                shaped(RecipeCategory.REDSTONE, ModItems.COBALT_TORCH)
                         .pattern("C")
                         .pattern("S")
-                        .input('C', ModBlocks.COBALT_DUST)
-                        .input('S', Items.STICK)
-                        .criterion(hasItem(ModItems.COBALT_DUST), conditionsFromItem(ModItems.COBALT_DUST))
-                        .offerTo(exporter);
+                        .define('C', ModBlocks.COBALT_DUST)
+                        .define('S', Items.STICK)
+                        .unlockedBy(getHasName(ModItems.COBALT_DUST), has(ModItems.COBALT_DUST))
+                        .save(output);
 
-                createShaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_COMPARATOR)
+                shaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_COMPARATOR)
                         .pattern(" C ")
                         .pattern("CQC")
                         .pattern("SSS")
-                        .input('C', ModItems.COBALT_TORCH)
-                        .input('S', Items.STONE)
-                        .input('Q', Items.QUARTZ)
-                        .criterion(hasItem(ModItems.COBALT_TORCH), conditionsFromItem(ModItems.COBALT_TORCH))
-                        .offerTo(exporter);
+                        .define('C', ModItems.COBALT_TORCH)
+                        .define('S', Items.STONE)
+                        .define('Q', Items.QUARTZ)
+                        .unlockedBy(getHasName(ModItems.COBALT_TORCH), has(ModItems.COBALT_TORCH))
+                        .save(output);
 
-                createShaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_REPEATER)
+                shaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_REPEATER)
                         .pattern("CDC")
                         .pattern("SSS")
-                        .input('C', ModItems.COBALT_TORCH)
-                        .input('S', Items.STONE)
-                        .input('D', ModItems.COBALT_DUST)
-                        .criterion(hasItem(ModItems.COBALT_TORCH), conditionsFromItem(ModItems.COBALT_TORCH))
-                        .offerTo(exporter);
+                        .define('C', ModItems.COBALT_TORCH)
+                        .define('S', Items.STONE)
+                        .define('D', ModItems.COBALT_DUST)
+                        .unlockedBy(getHasName(ModItems.COBALT_TORCH), has(ModItems.COBALT_TORCH))
+                        .save(output);
 
-                createShaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_RELAY)
+                shaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_RELAY)
                         .pattern("GCG")
                         .pattern("GDG")
                         .pattern("GCG")
-                        .input('C', ModItems.COBALT_INGOT)
-                        .input('G', Items.GLASS_PANE)
-                        .input('D', ModItems.COBALT_DUST)
-                        .criterion(hasItem(ModItems.COBALT_INGOT), conditionsFromItem(ModItems.COBALT_INGOT))
-                        .offerTo(exporter);
+                        .define('C', ModItems.COBALT_INGOT)
+                        .define('G', Items.GLASS_PANE)
+                        .define('D', ModItems.COBALT_DUST)
+                        .unlockedBy(getHasName(ModItems.COBALT_INGOT), has(ModItems.COBALT_INGOT))
+                        .save(output);
 
-                offerSmithingTrimRecipe(ModItems.DUST_SMITHING_TEMPLATE, ModTrimPatterns.DUST,
-                        RegistryKey.of(RegistryKeys.RECIPE, Identifier.of(CobaltAge.MOD_ID, "dust_trim")));
+                trimSmithing(ModItems.DUST_SMITHING_TEMPLATE, ModTrimPatterns.DUST,
+                        ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "dust_trim")));
 
-                createShaped(RecipeCategory.MISC, ModItems.DUST_SMITHING_TEMPLATE, 2)
+                shaped(RecipeCategory.MISC, ModItems.DUST_SMITHING_TEMPLATE, 2)
                         .pattern("DTD")
                         .pattern("DCD")
                         .pattern("DDD")
-                        .input('C', ModBlocks.COBALT_DUST_BLOCK)
-                        .input('T', ModItems.DUST_SMITHING_TEMPLATE)
-                        .input('D', Items.DIAMOND)
-                        .criterion(hasItem(ModItems.DUST_SMITHING_TEMPLATE), conditionsFromItem(ModItems.DUST_SMITHING_TEMPLATE))
-                        .offerTo(exporter);
+                        .define('C', ModBlocks.COBALT_DUST_BLOCK)
+                        .define('T', ModItems.DUST_SMITHING_TEMPLATE)
+                        .define('D', Items.DIAMOND)
+                        .unlockedBy(getHasName(ModItems.DUST_SMITHING_TEMPLATE), has(ModItems.DUST_SMITHING_TEMPLATE))
+                        .save(output);
 
                 }
         };
     }
 
     @Override
-    public String getName() {
+    public @NonNull String getName() {
         return "Cobalt Age recipes";
     }
 }

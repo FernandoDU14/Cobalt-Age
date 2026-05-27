@@ -9,19 +9,18 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fernando.cobaltage.block.CobaltWireBlock;
 import net.fernando.cobaltage.block.ModBlocks;
-import net.minecraft.block.RedstoneWireBlock;
-import net.minecraft.client.render.BlockRenderLayer;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 
 public class CobaltAgeClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        BlockRenderLayerMap.putBlock(ModBlocks.COBALT_RAIL, BlockRenderLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.COBALT_DUST, BlockRenderLayer.CUTOUT);
-        BlockRenderLayerMap.putBlocks(BlockRenderLayer.CUTOUT,
+        BlockRenderLayerMap.putBlock(ModBlocks.COBALT_RAIL, ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.COBALT_DUST, ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT,
                 ModBlocks.COBALT_TORCH,
                 ModBlocks.COBALT_WALL_TORCH,
                 ModBlocks.COBALT_REPEATER,
@@ -31,7 +30,7 @@ public class CobaltAgeClient implements ClientModInitializer {
 
         // Dynamic Color for the Cobalt Dust
         ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
-            int power = state.get(CobaltWireBlock.POWER);
+            int power = state.getValue(CobaltWireBlock.POWER);
             return getCobaltColor(power);
         }, ModBlocks.COBALT_DUST);
 
@@ -39,7 +38,7 @@ public class CobaltAgeClient implements ClientModInitializer {
         ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
             // Se il tintIndex è 0 (quello che abbiamo messo nel JSON della dust), calcola il colore
             if (tintIndex == 0) {
-                int power = state.get(CobaltWireBlock.POWER);
+                int power = state.getValue(CobaltWireBlock.POWER);
                 return getCobaltColor(power);
             }
             // Altrimenti, restituisci -1 per non applicare alcuna tinta (mantiene i colori originali delle texture)
@@ -63,29 +62,29 @@ public class CobaltAgeClient implements ClientModInitializer {
             g = g + 0.1f;
         }
 
-        int red = MathHelper.clamp((int)(r * 255.0F), 0, 255);
-        int green = MathHelper.clamp((int)(g * 255.0F), 0, 255);
-        int blue = MathHelper.clamp((int)(b * 255.0F), 0, 255);
+        int red = Mth.clamp((int)(r * 255.0F), 0, 255);
+        int green = Mth.clamp((int)(g * 255.0F), 0, 255);
+        int blue = Mth.clamp((int)(b * 255.0F), 0, 255);
 
         return red << 16 | green << 8 | blue;
     }
 
     private static void initialize3dCobaltRailsResourcePack() {
-        Identifier id = Identifier.of(CobaltAge.MOD_ID, "cobaltrails3d");
+        Identifier id = Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobaltrails3d");
         ModContainer modContainer = FabricLoader.getInstance().getModContainer(CobaltAge.MOD_ID).orElseThrow();
-        ResourceLoader.registerBuiltinPack(id, modContainer, Text.of("CobaltAge 3D Rails"), PackActivationType.NORMAL);
+        ResourceLoader.registerBuiltinPack(id, modContainer, Component.nullToEmpty("CobaltAge 3D Rails"), PackActivationType.NORMAL);
     }
 
     private static void initializeCobaltWirePowerLevelResourcePack() {
-        Identifier id = Identifier.of(CobaltAge.MOD_ID, "cobalt_power_level");
+        Identifier id = Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_power_level");
         ModContainer modContainer = FabricLoader.getInstance().getModContainer(CobaltAge.MOD_ID).orElseThrow();
-        ResourceLoader.registerBuiltinPack(id, modContainer, Text.of("Cobalt Wire Power Level"), PackActivationType.NORMAL);
+        ResourceLoader.registerBuiltinPack(id, modContainer, Component.nullToEmpty("Cobalt Wire Power Level"), PackActivationType.NORMAL);
     }
 
     private static void initializeCobaltAgeDDMResourcePack() {
-        Identifier id = Identifier.of(CobaltAge.MOD_ID, "cobalt_age_ddm");
+        Identifier id = Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_age_ddm");
         ModContainer modContainer = FabricLoader.getInstance().getModContainer(CobaltAge.MOD_ID).orElseThrow();
-        ResourceLoader.registerBuiltinPack(id, modContainer, Text.of("Cobalt Age DDM GUIs"), PackActivationType.NORMAL);
+        ResourceLoader.registerBuiltinPack(id, modContainer, Component.nullToEmpty("Cobalt Age DDM GUIs"), PackActivationType.NORMAL);
     }
 
 

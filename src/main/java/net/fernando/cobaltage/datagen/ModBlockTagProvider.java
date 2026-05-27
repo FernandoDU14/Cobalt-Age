@@ -3,21 +3,21 @@ package net.fernando.cobaltage.datagen;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.fernando.cobaltage.block.ModBlocks;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.tags.BlockTags;
 import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.CompletableFuture;
 
 public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 
-    public ModBlockTagProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+    public ModBlockTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
     @Override
-    protected void configure(RegistryWrapper.@NonNull WrapperLookup lookup) {
-        valueLookupBuilder(BlockTags.PICKAXE_MINEABLE)
+    protected void addTags(HolderLookup.@NonNull Provider lookup) {
+        valueLookupBuilder(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(ModBlocks.COBALT_BLOCK)
                 .add(ModBlocks.RAW_COBALT_BLOCK)
                 .add(ModBlocks.COBALT_ORE)

@@ -1,24 +1,32 @@
 package net.fernando.cobaltage.block.wire;
 
-import com.sun.jna.platform.unix.solaris.Kstat2StatusException;
 import net.fernando.cobaltage.block.*;
-import net.minecraft.block.*;
-import net.minecraft.block.enums.PistonType;
-import net.minecraft.block.enums.WireConnection;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.gen.feature.GlowstoneBlobFeature;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CopperBulbBlock;
+import net.minecraft.world.level.block.HopperBlock;
+import net.minecraft.world.level.block.IceBlock;
+import net.minecraft.world.level.block.ObserverBlock;
+import net.minecraft.world.level.block.ScaffoldingBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.TntBlock;
+import net.minecraft.world.level.block.TransparentBlock;
+import net.minecraft.world.level.block.piston.PistonBaseBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.RedstoneSide;
 import org.jetbrains.annotations.Nullable;
 
 public class CobaltWireShape {
 
-    public static BlockState getUpdatedState(BlockView world, BlockPos pos, BlockState state) {
-        WireConnection north = getRenderConnection(world, pos, Direction.NORTH);
-        WireConnection south = getRenderConnection(world, pos, Direction.SOUTH);
-        WireConnection east = getRenderConnection(world, pos, Direction.EAST);
-        WireConnection west = getRenderConnection(world, pos, Direction.WEST);
+    public static BlockState getUpdatedState(BlockGetter world, BlockPos pos, BlockState state) {
+        RedstoneSide north = getRenderConnection(world, pos, Direction.NORTH);
+        RedstoneSide south = getRenderConnection(world, pos, Direction.SOUTH);
+        RedstoneSide east = getRenderConnection(world, pos, Direction.EAST);
+        RedstoneSide west = getRenderConnection(world, pos, Direction.WEST);
 
         boolean hasNorth = north.isConnected();
         boolean hasSouth = south.isConnected();
@@ -36,99 +44,99 @@ public class CobaltWireShape {
             // torniamo al CROSS (il nostro default di piazzamento).
             // Questo forzerà un aggiornamento del blocco e dei suoi vicini!
             return state
-                    .with(CobaltWireBlock.NORTH, WireConnection.SIDE)
-                    .with(CobaltWireBlock.SOUTH, WireConnection.SIDE)
-                    .with(CobaltWireBlock.EAST, WireConnection.SIDE)
-                    .with(CobaltWireBlock.WEST, WireConnection.SIDE);
+                    .setValue(CobaltWireBlock.NORTH, RedstoneSide.SIDE)
+                    .setValue(CobaltWireBlock.SOUTH, RedstoneSide.SIDE)
+                    .setValue(CobaltWireBlock.EAST, RedstoneSide.SIDE)
+                    .setValue(CobaltWireBlock.WEST, RedstoneSide.SIDE);
         }
 
         // Se ci sono connessioni, ricalcoliamo la forma normalmente
         // (La logica delle linee automatiche va qui sotto)
         if (!hasNorth && !hasSouth) {
-            if (!hasEast) east = WireConnection.SIDE;
-            if (!hasWest) west = WireConnection.SIDE;
+            if (!hasEast) east = RedstoneSide.SIDE;
+            if (!hasWest) west = RedstoneSide.SIDE;
         } else if (!hasEast && !hasWest) {
-            if (!hasNorth) north = WireConnection.SIDE;
-            if (!hasSouth) south = WireConnection.SIDE;
+            if (!hasNorth) north = RedstoneSide.SIDE;
+            if (!hasSouth) south = RedstoneSide.SIDE;
         }
 
         return state
-                .with(CobaltWireBlock.NORTH, north)
-                .with(CobaltWireBlock.SOUTH, south)
-                .with(CobaltWireBlock.EAST, east)
-                .with(CobaltWireBlock.WEST, west);
+                .setValue(CobaltWireBlock.NORTH, north)
+                .setValue(CobaltWireBlock.SOUTH, south)
+                .setValue(CobaltWireBlock.EAST, east)
+                .setValue(CobaltWireBlock.WEST, west);
     }
 
     private static boolean isNotConnected(BlockState state) {
-        return state.get(CobaltWireBlock.NORTH) == WireConnection.NONE &&
-                state.get(CobaltWireBlock.SOUTH) == WireConnection.NONE &&
-                state.get(CobaltWireBlock.EAST) == WireConnection.NONE &&
-                state.get(CobaltWireBlock.WEST) == WireConnection.NONE;
+        return state.getValue(CobaltWireBlock.NORTH) == RedstoneSide.NONE &&
+                state.getValue(CobaltWireBlock.SOUTH) == RedstoneSide.NONE &&
+                state.getValue(CobaltWireBlock.EAST) == RedstoneSide.NONE &&
+                state.getValue(CobaltWireBlock.WEST) == RedstoneSide.NONE;
     }
 
-    public static WireConnection getRenderConnection(BlockView world, BlockPos pos, Direction direction) {
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
+    public static RedstoneSide getRenderConnection(BlockGetter world, BlockPos pos, Direction direction) {
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
         BlockState sourceState = world.getBlockState(pos);
 
-        mutable.set(pos, direction);
+        mutable.setWithOffset(pos, direction);
         BlockState neighborState = world.getBlockState(mutable);
 
-        mutable.set(pos, Direction.DOWN);
+        mutable.setWithOffset(pos, Direction.DOWN);
         BlockState stateBelowMe = world.getBlockState(mutable);
 
-        mutable.set(pos, direction).move(Direction.UP);
+        mutable.setWithOffset(pos, direction).move(Direction.UP);
         BlockState stateAboveNeighbor = world.getBlockState(mutable);
 
         // 1. CONNESSIONE ORIZZONTALE (SIDE)
         // Accetta connessioni da Cavi E Sorgenti (Torce, Repeater, ecc.)
         if (canConnectTo(sourceState, neighborState, direction)) {
-            return WireConnection.SIDE;
+            return RedstoneSide.SIDE;
         }
         // 1.BIS: CONNESSIONE ORIZZONTALE (SIDE) PER CONNETTERSI SE CI SONO BLOCCHI CON SLAB E SOPRA WIRE
-        if (stateAboveNeighbor.isOf(ModBlocks.COBALT_DUST)) {
+        if (stateAboveNeighbor.is(ModBlocks.COBALT_DUST)) {
             if (isSlabbyRedstoneBehaviour(neighborState)) {
-                return WireConnection.SIDE;
+                return RedstoneSide.SIDE;
             }
         }
 
 
         // 2. CONNESSIONE VERSO L'ALTO (UP) - RUN ON TOP CONNECTION
         // La polvere sale SOLO se sopra il vicino c'è un'altra POLVERE.
-        mutable.set(pos, Direction.UP);
-        if (!world.getBlockState(mutable).isSolidBlock(world, mutable)) {
-            if (stateAboveNeighbor.isOf(ModBlocks.COBALT_DUST)) {
-                mutable.set(pos, direction); // Ritorna alla posizione del vicino
+        mutable.setWithOffset(pos, Direction.UP);
+        if (!world.getBlockState(mutable).isRedstoneConductor(world, mutable)) {
+            if (stateAboveNeighbor.is(ModBlocks.COBALT_DUST)) {
+                mutable.setWithOffset(pos, direction); // Ritorna alla posizione del vicino
                 if (isGlassyRedstoneBehaviour(neighborState) ||
-                        neighborState.isSolidBlock(world, mutable)) {
-                    return WireConnection.UP;
+                        neighborState.isRedstoneConductor(world, mutable)) {
+                    return RedstoneSide.UP;
                 }
             }
         }
 
         // 3. CONNESSIONE VERSO IL BASSO (SIDE)
         // La polvere scende SOLO se sotto il vicino c'è un'altra POLVERE.
-        mutable.set(pos, direction);
-        if (!neighborState.isSolidBlock(world, mutable)) {
+        mutable.setWithOffset(pos, direction);
+        if (!neighborState.isRedstoneConductor(world, mutable)) {
             mutable.move(Direction.DOWN);
             BlockState stateBelowNeighbor = world.getBlockState(mutable);
 
-            if (stateBelowNeighbor.isOf(ModBlocks.COBALT_DUST)) {
-                mutable.set(pos, Direction.DOWN);
+            if (stateBelowNeighbor.is(ModBlocks.COBALT_DUST)) {
+                mutable.setWithOffset(pos, Direction.DOWN);
                 if (isSlabbyRedstoneBehaviour(stateBelowMe) ||
                         isGlassyRedstoneBehaviour(stateBelowMe) ||
-                        stateBelowMe.isSolidBlock(world, mutable)) {
-                    return WireConnection.SIDE;
+                        stateBelowMe.isRedstoneConductor(world, mutable)) {
+                    return RedstoneSide.SIDE;
                 }
             }
         }
 
-        return WireConnection.NONE;
+        return RedstoneSide.NONE;
     }
 
     private static boolean canConnectTo(BlockState sourceState, BlockState targetState, @Nullable Direction dir) {
 
-        if (sourceState.isOf(ModBlocks.COBALT_RELAY) && targetState.isOf(ModBlocks.COBALT_RELAY)) {
+        if (sourceState.is(ModBlocks.COBALT_RELAY) && targetState.is(ModBlocks.COBALT_RELAY)) {
             return false;
         }
 
@@ -136,18 +144,18 @@ public class CobaltWireShape {
         if (targetState.getBlock() instanceof CobaltWireBlock) return true;
 
         if (targetState.getBlock() instanceof CobaltRepeaterBlock) {
-            Direction facing = targetState.get(Properties.HORIZONTAL_FACING);
+            Direction facing = targetState.getValue(BlockStateProperties.HORIZONTAL_FACING);
             if (dir == null) return true;
             return dir == facing || dir == facing.getOpposite();
         }
 
         if(targetState.getBlock() instanceof CobaltConverterBlock){
-            Direction facing = targetState.get(Properties.HORIZONTAL_FACING);
+            Direction facing = targetState.getValue(BlockStateProperties.HORIZONTAL_FACING);
             if (dir == null) return true;
             return dir == facing.getOpposite();
         }
 
-        if (targetState.isOf(Blocks.OBSERVER)) return dir == targetState.get(ObserverBlock.FACING);
+        if (targetState.is(Blocks.OBSERVER)) return dir == targetState.getValue(ObserverBlock.FACING);
 
         return targetState.getBlock() instanceof CobaltPowerSource ||
                 CobaltWireNetwork.compatibleCobaltPowerSource(targetState);
@@ -156,8 +164,8 @@ public class CobaltWireShape {
     // Prolly to change in isGlassyCobaltBehaviour
     public static boolean isGlassyRedstoneBehaviour(BlockState state){
         return state.getBlock() instanceof TransparentBlock ||
-                state.getBlock() instanceof BulbBlock ||
-                state.isOf(Blocks.GLOWSTONE) ||
+                state.getBlock() instanceof CopperBulbBlock ||
+                state.is(Blocks.GLOWSTONE) ||
                 state.getBlock() instanceof TntBlock ||
                 state.getBlock() instanceof IceBlock;
     }
@@ -165,8 +173,8 @@ public class CobaltWireShape {
     public static boolean isSlabbyRedstoneBehaviour(BlockState state){
         return state.getBlock() instanceof SlabBlock ||
                 state.getBlock() instanceof HopperBlock ||
-                state.getBlock() instanceof PistonBlock ||
-                state.getBlock() instanceof StairsBlock ||
+                state.getBlock() instanceof PistonBaseBlock ||
+                state.getBlock() instanceof StairBlock ||
                 state.getBlock() instanceof ScaffoldingBlock;
     }
 

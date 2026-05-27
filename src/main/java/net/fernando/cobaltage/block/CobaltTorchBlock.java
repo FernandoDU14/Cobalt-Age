@@ -1,114 +1,119 @@
 package net.fernando.cobaltage.block;
 
 import net.fernando.cobaltage.block.wire.CobaltWireNetwork;
-import net.minecraft.block.*;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.tick.ScheduledTickView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RedstoneTorchBlock;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Objects;
 
-public class CobaltTorchBlock extends RedstoneTorchBlock implements Waterloggable, CobaltPowerSource {
-    public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
+public class CobaltTorchBlock extends RedstoneTorchBlock implements SimpleWaterloggedBlock, CobaltPowerSource {
+    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
-    public CobaltTorchBlock(Settings settings) {
+    public CobaltTorchBlock(Properties settings) {
         super(settings);
-        this.setDefaultState(this.stateManager.getDefaultState().with(LIT, true).with(WATERLOGGED, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(LIT, true).setValue(WATERLOGGED, false));
     }
 
 
     @Override
-    public int getStrongCobaltPower(BlockState state, World world, BlockPos pos, Direction direction) {
+    public int getStrongCobaltPower(BlockState state, Level world, BlockPos pos, Direction direction) {
         // La torcia dà Energia Forte SOLO verso l'alto (al blocco che ha sulla testa)
-        return (direction == Direction.UP && state.get(LIT)) ? 15 : 0;
+        return (direction == Direction.UP && state.getValue(LIT)) ? 15 : 0;
     }
 
     @Override
-    public int getCobaltPower(BlockState state, World world, BlockPos pos) {
-        return state.get(LIT) ? 15 : 0;
+    public int getCobaltPower(BlockState state, Level world, BlockPos pos) {
+        return state.getValue(LIT) ? 15 : 0;
     }
 
     @Override
-    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
-        if (state.get(LIT)) {
+    public void animateTick(BlockState state, @NonNull Level world, @NonNull BlockPos pos, @NonNull RandomSource random) {
+        if (state.getValue(LIT)) {
             double d = (double)pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
             double e = (double)pos.getY() + 0.7;
             double f = (double)pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.2;
             // Same of Dust - Particle Section
             int cobaltBlue = (0) | (153 << 8) | 255;
-            DustParticleEffect cobaltDust = new DustParticleEffect(cobaltBlue, 1.0f);
+            DustParticleOptions cobaltDust = new DustParticleOptions(cobaltBlue, 1.0f);
 
-            world.addParticleClient(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
+            world.addParticle(cobaltDust, d, e, f, 0.0, 0.0, 0.0);
         }
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(LIT, WATERLOGGED);
     }
 
     @Override
-    public FluidState getFluidState(BlockState state) {
-        return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
+    public @NonNull FluidState getFluidState(BlockState state) {
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        FluidState fluidState = ctx.getWorld().getFluidState(ctx.getBlockPos());
-        return Objects.requireNonNull(super.getPlacementState(ctx)).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        FluidState fluidState = ctx.getLevel().getFluidState(ctx.getClickedPos());
+        return Objects.requireNonNull(super.getStateForPlacement(ctx)).setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER);
     }
 
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
-        if (state.get(WATERLOGGED)) {
-            tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+    public @NonNull BlockState updateShape(BlockState state, @NonNull LevelReader world, @NonNull ScheduledTickAccess tickView, @NonNull BlockPos pos, @NonNull Direction direction, @NonNull BlockPos neighborPos, @NonNull BlockState neighborState, @NonNull RandomSource random) {
+        if (state.getValue(WATERLOGGED)) {
+            tickView.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
         }
 
         // Flicker issue fix: We take the new computed vanilla state, and we inject the waterlog property
-        BlockState newState =  super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
-        if (newState.isOf(this)) {
-            return newState.with(WATERLOGGED, state.get(WATERLOGGED));
+        BlockState newState =  super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+        if (newState.is(this)) {
+            return newState.setValue(WATERLOGGED, state.getValue(WATERLOGGED));
         }
         return newState;
     }
 
     @Override
-    protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        BlockPos neighborPos = pos.offset(direction.getOpposite());
+    protected int getSignal(@NonNull BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
+        BlockPos neighborPos = pos.relative(direction.getOpposite());
         BlockState neighborState = world.getBlockState(neighborPos);
 
         if (isVanillaRedstone(neighborState)) {
             return 0; // Niente energia per te, redstone rossa!
         }
-        return super.getWeakRedstonePower(state, world, pos, direction);
+        return super.getSignal(state, world, pos, direction);
     }
 
     @Override
-    protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+    protected int getDirectSignal(@NonNull BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
         // 1. Identifichiamo il blocco che sta ricevendo l'energia (quello sopra la torcia)
-        BlockPos targetPos = pos.offset(direction.getOpposite());
+        BlockPos targetPos = pos.relative(direction.getOpposite());
         BlockState targetState = world.getBlockState(targetPos);
 
         // 2. Se il blocco sopra è un blocco solido (Pietra, Cobblestone, ecc.)
-        if (targetState.isSolidBlock(world, targetPos)) {
+        if (targetState.isRedstoneConductor(world, targetPos)) {
             // Controlliamo i vicini del blocco di pietra!
             for (Direction side : Direction.values()) {
                 // Non controlliamo la torcia stessa (sotto)
                 if (side == direction) continue;
 
-                BlockPos checkPos = targetPos.offset(side);
+                BlockPos checkPos = targetPos.relative(side);
                 BlockState checkState = world.getBlockState(checkPos);
 
                 // Se la pietra tocca Redstone Vanilla, la torcia "spegne" la Strong Power
@@ -120,28 +125,28 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements Waterloggabl
         }
 
         // Se non c'è redstone vanilla attorno al blocco caricato, procedi normalmente
-        return super.getStrongRedstonePower(state, world, pos, direction);
+        return super.getDirectSignal(state, world, pos, direction);
     }
 
     @Override
-    public boolean emitsRedstonePower(BlockState state) {
+    public boolean isSignalSource(@NonNull BlockState state) {
         return false;
     }
 
     private boolean isVanillaRedstone(BlockState state) {
         // Here we need REDSTONE BLOCK
-        return state.isOf(Blocks.REDSTONE_WIRE) ||
-                state.isOf(Blocks.REPEATER) ||
-                state.isOf(Blocks.COMPARATOR) ||
-                state.isOf(Blocks.REDSTONE_TORCH) ||
-                state.isOf(Blocks.REDSTONE_WALL_TORCH) ||
-                state.isOf(Blocks.REDSTONE_BLOCK);
+        return state.is(Blocks.REDSTONE_WIRE) ||
+                state.is(Blocks.REPEATER) ||
+                state.is(Blocks.COMPARATOR) ||
+                state.is(Blocks.REDSTONE_TORCH) ||
+                state.is(Blocks.REDSTONE_WALL_TORCH) ||
+                state.is(Blocks.REDSTONE_BLOCK);
     }
 
 
     @Override
-    protected boolean shouldUnpower(World world, BlockPos pos, BlockState state) {
-        BlockPos attachedPos = pos.down();
+    protected boolean hasNeighborSignal(@NonNull Level world, BlockPos pos, @NonNull BlockState state) {
+        BlockPos attachedPos = pos.below();
 
         // Controlla se il blocco sotto di noi riceve energia Cobalt.
         // Passiamo Direction.UP come "eccezione", perché dal punto di vista

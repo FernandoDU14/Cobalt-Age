@@ -1,8 +1,8 @@
 package net.fernando.cobaltage.mixin.consumers;
 import net.fernando.cobaltage.util.CobaltPowerHelper;
-import net.minecraft.block.RedstoneLampBlock;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.RedstoneLampBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -11,10 +11,10 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class RedstoneLampMixin {
 
     @Redirect(
-            method = {"neighborUpdate", "scheduledTick"},
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;isReceivingRedstonePower(Lnet/minecraft/util/math/BlockPos;)Z")
+            method = {"neighborChanged", "tick"},
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;hasNeighborSignal(Lnet/minecraft/core/BlockPos;)Z")
     )
-    private boolean cobalt$combinePowerSources(World world, BlockPos pos) {
-        return world.isReceivingRedstonePower(pos) || CobaltPowerHelper.isPoweredByCobalt(world, pos);
+    private boolean cobalt$combinePowerSources(Level world, BlockPos pos) {
+        return world.hasNeighborSignal(pos) || CobaltPowerHelper.isPoweredByCobalt(world, pos);
     }
 }
