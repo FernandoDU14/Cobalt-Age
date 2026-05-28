@@ -30,7 +30,7 @@ public class CobaltWireNetwork {
 
     private final Long2ObjectOpenHashMap<CobaltNode> nodes = new Long2ObjectOpenHashMap<>();
 
-    // BUCKET QUEUE: Inserimento O(1). Mantenuto per la massima performance!
+    // BUCKET QUEUE: Insert O(1) for every node to update, ordered by virtual power (0-15)
     private final Queue<CobaltWireNode>[] priorityBuckets = new Queue[16];
 
     private boolean isUpdating = false;
@@ -52,7 +52,7 @@ public class CobaltWireNetwork {
             int oldPower = startNode.currentPower;
             int newExt = calculateExternalPower(world, startNode.pos);
 
-            // ⚡ FAST ABORT: Se non c'è energia prima e non ce n'è ora, fermati subito.
+            // ⚡ fast quit when no energy now and before
             if (oldPower == 0 && newExt == 0) return;
 
             startNode.externalPower = newExt;
@@ -61,22 +61,22 @@ public class CobaltWireNetwork {
             Queue<CobaltWireNode> depletionQueue = new ArrayDeque<>();
 
             if (newExt > oldPower) {
-                // INCREMENTO: Salta la deplezione, andiamo diretti in propagazione
+                // Increment: Skip depletion, go directly to propagation
                 startNode.virtualPower = newExt;
                 addToBucket(startNode, newExt);
             } else if (newExt < oldPower) {
-                // DECREMENTO (Observer si spegne/Cavo rotto): Abbattiamo SOLO il ramo che dipendeva da noi
+                // Decrement: (Observer if it turns off/broken cable): Cutting only the branch was depending on us
                 startNode.oldPower = oldPower;
                 startNode.virtualPower = newExt;
                 startNode.discoveredAsDependent = true;
                 depletionQueue.add(startNode);
             } else {
-                // Stessa energia (forse è cambiata la forma del filo adiacente). Mettiamo in bucket per aggiornare i vicini.
+                // Same energy (shape could be changed in the adjacent site). Putting in bucket to update neighbors.
                 startNode.virtualPower = newExt;
                 addToBucket(startNode, newExt);
             }
 
-            // --- FASE 1: DEPLEZIONE (Crollo energetico mirato) ---
+            // --- ⚡ PHASE 1: DEPLETION (selected energy drop) ---
             while (!depletionQueue.isEmpty()) {
                 CobaltWireNode node = depletionQueue.poll();
 
@@ -86,14 +86,14 @@ public class CobaltWireNetwork {
 
                 findAndCacheConnectedWires(world, node);
 
-                // Variabili di cache pulite per questo nodo specifico
+                // Clean cache variables for this specific node
                 boolean isSolidBelow = false;
                 boolean hasCheckedSolidBelow = false;
 
                 for (CobaltWireNode neighbor : node.connectedWires) {
                     if (neighbor.discoveredAsDependent) continue;
 
-                    // Possiamo INVIARE energia a lui? (Serve per capire se dipendeva da noi)
+                    // Can we send energy to it? (Did it depend on us?)
                     boolean weCanSendToNeighbor = true;
                     boolean differentXZ = node.pos.getX() != neighbor.pos.getX() || node.pos.getZ() != neighbor.pos.getZ();
                     if (neighbor.pos.getY() < node.pos.getY() && differentXZ) {
@@ -104,14 +104,14 @@ public class CobaltWireNetwork {
                         weCanSendToNeighbor = isSolidBelow;
                     }
 
-                    // Lui può INVIARE energia a noi? (Serve per il Backfill)
+                    // Can it send energy to us? (Did we depend on it? - Backfill support)
                     boolean neighborCanSendToUs = true;
                     if (neighbor.pos.getY() > node.pos.getY() && differentXZ){
                         neighborCanSendToUs = world.getBlockState(neighbor.pos.below()).isRedstoneConductor(world, neighbor.pos.below());
                     }
 
                     if (neighbor.currentPower > 0 && neighbor.currentPower <= node.oldPower - 1) {
-                        // Se il vetro ci impediva di passargli energia, non poteva dipendere da noi!
+                        // If the glass blocked us from passing energy to him, it couldn't depend on us
                         if (!weCanSendToNeighbor) continue;
 
                         neighbor.discoveredAsDependent = true;
@@ -125,8 +125,8 @@ public class CobaltWireNetwork {
                         depletionQueue.add(neighbor);
 
                     } else if (neighbor.currentPower > node.oldPower - 1) {
-                        // BACKFILL: Il vicino ha energia ALTA!
-                        // Ma può aiutarci SOLO se il suo blocco gli permette di inviare energia in basso.
+                        // Backfill: The neighbor has high energy
+                        // But it can help us only if its block allows it to send energy down.
                         if (!neighborCanSendToUs) continue;
 
                         neighbor.virtualPower = neighbor.currentPower;
@@ -135,7 +135,7 @@ public class CobaltWireNetwork {
                 }
             }
 
-            // --- FASE 2: PROPAGAZIONE IN RAM ---
+            // --- ⚡ PHASE 2: RAM PROPAGATION ---
             for (int p = 15; p > 0; p--) {
                 Queue<CobaltWireNode> currentBucket = priorityBuckets[p];
 
@@ -152,7 +152,7 @@ public class CobaltWireNetwork {
                         findAndCacheConnectedWires(world, node);
                     }
 
-                    // Cache isolata per prevenire leak sui blocchi diagonali
+                    // Isolated cache for preventing leaks on diagonal blocks
                     boolean isSolidBelow = false;
                     boolean hasCheckedSolidBelow = false;
 
@@ -176,18 +176,18 @@ public class CobaltWireNetwork {
                 }
             }
 
-            // --- FASE 3: SCRITTURA E AGGIORNAMENTO VANILLA ---
+            // --- ⚡ PHASE 3: WRITING AND UPDATE ---
             applyPowerChanges(world);
 
         } finally {
-            // Svuota cache in sicurezza
+            // Free Cache
             nodes.clear();
             for (Queue<CobaltWireNode> q : priorityBuckets) q.clear();
             isUpdating = false;
         }
     }
 
-    // Helper O(1) per gestire l'inserimento univoco nei bucket
+    // Helper O(1) to manage unique insertion in buckets
     private void addToBucket(CobaltWireNode node, int power) {
         if (!node.addedToBucket) {
             node.addedToBucket = true;
@@ -195,6 +195,7 @@ public class CobaltWireNetwork {
         }
     }
 
+    // Helper to apply power changes
     private void applyPowerChanges(Level world) {
         if (!(world instanceof ServerLevel serverLevel)) return;
         List<CobaltWireNode> changedWires = new ArrayList<>();
@@ -218,35 +219,37 @@ public class CobaltWireNetwork {
         }
     }
 
+    // Helper to checkAndLink connected wires and cache them.
     private void findAndCacheConnectedWires(Level world, CobaltWireNode node) {
         if (!node.connectedWires.isEmpty()) return; // Se già riempito, salta! Costo ZERO.
 
         BlockPos pos = node.pos;
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
-        // ---- NUOVO: CONNESSIONE DIRETTA VERTICALE (Per i Relay Block) ----
+        // ---- Vertical Wire Connections for Relay Blocks ----
         mutable.setWithOffset(pos, Direction.UP);
         checkAndLink(world, node, mutable.immutable());
-
         mutable.setWithOffset(pos, Direction.DOWN);
         checkAndLink(world, node, mutable.immutable());
 
+        // ---- Horizontal Wire Connections for both Relay Blocks and Cobalt Wire Blocks ----
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             mutable.setWithOffset(pos, dir);
             BlockState neighborState = world.getBlockState(mutable);
 
-            // Orizzontale
+            // Horizontal link
             checkAndLink(world, node, mutable.immutable());
 
-            // 2. DISCESA
+            // 2. Block descent
             if (!neighborState.isRedstoneConductor(world, mutable)) { // The Diagonal Block That Could Interrupt The Wire Web
-                // 🛑 FIX: Non controlliamo 'canGoDown' qui!
-                // Memorizziamo il vicino a prescindere per poter ricevere eventuale Backfill
+                // 🛑 Important: We do not check 'canGoDown' here, as the wire web could still be
+                // influenced by a (diagonal) above cobalt wire.
+                // Memorizing the neighbor regardless to receive potential Backfill
                 mutable.setWithOffset(pos, dir).move(Direction.DOWN);
                 checkAndLink(world, node, mutable.immutable());
             }
 
-            // 3. SALITA
+            // 3. Block ascent
             mutable.setWithOffset(pos, Direction.UP);
             if (!world.getBlockState(mutable).isRedstoneConductor(world, mutable)) { // The Diagonal Block That Could Interrupt The Wire Web
                 mutable.setWithOffset(pos, dir).move(Direction.UP);
@@ -255,6 +258,7 @@ public class CobaltWireNetwork {
         }
     }
 
+    // Helper to check and link between wires and relays, implementing here the logic for their mixed behavior
     private void checkAndLink(Level world, CobaltWireNode source, BlockPos targetPos) {
         CobaltWireNode target = getOrAddWireNode(world, targetPos);
         if (target == null) return;
@@ -267,20 +271,22 @@ public class CobaltWireNetwork {
         boolean diffXZ = source.pos.getX() != target.pos.getX() || source.pos.getZ() != target.pos.getZ();
         boolean diffY = source.pos.getY() != target.pos.getY();
 
-        // 1. Relay <-> Relay: Solo verticale puro
+        // 1. Relay <-> Relay - Allowed only pure vertical link
         if (sourceIsRelay && targetIsRelay) {
             if (diffXZ) return;
         }
 
-        // 2. Relay <-> Dust: Isolamento verticale inferiore
+        // 2. Relay <-> Dust: Pure vertical relay pillars
         if ((sourceIsRelay && targetIsDust) || (sourceIsDust && targetIsRelay)) {
-            // Niente diagonali se c'è un relay di mezzo
+            // Diagonal not allowed
             if (diffY && diffXZ) return;
 
-            // Logica richiesta: Se sono uno sopra l'altro (Verticale puro)
+            // Mixed vertical is not allowed
+            // You can't take cobalt power from a powered cobalt wire below if i'm a relay
+            // However you can power a cobalt wire above relay block
             if (!diffXZ && diffY) {
-                // Se il Relay sta SOPRA la Dust, blocchiamo il link in ENTRAMBE le direzioni.
-                // Così il Relay non alimenta sotto e non riceve da sotto.
+                // If the Relay is above the dust, we block both direction links
+                // So then the Relay is not powering downwards and cannot receive power from that direction as well
                 if (sourceIsRelay && source.pos.getY() > target.pos.getY()) return;
                 if (targetIsRelay && target.pos.getY() > source.pos.getY()) return;
             }
@@ -290,40 +296,36 @@ public class CobaltWireNetwork {
     }
 
 
+    // Helper to compute energy changes from external cobalt energy source or compatible energy cobalt source
     private int calculateExternalPower(Level world, BlockPos pos) {
         int maxPower = 0;
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(); // Istanza unica riutilizzata
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(); // One instance that we reuse (efficiency)
 
         for (Direction dir : Direction.values()) {
-            mutable.setWithOffset(pos, dir); // Sposta il cursore, niente nuova RAM
+            mutable.setWithOffset(pos, dir);
             BlockState neighborState = world.getBlockState(mutable);
 
-            // 1. Ignora le altre polveri di cobalto!
-            // L'energia tra polveri viene gestita dalla Fase 2 (Propagazione), non qui.
+            // 1. Ignore other cobalt wires / cobalt relays, as their energies are managed in the Phase 2 (RAM Propagation)
             if (neighborState.getBlock() instanceof CobaltWireBlock) {
                 continue;
             }
 
-            // 2. Se è una fonte Cobalt diretta (Repeater Cobalt, Torcia Cobalt, ecc.)
+            // 2. Direct Cobalt Power Source detected (Repeater Cobalt, Torcia Cobalt, ecc.)
             if (neighborState.getBlock() instanceof CobaltPowerSource source) {
+
+                // Special Facing Blocks - Cobalt Comparators and Repeaters
                 if (neighborState.getBlock() instanceof CobaltRepeaterBlock ||
                         neighborState.getBlock() instanceof CobaltComparatorBlock) {
-
+                    // 'dir' is from the cable towards the block, it follows 'facing' must be the opposite
                     Direction facing = neighborState.getValue(BlockStateProperties.HORIZONTAL_FACING);
-
-                    // Dir è la direzione dal CAVO verso il BLOCCO.
-                    // Il blocco punta verso il cavo solo se la sua direzione (facing)
-                    // è l'opposto di 'dir'.
-                    // Esempio: se il blocco è a NORD del cavo (dir=NORTH),
-                    // deve guardare a SUD (facing=SOUTH) per alimentarlo.
                     if (facing == dir) {
                         maxPower = Math.max(maxPower, source.getCobaltPower(neighborState, world, mutable)); // È un repeater ma guarda altrove, quindi 0 energia
                     }
                 }
+                // Special Facing Blocks - Cobalt Converter
                 else if (neighborState.getBlock() instanceof CobaltConverterBlock) {
                     Direction cobaltSide = neighborState.getValue(CobaltConverterBlock.FACING);
-                    // Il convertitore cede Cobalt SOLO dalla faccia "Cobalt".
-                    // dir è la direzione dal cavo verso il convertitore.
+                    // I get cobalt power only if he is facing towards me with the cobalt side of the block (its facing)
                     if (cobaltSide == dir.getOpposite()) {
                         maxPower = Math.max(maxPower, source.getCobaltPower(neighborState, world, mutable));
                     }
@@ -332,21 +334,22 @@ public class CobaltWireNetwork {
                     maxPower = Math.max(maxPower, source.getCobaltPower(neighborState, world, mutable));
                 }
             }
-            // 3. Se è un blocco solido, controlla se è alimentato FORTEMENTE da una fonte Cobalt
-            // MAI controllare world.getReceivedRedstonePower() perché includerebbe le polveri!
+            // 3. When we met a solid block (isRedstoneConductor substitutes isSolidBlock in Mojang Mappings)
+            // we check if it is Strong Powered (getDirectSignal substitutes getStrongRedstonePower
+            // and getSignal substitutes getWeakRedstonePower in Mojang Mappings)
+            // by a Cobalt Source (PoweredBlock substitues the instance of the RedstoneBlock in Mojang Mappings)
             else if (neighborState.isRedstoneConductor(world, mutable) || neighborState.getBlock() instanceof PoweredBlock) {
                 maxPower = Math.max(maxPower, getStrongPowerFromNeighbors(world, mutable));
             }
 
+            // 4. Compatible Cobalt Power Source
             if(compatibleCobaltPowerSource(neighborState)){
                 maxPower = Math.max(maxPower, neighborState.getSignal(world, pos, dir.getOpposite()));
             }
 
-            // SE IL VICINO È UN OBSERVER
+            // 5. Special Case - Observer
             if (neighborState.is(Blocks.OBSERVER)) {
-                // L'Observer dà energia solo se la sua faccia posteriore punta verso il cavo.
-                // dirFromWire è la direzione dal cavo verso observer,
-                // quindi dobbiamo controllare se observer "guarda" dalla parte opposta.
+                // The Observer emits only in its opposite facing
                 if (neighborState.getValue(ObserverBlock.FACING) == dir) {
                     return neighborState.getValue(ObserverBlock.POWERED) ? 15 : 0;
                 }
@@ -356,7 +359,7 @@ public class CobaltWireNetwork {
         return maxPower;
     }
 
-    // Funzione helper per vedere se un blocco è alimentato da Leve/Torce (Escludendo polveri)
+    // Helper to evaluate the Strong Cobalt Power or a Compatible Strong Redstone Power of a Block.
     public static int getStrongPowerFromNeighbors(Level world, BlockPos blockPos) {
         int maxStrong = 0;
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
@@ -368,13 +371,13 @@ public class CobaltWireNetwork {
 
             if (sourceState.getBlock() instanceof CobaltPowerSource source) {
                 if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                    // Chiediamo solo la "Strong Power" (es. leva o torcia sotto il blocco)
+                    // We ask for Strong Cobalt Power
                     maxStrong = Math.max(maxStrong, source.getStrongCobaltPower(sourceState, world, mutable, dir.getOpposite()));
                 }
             }
 
             if (compatibleCobaltPowerSource(sourceState)) {
-                // Chiediamo solo la "Strong Power" (es. leva o torcia sotto il blocco)
+                // We ask for Strong Redstone Power (getDirectSignal substitutes getStrongRedstonePower)
                 maxStrong = Math.max(maxStrong, sourceState.getDirectSignal(world, mutable, dir));
             }
 
@@ -382,13 +385,16 @@ public class CobaltWireNetwork {
         return maxStrong;
     }
 
+    // Boolean helper to check if a solid block is powered by cobalt (or compatible)
+    // in any direction except the specified one (to combine with ShouldUnpower for Cobalt Torches)
     public static boolean isSolidBlockPoweredByCobalt(Level world, BlockPos solidPos, Direction exceptDir) {
 
 
-        // Se è il blocco di alimentazione (sorgente), ritorna true a prescindere dalla "solidità"
-        if (world.getBlockState(solidPos).is(ModBlocks.COBALT_DUST_BLOCK)) { // Usa il riferimento corretto al tuo blocco solido
+        // Cobalt Dust Block always emits (bro has Strong Power inside, nice bro)
+        if (world.getBlockState(solidPos).is(ModBlocks.COBALT_DUST_BLOCK)) {
             return true;
         }
+        // If it isn't either solid and a redstone dust block, it cannot have energy
         if(!world.getBlockState(solidPos).isRedstoneConductor(world, solidPos) && !(world.getBlockState(solidPos).getBlock() instanceof PoweredBlock)){
             return false;
         }
@@ -401,19 +407,18 @@ public class CobaltWireNetwork {
             mutable.setWithOffset(solidPos, dir);
             BlockState neighborState = world.getBlockState(mutable);
 
-            // A. Controllo Componenti Meccanici (Leve, bottoni attaccati al blocco solido)
+            // A. Compatible Cobalt Power Source (Levers, Buttons, Pressure Plates - All of them attached to the block)
             if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
-                // Se la leva sta iniettando energia forte nel blocco di pietra,
-                // la torcia di cobalto attaccata ad esso deve spegnersi!
+                // we check if it is Strong Powered (getDirectSignal substitutes getStrongRedstonePower)
                 if (neighborState.getDirectSignal(world, mutable, dir) > 0) return true;
             }
 
-            // B. Controllo Cavo di Cobalto
+            // B. Cobalt Wire pointing to or Powering from the top
             if (neighborState.getBlock() instanceof CobaltWireBlock) {
-                if (neighborState.getSignal(world, mutable, dir) > 0) return true;
-                if (neighborState.getDirectSignal(world, mutable, dir) > 0) return true;
+                if (neighborState.getSignal(world, mutable, dir) > 0) return true; // When pointing towards the block itself
+                if (neighborState.getDirectSignal(world, mutable, dir) > 0) return true; // When over the block itself
             }
-            // C. Controllo altre Sorgenti Cobalt
+            // C. Other Cobalt Sources (Cobalt Repeater, Cobalt Comparator, Cobal Converter)
             else if (neighborState.getBlock() instanceof CobaltPowerSource source) {
                 if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
                     if (source.getStrongCobaltPower(neighborState, world, mutable, dir.getOpposite()) > 0) return true;
@@ -425,6 +430,7 @@ public class CobaltWireNetwork {
     }
 
 
+    // Helper to evaluate which neighbors should update their state by a Cobalt Wire Node update
     private void updateNeighbors(Level world, CobaltWireNode node) {
 
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
@@ -435,24 +441,25 @@ public class CobaltWireNetwork {
             mutable.setWithOffset(node.pos, dir);
             BlockState neighborState = world.getBlockState(mutable);
 
-            // Cobalt Firewall
+            // Skipping vanilla (efficiency)
             if (isVanillaRedstone(neighborState)) continue;
 
-            // Salta le polveri di Cobalto (sono già aggiornate dal Network Handler)
+            // Skipping cobalt wires (efficiency)
             if (neighborState.getBlock() instanceof CobaltWireBlock) continue;
 
-            // Notifica il blocco vicino che l'energia è cambiata
+            // All the rest
             world.neighborChanged(mutable.immutable(), block, null);
 
-            // Quasi-Neighbor update
+            // Quasi-Neighbor update (Specifically for Pistons)
+            // 🛑 Consider removing 'isVanillaRedstone ifs' for efficiency
             if (dir == Direction.DOWN) {
-                // 1. Notifica il blocco a 2 blocchi di distanza in basso (Pistone dritto sotto, separato da aria/vetro)
+                // 1. Updates the block at theirY = ourY - 2 (Piston down 2 blocks)
                 farMutable.setWithOffset(mutable, Direction.DOWN);
                 if (!isVanillaRedstone(world.getBlockState(farMutable))) {
                     world.neighborChanged(farMutable.immutable(), block, null);
                 }
 
-                // 2. Notifica i blocchi in diagonale in basso (Pistoni laterali sotto il cavo)
+                // 2. Updates the block at theirY = ourY - 1 and theirXZ differs by 1 (Piston down 1 block in oblique shape)
                 for (Direction horizontalDir : Direction.Plane.HORIZONTAL) {
                     farMutable.setWithOffset(mutable, horizontalDir);
                     if (!isVanillaRedstone(world.getBlockState(farMutable))) {
@@ -461,7 +468,7 @@ public class CobaltWireNetwork {
                 }
             }
 
-            // Aggiornamento anche i blocchi DOPO di lui (Strong Power)
+            // Updating also the neighbors next to the neighborState when it is a solid block (or Redstone Dust Block) (for Strong Power Updates)
             if (neighborState.isRedstoneConductor(world, mutable) || neighborState.getBlock() instanceof PoweredBlock) {
                 for (Direction sideDir : Direction.values()) {
                     if (sideDir == dir.getOpposite()) continue;
@@ -475,7 +482,7 @@ public class CobaltWireNetwork {
     }
 
     private CobaltWireNode getOrAddWireNode(Level world, BlockPos pos) {
-        long posLong = pos.asLong(); // Ottiene il long primitivo senza boxing
+        long posLong = pos.asLong(); // Obtains the long primitive without boxing
         CobaltNode node = nodes.get(posLong);
 
         if (node == null) {
@@ -485,14 +492,14 @@ public class CobaltWireNetwork {
             } else {
                 node = new CobaltNode(pos, state);
             }
-            nodes.put(posLong, node); // Inserimento senza boxing
+            nodes.put(posLong, node); // Insertion without boxing
         }
 
         return node.isWire() ? node.asWire() : null;
     }
 
+    // Helper to check if a block is vanilla redstone (redstone blocks are not here because they are considered solid by cobalt energy blocks)
     public static boolean isVanillaRedstone(BlockState state) {
-        // Here we DO NOT want to add REDSTONE BLOCK
         return state.is(net.minecraft.world.level.block.Blocks.REDSTONE_WIRE) ||
                 state.is(net.minecraft.world.level.block.Blocks.REPEATER) ||
                 state.is(net.minecraft.world.level.block.Blocks.COMPARATOR) ||
@@ -500,6 +507,7 @@ public class CobaltWireNetwork {
                 state.is(net.minecraft.world.level.block.Blocks.REDSTONE_WALL_TORCH);
     }
 
+    // Helper to check if a block can power a Cobalt Energy Block
     public static boolean compatibleCobaltPowerSource(BlockState state) {
         return state.getBlock() instanceof ButtonBlock ||
                 state.getBlock() instanceof LeverBlock ||

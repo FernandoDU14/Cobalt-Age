@@ -9,10 +9,6 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 
 public class CobaltLevelHelper {
 
-    /**
-     * Versione ultra-ottimizzata di setBlockState.
-     * Salta ricalcolo della luce, heightmaps e aggiornamenti dei vicini.
-     */
     public static boolean setWireState(ServerLevel world, BlockPos pos, BlockState state) {
         int y = pos.getY();
         if (world.isOutsideBuildHeight(y)) return false;
@@ -21,23 +17,22 @@ public class CobaltLevelHelper {
         int z = pos.getZ();
         int sectionIndex = world.getSectionIndex(y);
 
-        // Prendi il chunk e la sezione
+        // Taking the chunk and the section
         ChunkAccess chunk = world.getChunk(x >> 4, z >> 4, ChunkStatus.FULL, true);
         if (chunk == null) return false;
 
         LevelChunkSection section = chunk.getSections()[sectionIndex];
-        // if (section == null) return false;
+        // if (section == null) return false; <- Old But Gold
 
-        // Scrittura diretta nella PalettedContainer della sezione
-        // Questo è il punto dove usiamo il codice che hai postato!
+        // Direct writing to the PalettedContainer of the section
         BlockState prevState = section.setBlockState(x & 15, y & 15, z & 15, state);
 
         if (state == prevState) return false;
 
-        // Notifica i client (altrimenti il cavo non cambia colore visivamente)
+        // Notify clients (otherwise the wire will not change color visually)
         world.getChunkSource().blockChanged(pos);
 
-        // Segna il chunk come "da salvare" su disco
+        // Mark the chunk as "unsaved" to disk
         chunk.markUnsaved();
 
         return true;

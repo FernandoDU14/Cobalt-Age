@@ -27,6 +27,9 @@
           {
             "north": "side|up",
             "west": "side|up"
+          },
+          {
+            "isolated": "true"
           }
         ]
       }

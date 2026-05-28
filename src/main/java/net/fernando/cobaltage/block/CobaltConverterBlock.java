@@ -36,7 +36,6 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     private static final VoxelShape SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 2.0, 16.0);
 
-    // Proprietà per il modello di Blockbench
     public static final BooleanProperty COBALT_LIT = BooleanProperty.create("cobalt_lit");
     public static final BooleanProperty REDSTONE_LIT = BooleanProperty.create("redstone_lit");
     public static final BooleanProperty COBALT_INPUT = BooleanProperty.create("cobalt_input");

@@ -7,7 +7,7 @@ public class CobaltNode {
     public BlockPos pos;
     public BlockState state;
 
-    // Campi per la gestione interna
+    // Fields for internal management
     public boolean invalid;
 
     public CobaltNode(BlockPos pos, BlockState state) {

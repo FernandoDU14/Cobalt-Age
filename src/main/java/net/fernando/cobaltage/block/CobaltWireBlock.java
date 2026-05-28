@@ -47,6 +47,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
     public static final EnumProperty<RedstoneSide> SOUTH = BlockStateProperties.SOUTH_REDSTONE;
     public static final EnumProperty<RedstoneSide> EAST = BlockStateProperties.EAST_REDSTONE;
     public static final EnumProperty<RedstoneSide> WEST = BlockStateProperties.WEST_REDSTONE;
+    public static final BooleanProperty ISOLATED = BooleanProperty.create("isolated");
     private static final net.fernando.cobaltage.block.wire.CobaltWireNetwork NETWORK_HANDLER = new net.fernando.cobaltage.block.wire.CobaltWireNetwork();
 
     public CobaltWireBlock(Properties settings) {
@@ -57,6 +58,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
                 .setValue(SOUTH, RedstoneSide.SIDE)
                 .setValue(EAST, RedstoneSide.SIDE)
                 .setValue(WEST, RedstoneSide.SIDE)
+                .setValue(ISOLATED, false)
                 .setValue(WATERLOGGED, false));
     }
     
@@ -195,7 +197,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(POWER, NORTH, SOUTH, EAST, WEST, WATERLOGGED);
+        builder.add(POWER, NORTH, SOUTH, EAST, WEST, ISOLATED, WATERLOGGED);
     }
 
     @Override
@@ -466,6 +468,18 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
 
             return InteractionResult.SUCCESS;
         }
+        // (world.getBlockState(pos.below()).is(ModBlocks.COBALT_RELAY)
+        if (hasOneFreeConnectionInALineShape(world, pos)) {
+            // Invertiamo lo stato di isolamento (true <-> false)
+            BlockState newState = state.cycle(ISOLATED);
+
+            // Aggiorna il blocco nel mondo ricalcolando la forma con il nuovo stato
+            world.setBlock(pos, CobaltWireShape.getUpdatedState(world, pos, newState), Block.UPDATE_ALL);
+            this.updateAllNeighbors(world, pos);
+            NETWORK_HANDLER.updateNetwork(world, pos);
+
+            return InteractionResult.SUCCESS;
+        }
 
         return InteractionResult.PASS;
     }
@@ -482,6 +496,30 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
         return false;
     }
 
+    // Helper per capire se lo stato è di tipo side
+    private boolean hasOneFreeConnectionInALineShape(Level world, BlockPos pos) {
+        BlockState state = world.getBlockState(pos);
+        int i = 0;
+        int j = 0;
+        if(state.getValue(NORTH) != (RedstoneSide.NONE)) i++;
+        if(state.getValue(SOUTH) != (RedstoneSide.NONE)) i++;
+        if(state.getValue(EAST) != (RedstoneSide.NONE)) j++;
+        if(state.getValue(WEST) != (RedstoneSide.NONE)) j++;
+        if(i==0 || j==0){ // One axis Connection (Line or Ramp)
+            if(i>0){ // North-South Axis
+                i = 0;
+                if(CobaltWireShape.getRenderConnection(world, pos, Direction.NORTH) != RedstoneSide.NONE) i++;
+                if(CobaltWireShape.getRenderConnection(world, pos, Direction.SOUTH) != RedstoneSide.NONE) i++;
+                return i==1; // Requires 1 axis to be forced
+            }else{  // East-West Axis
+                j = 0;
+                if(CobaltWireShape.getRenderConnection(world, pos, Direction.EAST) != RedstoneSide.NONE) j++;
+                if(CobaltWireShape.getRenderConnection(world, pos, Direction.WEST) != RedstoneSide.NONE) j++;
+                return j==1; // Requires 1 axis to be forced
+            }
+        }
+        return false;
+    }
     // Helper per creare lo stato a puntino (tutti NONE)
     private BlockState getDotState(BlockState state) {
         return state.setValue(NORTH, RedstoneSide.NONE)

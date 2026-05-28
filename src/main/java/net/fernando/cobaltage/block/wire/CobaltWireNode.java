@@ -12,13 +12,13 @@ public class CobaltWireNode extends CobaltNode {
     public int virtualPower;
     public int externalPower;
 
-    // ⚡ FIX LAG: Tracciamento preciso per evitare Flood-Fill infiniti
+    // ⚡ efficiency: precise tracking to avoid infinite Flood-Fill
     public int oldPower;
     public boolean externalCalculated;
     public boolean discoveredAsDependent;
     public boolean addedToBucket;
 
-    // Cache delle connessioni per azzerare le letture nel World
+    // Cache of connections to reset reads in the World
     public final List<CobaltWireNode> connectedWires = new ArrayList<>();
 
     public CobaltWireNode(BlockPos pos, BlockState state) {
