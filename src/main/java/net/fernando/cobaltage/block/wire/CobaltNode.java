@@ -7,13 +7,13 @@ public class CobaltNode {
     public BlockPos pos;
     public BlockState state;
 
-    // Fields for internal management
-    public boolean invalid;
+    // Maschera di bit per compattare i booleani (Occupa solo 1 byte anziché multipli)
+    protected byte flags;
 
     public CobaltNode(BlockPos pos, BlockState state) {
         this.pos = pos;
         this.state = state;
-        this.invalid = false;
+        this.flags = 0;
     }
 
     public boolean isWire() {

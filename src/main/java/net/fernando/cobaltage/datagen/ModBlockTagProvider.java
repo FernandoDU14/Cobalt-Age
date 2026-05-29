@@ -3,8 +3,10 @@ package net.fernando.cobaltage.datagen;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.fernando.cobaltage.block.ModBlocks;
+import net.fernando.cobaltage.util.ModTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Blocks;
 import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -35,5 +37,17 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 
         valueLookupBuilder(BlockTags.BEACON_BASE_BLOCKS)
                 .add(ModBlocks.COBALT_BLOCK);
+
+        valueLookupBuilder(ModTags.Blocks.COMPATIBLE_COBALT_SOURCES)
+                .addOptionalTag(BlockTags.BUTTONS)
+                .addOptionalTag(BlockTags.PRESSURE_PLATES)
+                .addOptionalTag(BlockTags.LIGHTNING_RODS)
+                .add(Blocks.LEVER)
+                .add(Blocks.TARGET)
+                .add(Blocks.TRIPWIRE_HOOK)
+                .add(Blocks.DAYLIGHT_DETECTOR)
+                .add(Blocks.JUKEBOX)
+                .add(Blocks.TRAPPED_CHEST)
+                .add(Blocks.LECTERN);
     }
 }

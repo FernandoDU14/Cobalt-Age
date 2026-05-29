@@ -1,0 +1,20 @@
+{
+  "values": [
+    {
+      "id": "#minecraft:buttons",
+      "required": false
+    },
+    {
+      "id": "#minecraft:pressure_plates",
+      "required": false
+    },
+    "minecraft:lever",
+    "minecraft:target",
+    "minecraft:tripwire_hook",
+    "minecraft:daylight_detector",
+    "minecraft:jukebox",
+    "minecraft:lightning_rod",
+    "minecraft:trapped_chest",
+    "minecraft:lectern"
+  ]
+}

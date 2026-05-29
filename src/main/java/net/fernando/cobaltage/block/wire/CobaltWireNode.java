@@ -11,15 +11,15 @@ public class CobaltWireNode extends CobaltNode {
     public int currentPower;
     public int virtualPower;
     public int externalPower;
-
-    // ⚡ efficiency: precise tracking to avoid infinite Flood-Fill
     public int oldPower;
-    public boolean externalCalculated;
-    public boolean discoveredAsDependent;
-    public boolean addedToBucket;
 
-    // Cache of connections to reset reads in the World
-    public final List<CobaltWireNode> connectedWires = new ArrayList<>();
+    // Maschere di bit dedicate (Il bit 0 è ereditato da FLAG_INVALID in CobaltNode)
+    private static final byte FLAG_EXTERNAL_CALCULATED = 2;   // Bit 1 (0010)
+    private static final byte FLAG_DISCOVERED_DEPENDENT = 4;  // Bit 2 (0100)
+    private static final byte FLAG_ADDED_TO_BUCKET = 8;       // Bit 3 (1000)
+
+    // Ottimizzazione RAM: Capacità iniziale impostata a 4 (allocazione mirata)
+    public final List<CobaltWireNode> connectedWires = new ArrayList<>(4);
 
     public CobaltWireNode(BlockPos pos, BlockState state) {
         super(pos, state);
@@ -27,9 +27,42 @@ public class CobaltWireNode extends CobaltNode {
         this.virtualPower = this.currentPower;
         this.externalPower = 0;
         this.oldPower = 0;
-        this.externalCalculated = false;
-        this.discoveredAsDependent = false;
-        this.addedToBucket = false;
+    }
+
+    public boolean isExternalCalculated() {
+        return (this.flags & FLAG_EXTERNAL_CALCULATED) != 0;
+    }
+
+    public void setExternalCalculated(boolean v) {
+        if (v) {
+            this.flags |= FLAG_EXTERNAL_CALCULATED;
+        } else {
+            this.flags &= ~FLAG_EXTERNAL_CALCULATED;
+        }
+    }
+
+    public boolean isDiscoveredAsDependent() {
+        return (this.flags & FLAG_DISCOVERED_DEPENDENT) != 0;
+    }
+
+    public void setDiscoveredAsDependent(boolean v) {
+        if (v) {
+            this.flags |= FLAG_DISCOVERED_DEPENDENT;
+        } else {
+            this.flags &= ~FLAG_DISCOVERED_DEPENDENT;
+        }
+    }
+
+    public boolean isAddedToBucket() {
+        return (this.flags & FLAG_ADDED_TO_BUCKET) != 0;
+    }
+
+    public void setAddedToBucket(boolean v) {
+        if (v) {
+            this.flags |= FLAG_ADDED_TO_BUCKET;
+        } else {
+            this.flags &= ~FLAG_ADDED_TO_BUCKET;
+        }
     }
 
     @Override

@@ -71,22 +71,79 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
             Direction.UP,    Block.box(3.0, 0.0, 3.0, 13.0, 16.0, 13.0)
     ));
 
-    @Override
-    protected @NonNull VoxelShape getShape(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull CollisionContext context) {
-        VoxelShape shape = DOT_SHAPE;
+    // Stubs verticali estratti in costanti per pulizia
+    private static final VoxelShape UP_NORTH_STUB = Block.box(3.0, 0.0, 0.0, 13.0, 16.0, 1.0);
+    private static final VoxelShape UP_SOUTH_STUB = Block.box(3.0, 0.0, 15.0, 13.0, 16.0, 16.0);
+    private static final VoxelShape UP_EAST_STUB = Block.box(15.0, 0.0, 3.0, 16.0, 16.0, 13.0);
+    private static final VoxelShape UP_WEST_STUB = Block.box(0.0, 0.0, 3.0, 1.0, 16.0, 13.0);
 
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            RedstoneSide connection = state.getValue(CobaltWireBlock.getProperty(direction));
+    // 2. L'array che conterrà le 81 combinazioni
+    private static final VoxelShape[] SHAPE_CACHE = new VoxelShape[81];
 
-            if (connection == RedstoneSide.SIDE) {
-                shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(direction));
-            } else if (connection == RedstoneSide.UP) {
-                shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(direction));
-                shape = Shapes.or(shape, getVerticalStub(direction));
+    // 3. Generazione automatica all'avvio del gioco
+    static {
+        for (RedstoneSide north : RedstoneSide.values()) {
+            for (RedstoneSide south : RedstoneSide.values()) {
+                for (RedstoneSide east : RedstoneSide.values()) {
+                    for (RedstoneSide west : RedstoneSide.values()) {
+                        VoxelShape shape = DOT_SHAPE;
+
+                        // Composizione NORTH
+                        if (north == RedstoneSide.SIDE) {
+                            shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.NORTH));
+                        } else if (north == RedstoneSide.UP) {
+                            shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.NORTH));
+                            shape = Shapes.or(shape, UP_NORTH_STUB);
+                        }
+
+                        // Composizione SOUTH
+                        if (south == RedstoneSide.SIDE) {
+                            shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.SOUTH));
+                        } else if (south == RedstoneSide.UP) {
+                            shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.SOUTH));
+                            shape = Shapes.or(shape, UP_SOUTH_STUB);
+                        }
+
+                        // Composizione EAST
+                        if (east == RedstoneSide.SIDE) {
+                            shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.EAST));
+                        } else if (east == RedstoneSide.UP) {
+                            shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.EAST));
+                            shape = Shapes.or(shape, UP_EAST_STUB);
+                        }
+
+                        // Composizione WEST
+                        if (west == RedstoneSide.SIDE) {
+                            shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.WEST));
+                        } else if (west == RedstoneSide.UP) {
+                            shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.WEST));
+                            shape = Shapes.or(shape, UP_WEST_STUB);
+                        }
+
+                        // Calcolo matematico dell'indice (0 - 80)
+                        int index = north.ordinal() +
+                                south.ordinal() * 3 +
+                                east.ordinal() * 9 +
+                                west.ordinal() * 27;
+
+                        // .optimize() unisce le intersezioni interne riducendo i poligoni da renderizzare
+                        SHAPE_CACHE[index] = shape.optimize();
+                    }
+                }
             }
         }
+    }
 
-        return shape;
+    private static int getShapeIndex(BlockState state) {
+        return state.getValue(NORTH).ordinal() +
+                state.getValue(SOUTH).ordinal() * 3 +
+                state.getValue(EAST).ordinal() * 9 +
+                state.getValue(WEST).ordinal() * 27;
+    }
+
+    @Override
+    protected @NonNull VoxelShape getShape(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull CollisionContext context) {
+        return SHAPE_CACHE[getShapeIndex(state)]; // Costo O(1), zero allocazioni, performance fulminee
     }
 
     public static EnumProperty<RedstoneSide> getProperty(Direction direction) {
@@ -101,17 +158,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
 
     public BlockState getWireShapeState(BlockGetter world, BlockPos pos, BlockState state) {
         return CobaltWireShape.getUpdatedState(world, pos, state);
-    }
-
-    // Helper to create the vertical wall hitboxes
-    private VoxelShape getVerticalStub(Direction direction) {
-        return switch (direction) {
-            case NORTH -> Block.box(3.0, 0.0, 0.0, 13.0, 16.0, 1.0);
-            case SOUTH -> Block.box(3.0, 0.0, 15.0, 13.0, 16.0, 16.0);
-            case EAST -> Block.box(15.0, 0.0, 3.0, 16.0, 16.0, 13.0);
-            case WEST -> Block.box(0.0, 0.0, 3.0, 1.0, 16.0, 13.0);
-            default -> Shapes.empty();
-        };
     }
 
     // Function to compute the color gradient of the Cobalt Dust
