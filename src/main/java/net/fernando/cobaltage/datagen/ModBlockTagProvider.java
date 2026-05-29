@@ -44,6 +44,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .addOptionalTag(BlockTags.LIGHTNING_RODS)
                 .add(Blocks.LEVER)
                 .add(Blocks.TARGET)
+                .add(Blocks.SCULK_SENSOR)
+                .add(Blocks.CALIBRATED_SCULK_SENSOR)
                 .add(Blocks.TRIPWIRE_HOOK)
                 .add(Blocks.DAYLIGHT_DETECTOR)
                 .add(Blocks.JUKEBOX)
