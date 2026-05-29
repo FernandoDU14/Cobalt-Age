@@ -40,8 +40,6 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
     public static final BooleanProperty REDSTONE_LIT = BooleanProperty.create("redstone_lit");
     public static final BooleanProperty COBALT_INPUT = BooleanProperty.create("cobalt_input");
 
-    private static final CobaltWireNetwork NETWORK_HANDLER = new CobaltWireNetwork();
-
     public CobaltConverterBlock(Properties settings) {
         super(settings);
         registerDefaultState(getStateDefinition().any()
@@ -127,7 +125,6 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
     public void onPlace(BlockState state, @NonNull Level world, @NonNull BlockPos pos, BlockState oldState, boolean notify) {
         if (!oldState.is(state.getBlock()) && !world.isClientSide()) {
             updateConverterState(state, world, pos);
-            NETWORK_HANDLER.updateNetwork(world, pos.relative(state.getValue(FACING).getOpposite()));
         }
     }
 
@@ -230,14 +227,13 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
     private void updateConverterState(BlockState state, Level world, BlockPos pos){
         if (world.isClientSide()) return;
 
-        Direction cobaltSide = state.getValue(FACING);
-        Direction redstoneSide = cobaltSide.getOpposite();
-        BlockPos redstoneSideBlockPos = pos.relative(redstoneSide);
+        Direction cobaltDirection = state.getValue(FACING);
+        Direction redstoneDirection = cobaltDirection.getOpposite();
+        BlockState redstoneSideState = world.getBlockState(pos.relative(redstoneDirection));
 
         // 1. Leggi segnali
         int cobaltIn = getCobaltInputPower(world, pos, state, false);
-        int redstoneIn = world.getSignal(redstoneSideBlockPos, redstoneSide);
-
+        int redstoneIn = redstoneSideState.getSignal(world, pos, redstoneDirection);
 
         int currentPower = 0;
         boolean isCobaltInputMode = state.getValue(COBALT_INPUT);
@@ -292,7 +288,7 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
 
             if (actualRedstoneLit == actualCobaltLit) {
                 // se è tutto spento
-                if(!actualRedstoneLit){
+                if(!actualRedstoneLit && !state.getValue(WATERLOGGED)){
                     // però mi sto accendendo
                     world.playSound(null, pos, SoundEvents.COMPARATOR_CLICK, SoundSource.BLOCKS, 0.3F, 0.55F);
                 }
@@ -322,22 +318,13 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
         // Aggiorna Tutti i Primi Vicini e Primi Vicini Diagonali
         world.updateNeighborsAt(pos, this, null);
         world.updateNeighborsAt(pos.relative(redstoneSide), this, null);
-
-        // Aggiorna Cobalt Network
-        NETWORK_HANDLER.updateNetwork(world, pos.relative(cobaltSide));
+        world.updateNeighborsAt(pos.relative(cobaltSide), this, null);
     }
 
-    // --- VANILLA REDSTONE OUTPUT ---
+    // --- REDSTONE OVERRIDES ---
     @Override
     public boolean isSignalSource(@NonNull BlockState state) {
         return true;
-    }
-
-    // --- COBALT_INGOT OUTPUT ---
-    @Override
-    public int getCobaltPower(BlockState state, Level world, BlockPos pos) {
-        // Emette Cobalt solo se la modalità è Redstone -> Cobalt
-        return !state.getValue(COBALT_INPUT) ? state.getValue(POWER) : 0;
     }
 
     @Override
@@ -345,14 +332,20 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
         return getSignal(state, world, pos, direction);
     }
 
-
     @Override
+    // direction is the direction of the EMISSION
     protected int getSignal(BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
         // Emette solo se la modalità è Cobalt -> Redstone e la faccia che chiede è quella davanti
         if (state.getValue(COBALT_INPUT) && direction == state.getValue(FACING)) {
             return state.getValue(POWER);
         }
         return 0;
+    }
+    // --- COBALT OVERRIDES ---
+    @Override
+    public int getCobaltPower(BlockState state, Level world, BlockPos pos) {
+        // Emette Cobalt solo se la modalità è Redstone -> Cobalt
+        return !state.getValue(COBALT_INPUT) ? state.getValue(POWER) : 0;
     }
 
     @Override
