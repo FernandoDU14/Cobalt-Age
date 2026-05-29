@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.RedstoneSide;
 import org.jetbrains.annotations.Nullable;
+import static net.fernando.cobaltage.block.wire.CobaltWireNetwork.compatibleCobaltPowerSource;
 
 public class CobaltWireShape {
 
@@ -108,7 +109,7 @@ public class CobaltWireShape {
         // 2. (a) Horizontal connection (side)
         // Resetting mutable cursor to neighbor block for horizontal connection validation
         mutable.setWithOffset(pos, direction);
-        if (canConnectTo(sourceState, neighborState, direction)) {
+        if (canVisuallyHorizontallyConnectTo(sourceState, neighborState, direction)) {
             return RedstoneSide.SIDE;
         }
 
@@ -129,7 +130,8 @@ public class CobaltWireShape {
     }
 
     // Helper to evaluate if two Cobalt Wire Instances blocks can connect visually (Horizontal connection)
-    private static boolean canConnectTo(BlockState sourceState, BlockState targetState, @Nullable Direction dir) {
+    // This overrides the default behavior of compatible cobalt power source as you can see down below
+    private static boolean canVisuallyHorizontallyConnectTo(BlockState sourceState, BlockState targetState, @Nullable Direction dir) {
 
         if (sourceState.is(ModBlocks.COBALT_RELAY) && targetState.is(ModBlocks.COBALT_RELAY)) {
             return false;
@@ -137,6 +139,7 @@ public class CobaltWireShape {
 
         if (targetState.getBlock() instanceof CobaltWireBlock) return true;
 
+        // Special case (ModBlocks)
         if (targetState.getBlock() instanceof CobaltRepeaterBlock) {
             Direction facing = targetState.getValue(BlockStateProperties.HORIZONTAL_FACING);
             if (dir == null) return true;
@@ -149,10 +152,20 @@ public class CobaltWireShape {
             return dir == facing.getOpposite();
         }
 
-        if (targetState.is(Blocks.OBSERVER)) return dir == targetState.getValue(ObserverBlock.FACING);
+        if(canRestrictedCobaltPowerSourceConnectTo(targetState, dir)){
+            return true;
+        }
 
         return targetState.getBlock() instanceof CobaltPowerSource ||
-                CobaltWireNetwork.compatibleCobaltPowerSource(targetState);
+                compatibleCobaltPowerSource(targetState);
+    }
+
+    private static boolean canRestrictedCobaltPowerSourceConnectTo(BlockState state, Direction askingForOutputDirection) {
+        // The Observer emits only in its opposite facing
+        // The Calibrated Sculk Sensor does emit in its opposite facing, but it is always connected to it
+        return( (state.is(Blocks.OBSERVER) && state.getValue(ObserverBlock.FACING) == askingForOutputDirection) ||
+                (state.is(Blocks.CALIBRATED_SCULK_SENSOR))
+        );
     }
 
 }

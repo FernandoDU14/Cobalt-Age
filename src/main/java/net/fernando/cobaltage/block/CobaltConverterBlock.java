@@ -176,6 +176,10 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
             // FIX: Usiamo rearState e rearPos invece di state e pos!
             power = rearState.getSignal(world, rearPos, direction);
         }
+        else if (CobaltWireNetwork.restrictedCobaltPowerSource(rearState)) {
+            // FIX: Usiamo rearState e rearPos invece di state e pos!
+            power = rearState.getSignal(world, rearPos, direction);
+        }
         // 🟦 4. Blocco Solido caricato da energia forte di tipo cobalt o compatibile
         else if (rearState.isRedstoneConductor(world, rearPos)) {
             for (Direction dir : Direction.values()) {
@@ -195,6 +199,8 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
                         power = Math.max(power, src.getStrongCobaltPower(neighborState, world, neighborPos, dir.getOpposite()));
                     }
                 } else if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
+                    power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
+                }else if (CobaltWireNetwork.restrictedCobaltPowerSource(neighborState)) {
                     power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
                 }
             }
@@ -288,15 +294,9 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
                 // se è tutto spento
                 if(!actualRedstoneLit){
                     // però mi sto accendendo
-                    world.playSound(null, pos, SoundEvents.COMPARATOR_CLICK, SoundSource.BLOCKS, 0.1F, 0.55F);
-                }
-            }else{
-                // se è acceso, e mi sto spegnendo
-                if(!actualRedstoneLit){
-                    world.playSound(null, pos, SoundEvents.CRAFTER_FAIL, SoundSource.BLOCKS, 0.9F, 0.55F);
+                    world.playSound(null, pos, SoundEvents.COMPARATOR_CLICK, SoundSource.BLOCKS, 0.3F, 0.55F);
                 }
             }
-
 
             BlockState newState = state
                     .setValue(POWER, newPower)

@@ -8,12 +8,16 @@
       "id": "#minecraft:pressure_plates",
       "required": false
     },
+    {
+      "id": "#minecraft:lightning_rods",
+      "required": false
+    },
     "minecraft:lever",
     "minecraft:target",
+    "minecraft:sculk_sensor",
     "minecraft:tripwire_hook",
     "minecraft:daylight_detector",
     "minecraft:jukebox",
-    "minecraft:lightning_rod",
     "minecraft:trapped_chest",
     "minecraft:lectern"
   ]

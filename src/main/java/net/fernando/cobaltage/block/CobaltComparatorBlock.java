@@ -253,6 +253,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
             power = rearState.getValue(CobaltWireBlock.POWER);
         } else if (CobaltWireNetwork.compatibleCobaltPowerSource(rearState)) {
             power = rearState.getSignal(world, rearPos, direction);
+        }else if (CobaltWireNetwork.restrictedCobaltPowerSource(rearState)) {
+            power = rearState.getSignal(world, rearPos, direction);
         } else if (rearState.isRedstoneConductor(world, rearPos) || rearState.getBlock() instanceof PoweredBlock) {
             for (Direction dir : Direction.values()) {
                 BlockPos neighborPos = rearPos.relative(dir);
@@ -270,6 +272,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
                         power = Math.max(power, src.getStrongCobaltPower(neighborState, world, neighborPos, dir.getOpposite()));
                     }
                 } else if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
+                    power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
+                }else if (CobaltWireNetwork.restrictedCobaltPowerSource(neighborState)) {
                     power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
                 }
             }
@@ -348,6 +352,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
             power = source.getCobaltPower(state, (Level)world, sidePos);
         } else if (CobaltWireNetwork.compatibleCobaltPowerSource(state)) {
             power = state.getSignal(world, sidePos, sideDir);
+        } else if (CobaltWireNetwork.restrictedCobaltPowerSource(state)) {
+            power = state.getSignal(world, sidePos, sideDir);
         } else if (state.isRedstoneConductor(world, sidePos)) {
             for (Direction dir : Direction.values()) {
                 BlockPos neighborPos = sidePos.relative(dir);
@@ -358,6 +364,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
                         power = Math.max(power, src.getStrongCobaltPower(neighborState, (Level)world, neighborPos, dir.getOpposite()));
                     }
                 } else if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
+                    power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
+                } else if (CobaltWireNetwork.restrictedCobaltPowerSource(neighborState)) {
                     power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
                 }
             }

@@ -134,7 +134,7 @@ public class CobaltPowerHelper {
         return false;
     }
 
-    private static boolean isWirePointingTo(BlockState state, Direction dirToTarget) {
+    public static boolean isWirePointingTo(BlockState state, Direction dirToTarget) {
         return switch (dirToTarget) {
             case NORTH -> state.getValue(BlockStateProperties.NORTH_REDSTONE).isConnected();
             case SOUTH -> state.getValue(BlockStateProperties.SOUTH_REDSTONE).isConnected();

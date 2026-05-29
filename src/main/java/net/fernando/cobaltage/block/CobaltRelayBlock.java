@@ -67,10 +67,10 @@ public class CobaltRelayBlock extends CobaltWireBlock {
     private BlockState calculateConnections(BlockGetter world, BlockPos pos, BlockState state) {
         boolean up = true; // forced state
         boolean down = true; // forced state
-        boolean north = canConnectTo(world.getBlockState(pos.north()), Direction.SOUTH);
-        boolean south = canConnectTo(world.getBlockState(pos.south()), Direction.NORTH);
-        boolean east = canConnectTo(world.getBlockState(pos.east()), Direction.WEST);
-        boolean west = canConnectTo(world.getBlockState(pos.west()), Direction.EAST);
+        boolean north = canConnectTo(world.getBlockState(pos.north()));
+        boolean south = canConnectTo(world.getBlockState(pos.south()));
+        boolean east = canConnectTo(world.getBlockState(pos.east()));
+        boolean west = canConnectTo(world.getBlockState(pos.west()));
 
         return state
                 .setValue(UP, up)
@@ -88,10 +88,10 @@ public class CobaltRelayBlock extends CobaltWireBlock {
     }
 
     // Controlla se il vicino supporta la rete Cobalt
-    private boolean canConnectTo(BlockState state, Direction from) {
+    private boolean canConnectTo(BlockState state) {
         if (state.is(ModBlocks.COBALT_DUST)) return true; // Includes only Dust Wires and not Relays
         if (state.getBlock() instanceof CobaltPowerSource) return true;
-        return CobaltWireNetwork.compatibleCobaltPowerSource(state);
+        return CobaltWireNetwork.compatibleCobaltPowerSource(state) || CobaltWireNetwork.restrictedCobaltPowerSource(state);
     }
 
     @Override

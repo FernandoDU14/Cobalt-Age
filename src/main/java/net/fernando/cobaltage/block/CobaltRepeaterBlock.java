@@ -111,22 +111,23 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterlog
 
         int power = 0;
 
-        // 🟦 1. Sorgenti Cobalt
+        // Direct Sources (Weak Power - getSignal)
         if (rearState.getBlock() instanceof CobaltPowerSource source) {
             if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
                 power = source.getCobaltPower(rearState, world, rearPos);
             }
         }
-        // 🟦 2. Cavo Cobalt
         else if (rearState.getBlock() instanceof CobaltWireBlock) {
             power = rearState.getValue(CobaltWireBlock.POWER);
         }
-        // 🟦 3. Sorgente Vanilla Compatibile Diretta (Leva, Bottone attaccato direttamente dietro)
         else if (CobaltWireNetwork.compatibleCobaltPowerSource(rearState)) {
-            // FIX: Usiamo rearState e rearPos invece di state e pos!
             power = rearState.getSignal(world, rearPos, direction);
         }
-        // 🟦 4. Blocco Solido caricato da energia forte
+        else if (CobaltWireNetwork.restrictedCobaltPowerSource(rearState)){
+            power = rearState.getSignal(world, rearPos, direction);
+        }
+
+        // Indirect Sources (Strong Power - getDirectSignal)
         else if (rearState.isRedstoneConductor(world, rearPos) || rearState.getBlock() instanceof PoweredBlock) {
             for (Direction dir : Direction.values()) {
                 BlockPos neighborPos = rearPos.relative(dir);
@@ -145,6 +146,9 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterlog
                         power = Math.max(power, src.getStrongCobaltPower(neighborState, world, neighborPos, dir.getOpposite()));
                     }
                 } else if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
+                    power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
+                }
+                else if (CobaltWireNetwork.restrictedCobaltPowerSource(neighborState)) {
                     power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
                 }
             }

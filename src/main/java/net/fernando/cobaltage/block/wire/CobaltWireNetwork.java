@@ -5,10 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.ObserverBlock;
-import net.minecraft.world.level.block.PoweredBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import java.util.*;
@@ -335,19 +332,15 @@ public class CobaltWireNetwork {
                 maxPower = Math.max(maxPower, getStrongPowerFromNeighbors(world, reusableMutable));
             }
 
-            // 4. Compatible Cobalt Power Source
+            // 4. Compatible Cobalt Power Source (It does not care about the emission direction - Lectern, Lever, Button...)
             if(compatibleCobaltPowerSource(neighborState)){
-                maxPower = Math.max(maxPower, neighborState.getSignal(world, pos, dir.getOpposite()));
+                maxPower = Math.max(maxPower, neighborState.getSignal(world, pos, dir));
             }
 
-            // 5. Special Case - Observer
-            if (neighborState.is(Blocks.OBSERVER)) {
-                // The Observer emits only in its opposite facing
-                if (neighborState.getValue(ObserverBlock.FACING) == dir) {
-                    return neighborState.getValue(ObserverBlock.POWERED) ? 15 : 0;
-                }
+            // 5. Restricted Cobalt Power Source (It cares about the emission direction - Observer, Calibrated Sculk Sensor...)
+            if(restrictedCobaltPowerSource(neighborState)){
+                maxPower = Math.max(maxPower, neighborState.getSignal(world, pos, dir));
             }
-
         }
         return maxPower;
     }
@@ -370,6 +363,11 @@ public class CobaltWireNetwork {
             }
 
             if (compatibleCobaltPowerSource(sourceState)) {
+                // We ask for Strong Redstone Power (getDirectSignal substitutes getStrongRedstonePower)
+                maxStrong = Math.max(maxStrong, sourceState.getDirectSignal(world, mutable, dir));
+            }
+
+            if (restrictedCobaltPowerSource(sourceState)) {
                 // We ask for Strong Redstone Power (getDirectSignal substitutes getStrongRedstonePower)
                 maxStrong = Math.max(maxStrong, sourceState.getDirectSignal(world, mutable, dir));
             }
@@ -402,6 +400,10 @@ public class CobaltWireNetwork {
 
             // A. Compatible Cobalt Power Source (Levers, Buttons, Pressure Plates - All of them attached to the block)
             if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
+                // we check if it is Strong Powered (getDirectSignal substitutes getStrongRedstonePower)
+                if (neighborState.getDirectSignal(world, mutable, dir) > 0) return true;
+            }
+            if (CobaltWireNetwork.restrictedCobaltPowerSource(neighborState)) {
                 // we check if it is Strong Powered (getDirectSignal substitutes getStrongRedstonePower)
                 if (neighborState.getDirectSignal(world, mutable, dir) > 0) return true;
             }
@@ -500,25 +502,17 @@ public class CobaltWireNetwork {
                 state.is(net.minecraft.world.level.block.Blocks.REDSTONE_WALL_TORCH);
     }
 
+
+    public static boolean restrictedCobaltPowerSource(BlockState state) {
+        // The Observer emits only in its opposite facing
+        // The Calibrated Sculk Sensor does emit in its opposite facing
+        return( state.is(Blocks.OBSERVER) ||
+                state.is(Blocks.CALIBRATED_SCULK_SENSOR)
+        );
+    }
+
+
     public static boolean compatibleCobaltPowerSource(BlockState state) {
-        // Un solo controllo O(1) nativo, zero branching della CPU!
         return state.is(ModTags.Blocks.COMPATIBLE_COBALT_SOURCES);
     }
-    /*
-    // Helper to check if a block can power a Cobalt Energy Block
-    public static boolean compatibleCobaltPowerSource(BlockState state) {
-        return state.getBlock() instanceof ButtonBlock ||
-                state.getBlock() instanceof LeverBlock ||
-                state.getBlock() instanceof PressurePlateBlock ||
-                state.getBlock() instanceof WeightedPressurePlateBlock ||
-                state.getBlock() instanceof SculkSensorBlock ||
-                state.getBlock() instanceof TargetBlock ||
-                state.getBlock() instanceof TripWireHookBlock ||
-                state.getBlock() instanceof DaylightDetectorBlock ||
-                state.getBlock() instanceof JukeboxBlock ||
-                state.getBlock() instanceof LightningRodBlock ||
-                state.getBlock() instanceof TrappedChestBlock ||
-                state.getBlock() instanceof LecternBlock;
-    }
-     */
 }
