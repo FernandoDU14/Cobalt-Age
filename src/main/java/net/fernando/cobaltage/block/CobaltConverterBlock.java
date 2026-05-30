@@ -14,6 +14,7 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RedStoneWireBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -28,6 +29,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
+
+import static net.fernando.cobaltage.block.wire.CobaltWireNetwork.*;
 
 public class CobaltConverterBlock extends Block implements SimpleWaterloggedBlock, CobaltPowerSource {
 
@@ -229,11 +232,21 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
 
         Direction cobaltDirection = state.getValue(FACING);
         Direction redstoneDirection = cobaltDirection.getOpposite();
-        BlockState redstoneSideState = world.getBlockState(pos.relative(redstoneDirection));
+        BlockPos RedstoneSidePos = pos.relative(redstoneDirection);
+        BlockState redstoneSideState = world.getBlockState(RedstoneSidePos);
 
-        // 1. Leggi segnali
+        // Reading Redstone Signal
+        int redstoneIn;
+        int i = world.getSignal(RedstoneSidePos, redstoneDirection);
+        if (i >= 15) {
+            redstoneIn = i;
+        } else {
+            redstoneIn = Math.max(i, redstoneSideState.is(Blocks.REDSTONE_WIRE) ? redstoneSideState.getValue(RedStoneWireBlock.POWER) : 0);
+        }
+
+        // Reading Cobalt Signal
         int cobaltIn = getCobaltInputPower(world, pos, state, false);
-        int redstoneIn = redstoneSideState.getSignal(world, pos, redstoneDirection);
+
 
         int currentPower = 0;
         boolean isCobaltInputMode = state.getValue(COBALT_INPUT);
@@ -253,8 +266,9 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
         } else {
             // Stiamo traducendo da Redstone a Cobalt
             if (redstoneIn > 0) {
-                // ulteriore controllo che non sia sorgente cobalt:
-                if(getCobaltInputPower(world, pos, state, true) == 0){
+                // Esclusione delle sorgenti compatibili dal controllo di blocco, getCobaltInputPower contiene anche compatibleCobaltPowerSource
+                if((getCobaltInputPower(world, pos, state, true) == 0) ||
+                        isWeakOrStrongPoweredByCompatibleOrRestrictedCobalt(world, RedstoneSidePos, cobaltDirection)){
                     currentPower = state.getValue(POWER);
                     newPower = redstoneIn - 1;
                 }
@@ -272,7 +286,9 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
                 newPower = cobaltIn - 1;
                 nextCobaltInput = true;
             } else if (redstoneIn > 0) {
-                if(getCobaltInputPower(world, pos, state, true) == 0){
+                // Esclusione delle sorgenti compatibili dal controllo di blocco, getCobaltInputPower contiene anche compatibleCobaltPowerSource
+                if((getCobaltInputPower(world, pos, state, true) == 0) ||
+                        isWeakOrStrongPoweredByCompatibleOrRestrictedCobalt(world, RedstoneSidePos, cobaltDirection)){
                     newPower = redstoneIn - 1;
                     nextCobaltInput = false;
                 }

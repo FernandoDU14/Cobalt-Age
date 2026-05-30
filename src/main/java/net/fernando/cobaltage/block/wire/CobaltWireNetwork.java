@@ -424,6 +424,23 @@ public class CobaltWireNetwork {
         return false;
     }
 
+    // Boolean helper for the converter
+    public static boolean isWeakOrStrongPoweredByCompatibleOrRestrictedCobalt(Level world, BlockPos solidPos, Direction exceptDir) {
+        BlockPos.MutableBlockPos mutable = STATIC_MUTABLE.get();
+        // Credits DiodeBlock class
+        mutable.set(solidPos);
+        BlockState redstoneSideState = world.getBlockState(mutable);
+        if(compatibleCobaltPowerSource(redstoneSideState) || restrictedCobaltPowerSource(redstoneSideState)){
+        int i = world.getSignal(solidPos, exceptDir);
+            if (i >= 15) {
+                return true; // Credits -> return i; is Redstone Classical Diode Block Function
+            } else {
+                return (Math.max(i, redstoneSideState.is(Blocks.REDSTONE_WIRE) ? redstoneSideState.getValue(RedStoneWireBlock.POWER) : 0)) > 0;
+            }
+        }
+        return false;
+    }
+
 
     // Helper to evaluate which neighbors should update their state by a Cobalt Wire Node update
     private void updateNeighbors(Level world, CobaltWireNode node) {
@@ -440,8 +457,22 @@ public class CobaltWireNetwork {
             // Skipping cobalt wires (efficiency)
             if (neighborState.getBlock() instanceof CobaltWireBlock) continue;
 
+            if (neighborState.is(Blocks.OBSERVER)) {
+                // Gli Observer vanilla ignorano completamente 'neighborChanged', rispondono solo a 'updateShape'.
+                // Chiamiamo updateShape direttamente sull'Observer che abbiamo già intercettato.
+                neighborState.updateShape(
+                        world,                       // LevelReader
+                        world,                       // ScheduledTickAccess
+                        reusableMutable,             // BlockPos (Posizione dell'Observer)
+                        dir.getOpposite(),           // Direction (Da dove arriva l'aggiornamento)
+                        node.pos,                    // BlockPos2 (Posizione del cavo)
+                        node.state,                  // BlockState (Stato del cavo)
+                        world.getRandom()            // RandomSource
+                );
+            }else{
+                world.neighborChanged(reusableMutable.immutable(), block, null);
+            }
             // All the rest
-            world.neighborChanged(reusableMutable.immutable(), block, null);
 
             // Quasi-Neighbor update (Specifically for Pistons)
             // 🛑 Consider removing 'isVanillaRedstone ifs' for efficiency
