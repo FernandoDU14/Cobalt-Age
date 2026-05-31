@@ -1,6 +1,7 @@
 package net.fernando.cobaltage.block;
 
 import com.mojang.serialization.MapCodec;
+import net.fernando.cobaltage.block.wire.CobaltPowerSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -26,7 +27,7 @@ public class CobaltDustBlock extends Block implements CobaltPowerSource {
     // --- COBALT_INGOT POWER SYSTEM ---
 
     @Override
-    public int getCobaltPower(BlockState state, Level world, BlockPos pos) {
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos) {
         // Alimenta i Cobalt Wires e gli altri componenti della tua mod con potenza massima.
         return 15;
     }

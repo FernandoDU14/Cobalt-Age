@@ -1,10 +1,10 @@
 package net.fernando.cobaltage.mixin.consumers;
+import net.fernando.cobaltage.util.SignalTypeLevelExtensions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import static net.fernando.cobaltage.util.CobaltPowerHelper.isPoweredOrQuasiPoweredByCobalt;
+import static net.fernando.cobaltage.util.SignalType.COBALT;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,11 +15,32 @@ import net.minecraft.world.level.block.piston.PistonBaseBlock;
 @Mixin(PistonBaseBlock.class)
 public class PistonBlockMixin {
 
-    @Inject(method = "getNeighborSignal", at = @At("RETURN"), cancellable = true)
-    private void cobalt$checkCobaltPower(SignalGetter world, BlockPos pos, Direction pistonFace, CallbackInfoReturnable<Boolean> cir) {
-        if (cir.getReturnValue()) return;
-        if (!(world instanceof Level actualWorld)) return;
+    @Inject(method = "getNeighborSignal", at = @At("HEAD"), cancellable = true)
+    private void cobaltage$hasBothSignals(SignalGetter signalGetter, BlockPos pos, Direction pistonFace, CallbackInfoReturnable<Boolean> cir) {
+        if (!(signalGetter instanceof Level actualWorld)) return;
 
-        cir.setReturnValue(isPoweredOrQuasiPoweredByCobalt(actualWorld, pos, pistonFace));
+        SignalTypeLevelExtensions level = (SignalTypeLevelExtensions) actualWorld;
+
+        // Neighbours
+        for(Direction side : Direction.values()) {
+            if (side != pistonFace &&
+                level.hasSignalByType(COBALT, pos.relative(side), side)) {
+                cir.setReturnValue(true);
+                return;
+            }
+        }
+        // Under me
+        if (level.hasSignalByType(COBALT, pos, Direction.DOWN)) {
+            cir.setReturnValue(true);
+            return;
+        } else { // QC
+            BlockPos posAbove = pos.above();
+            for (Direction sideAbove : Direction.values()) {
+                if (sideAbove != Direction.DOWN && level.hasSignalByType(COBALT, posAbove.relative(sideAbove), sideAbove)) {
+                    cir.setReturnValue(true);
+                    return;
+                }
+            }
+        }
     }
 }

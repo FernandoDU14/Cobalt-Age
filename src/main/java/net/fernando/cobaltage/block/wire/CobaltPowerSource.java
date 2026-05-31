@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.block;
+package net.fernando.cobaltage.block.wire;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,10 +13,10 @@ import net.minecraft.world.level.block.state.BlockState;
  * dalla redstone vanilla.
  */
 public interface CobaltPowerSource {
-    int getCobaltPower(BlockState state, Level world, BlockPos pos);
+    int getCobaltSignal(BlockState state, Level world, BlockPos pos);
 
     // NUOVO: Calcola se il blocco sta iniettando "Energia Forte" in una specifica direzione
-    default int getStrongCobaltPower(BlockState state, Level world, BlockPos pos, Direction direction) {
+    default int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         return 0; // Di default nessun blocco spara energia forte attraverso i blocchi
     }
 
@@ -25,9 +25,9 @@ public interface CobaltPowerSource {
     }
 
     enum CobaltSignalType {
-        COBALT,
-        REDSTONE,
-        NONE
+        COBALT,               // Cobalt Wires, Torches, Cobalt Converter while facing, Repeaters, etc.
+        NONE,             // Redstone Wires, Torches, Repeaters, ecc.
+        MYCOOLLNAME   // Dual Energy Blocks - Levers, Buttons, ecc.
     }
 
 }

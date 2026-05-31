@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.block.wire;
+package net.fernando.cobaltage.util;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -7,7 +7,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 
-public class CobaltLevelHelper {
+public class LevelHelper {
     // Cache locale per thread dell'ultimo chunk visitato
     private static final ThreadLocal<ChunkCache> LOCAL_CACHE = ThreadLocal.withInitial(ChunkCache::new);
 

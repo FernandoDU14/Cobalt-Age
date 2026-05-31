@@ -1,6 +1,7 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.block.wire.CobaltWireNetwork;
+import net.fernando.cobaltage.block.wire.CobaltPowerSource;
+import net.fernando.cobaltage.util.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -22,6 +23,8 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.NonNull;
 
+import static net.fernando.cobaltage.util.SignalType.COBALT;
+
 public class CobaltWallTorchBlock extends RedstoneWallTorchBlock implements SimpleWaterloggedBlock, CobaltPowerSource {
 
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
@@ -34,13 +37,13 @@ public class CobaltWallTorchBlock extends RedstoneWallTorchBlock implements Simp
     }
 
     @Override
-    public int getStrongCobaltPower(BlockState state, Level world, BlockPos pos, Direction direction) {
+    public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         // La torcia dà Energia Forte SOLO verso l'alto (al blocco che ha sulla testa)
         return (direction == Direction.UP && state.getValue(LIT)) ? 15 : 0;
     }
 
     @Override
-    public int getCobaltPower(BlockState state, Level world, BlockPos pos) {
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos) {
         return state.getValue(LIT) ? 15 : 0;
     }
 
@@ -150,11 +153,7 @@ public class CobaltWallTorchBlock extends RedstoneWallTorchBlock implements Simp
     protected boolean hasNeighborSignal(@NonNull Level world, BlockPos pos, BlockState state) {
         Direction facing = state.getValue(FACING);
         BlockPos attachedPos = pos.relative(facing.getOpposite());
-
-        // Controlla se il blocco dietro di noi riceve energia Cobalt.
-        // 'Facing' è la direzione in cui guarda la torcia, che corrisponde esattamente
-        // alla direzione in cui ci troviamo rispetto al blocco attaccato.
-        return CobaltWireNetwork.isSolidBlockPoweredByCobalt(world, attachedPos, facing);
+        return ((SignalTypeLevelExtensions) world).hasSignalByType(COBALT, attachedPos, facing);
     }
 
 

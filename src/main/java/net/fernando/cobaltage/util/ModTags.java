@@ -13,6 +13,7 @@ public class ModTags {
         //public static final TagKey<Block> INCORRECT_FOR_PINK_GARNET_TOOL = createTag("incorrect_for_pink_garnet_tool");
 
         public static final TagKey<Block> COMPATIBLE_COBALT_SOURCES = createTag("compatible_cobalt_sources");
+        public static final TagKey<Block> INCOMPATIBLE_COBALT_SOURCES = createTag("incompatible_cobalt_sources");
 
         private static TagKey<Block> createTag(String name) {
             return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, name));

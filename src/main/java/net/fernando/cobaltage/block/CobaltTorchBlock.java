@@ -1,6 +1,7 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.block.wire.CobaltWireNetwork;
+import net.fernando.cobaltage.block.wire.CobaltPowerSource;
+import net.fernando.cobaltage.util.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -24,6 +25,8 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Objects;
 
+import static net.fernando.cobaltage.util.SignalType.COBALT;
+
 public class CobaltTorchBlock extends RedstoneTorchBlock implements SimpleWaterloggedBlock, CobaltPowerSource {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
@@ -34,13 +37,13 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements SimpleWaterl
 
 
     @Override
-    public int getStrongCobaltPower(BlockState state, Level world, BlockPos pos, Direction direction) {
+    public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         // La torcia dà Energia Forte SOLO verso l'alto (al blocco che ha sulla testa)
         return (direction == Direction.UP && state.getValue(LIT)) ? 15 : 0;
     }
 
     @Override
-    public int getCobaltPower(BlockState state, Level world, BlockPos pos) {
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos) {
         return state.getValue(LIT) ? 15 : 0;
     }
 
@@ -147,11 +150,6 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements SimpleWaterl
     @Override
     protected boolean hasNeighborSignal(@NonNull Level world, BlockPos pos, @NonNull BlockState state) {
         BlockPos attachedPos = pos.below();
-
-        // Controlla se il blocco sotto di noi riceve energia Cobalt.
-        // Passiamo Direction.UP come "eccezione", perché dal punto di vista
-        // del blocco attaccato, la nostra torcia si trova sopra (UP).
-        return CobaltWireNetwork.isSolidBlockPoweredByCobalt(world, attachedPos, Direction.UP);
+        return ((SignalTypeLevelExtensions) world).hasSignalByType(COBALT, attachedPos, Direction.UP);
     }
-
 }

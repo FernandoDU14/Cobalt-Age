@@ -1,6 +1,7 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.block.wire.CobaltWireNetwork;
+import net.fernando.cobaltage.block.wire.CobaltPowerSource;
+import net.fernando.cobaltage.util.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -30,7 +31,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
-import static net.fernando.cobaltage.block.wire.CobaltWireNetwork.*;
+import static net.fernando.cobaltage.util.SignalType.*;
 
 public class CobaltConverterBlock extends Block implements SimpleWaterloggedBlock, CobaltPowerSource {
 
@@ -143,90 +144,6 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
         return super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
 
-
-    protected int getCobaltInputPower(Level world, BlockPos pos, BlockState state, Boolean InvertFacing) {
-        Direction direction = state.getValue(FACING);
-        if(InvertFacing){
-            direction = direction.getOpposite();
-        }
-        BlockPos rearPos = pos.relative(direction);
-        BlockState rearState = world.getBlockState(rearPos);
-
-        int power = 0;
-
-        // 🟦 1. Sorgenti Cobalt
-        if (rearState.getBlock() instanceof CobaltPowerSource source) {
-            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                if (rearState.getBlock() instanceof CobaltRepeaterBlock ||
-                        rearState.getBlock() instanceof CobaltComparatorBlock) {
-                    Direction facing = rearState.getValue(BlockStateProperties.HORIZONTAL_FACING);
-                    if (facing == direction) power = Math.max(power, source.getCobaltPower(rearState, world, rearPos));
-                }
-                else{
-                    power = Math.max(power, source.getCobaltPower(rearState, world, rearPos));
-                }
-            }
-        }
-        // 🟦 2. Cavo Cobalt
-        else if (rearState.getBlock() instanceof CobaltWireBlock) {
-            power = rearState.getValue(CobaltWireBlock.POWER);
-        }
-        // 🟦 3. Sorgente Vanilla Compatibile Diretta (Leva, Bottone attaccato direttamente dietro)
-        else if (CobaltWireNetwork.compatibleCobaltPowerSource(rearState)) {
-            // FIX: Usiamo rearState e rearPos invece di state e pos!
-            power = rearState.getSignal(world, rearPos, direction);
-        }
-        else if (CobaltWireNetwork.restrictedCobaltPowerSource(rearState)) {
-            // FIX: Usiamo rearState e rearPos invece di state e pos!
-            power = rearState.getSignal(world, rearPos, direction);
-        }
-        // 🟦 4. Blocco Solido caricato da energia forte di tipo cobalt o compatibile
-        else if (rearState.isRedstoneConductor(world, rearPos)) {
-            for (Direction dir : Direction.values()) {
-                BlockPos neighborPos = rearPos.relative(dir);
-                BlockState neighborState = world.getBlockState(neighborPos);
-
-                // CONTROLLO RICHIESTO: Polvere di cobalto che punta al blocco
-                if (neighborState.getBlock() instanceof CobaltWireBlock) {
-                    // Verifichiamo se il MODELLO della dust punta verso il blocco solido
-                    if (isDustPointingTo(neighborState, dir.getOpposite())) {
-                        power = Math.max(power, neighborState.getValue(CobaltWireBlock.POWER));
-                    }
-                }
-                // Altre sorgenti che caricano il blocco (Strong Power)
-                else if (neighborState.getBlock() instanceof CobaltPowerSource src) {
-                    if (src.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                        power = Math.max(power, src.getStrongCobaltPower(neighborState, world, neighborPos, dir.getOpposite()));
-                    }
-                } else if (CobaltWireNetwork.compatibleCobaltPowerSource(neighborState)) {
-                    power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
-                }else if (CobaltWireNetwork.restrictedCobaltPowerSource(neighborState)) {
-                    power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
-                }
-            }
-        }
-
-        return power;
-    }
-
-    // Metodo Helper per verificare la connessione visuale
-    private boolean isDustPointingTo(BlockState dustState, Direction directionToBlock) {
-        if (directionToBlock == Direction.DOWN) return true; // Sopra il blocco: alimenta sempre
-        if (directionToBlock == Direction.UP) return false;   // Sotto il blocco: non alimenta
-
-        // Controlliamo le proprietà NORTH, SOUTH, EAST, WEST del CobaltWireBlock
-        var property = switch (directionToBlock) {
-            case NORTH -> CobaltWireBlock.NORTH;
-            case SOUTH -> CobaltWireBlock.SOUTH;
-            case EAST -> CobaltWireBlock.EAST;
-            case WEST -> CobaltWireBlock.WEST;
-            default -> null;
-        };
-
-        // isConnected() restituisce true se lo stato è SIDE o UP (quindi punta verso il blocco)
-        return property != null && dustState.getValue(property).isConnected();
-    }
-
     private void updateConverterState(BlockState state, Level world, BlockPos pos){
         if (world.isClientSide()) return;
 
@@ -234,21 +151,29 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
         Direction redstoneDirection = cobaltDirection.getOpposite();
         BlockPos RedstoneSidePos = pos.relative(redstoneDirection);
         BlockState redstoneSideState = world.getBlockState(RedstoneSidePos);
+        BlockPos cobaltSidePos = pos.relative(cobaltDirection);
+        BlockState cobaltSideState = world.getBlockState(cobaltSidePos);
 
-        // Reading Redstone Signal
+        // Reading Redstone (and Compatible/Restricted Cobalt) signals like Redstone Repeater does
         int redstoneIn;
-        int i = world.getSignal(RedstoneSidePos, redstoneDirection);
+        int i = ((SignalTypeLevelExtensions) world).getSignalByType(REDSTONE, RedstoneSidePos, redstoneDirection);
         if (i >= 15) {
             redstoneIn = i;
         } else {
             redstoneIn = Math.max(i, redstoneSideState.is(Blocks.REDSTONE_WIRE) ? redstoneSideState.getValue(RedStoneWireBlock.POWER) : 0);
         }
 
-        // Reading Cobalt Signal
-        int cobaltIn = getCobaltInputPower(world, pos, state, false);
+        // Reading Cobalt signal like Cobalt Repeater does
+        int cobaltIn;
+        i = ((SignalTypeLevelExtensions) world).getSignalByType(COBALT, cobaltSidePos, cobaltDirection);
+        if (i >= 15) {
+            cobaltIn = i;
+        } else {
+            cobaltIn = Math.max(i, cobaltSideState.is(ModBlocks.COBALT_DUST) ? cobaltSideState.getValue(CobaltWireBlock.POWER) : 0);
+        }
 
 
-        int currentPower = 0;
+        int currentPower;
         boolean isCobaltInputMode = state.getValue(COBALT_INPUT);
         boolean actualRedstoneLit = state.getValue(REDSTONE_LIT);
         boolean actualCobaltLit = state.getValue(COBALT_LIT);
@@ -266,16 +191,9 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
         } else {
             // Stiamo traducendo da Redstone a Cobalt
             if (redstoneIn > 0) {
-                // Esclusione delle sorgenti compatibili dal controllo di blocco, getCobaltInputPower contiene anche compatibleCobaltPowerSource
-                if((getCobaltInputPower(world, pos, state, true) == 0) ||
-                        isWeakOrStrongPoweredByCompatibleOrRestrictedCobalt(world, RedstoneSidePos, cobaltDirection)){
-                    currentPower = state.getValue(POWER);
-                    newPower = redstoneIn - 1;
-                }
-            } else {
-                // Redstone spenta. Spegniamo tutto.
-                currentPower = state.getValue(POWER);
+                newPower = redstoneIn - 1;
             }
+            currentPower = state.getValue(POWER);
         }
 
         // 🔄 CAMBIO DI MODALITÀ 🔄
@@ -287,11 +205,8 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
                 nextCobaltInput = true;
             } else if (redstoneIn > 0) {
                 // Esclusione delle sorgenti compatibili dal controllo di blocco, getCobaltInputPower contiene anche compatibleCobaltPowerSource
-                if((getCobaltInputPower(world, pos, state, true) == 0) ||
-                        isWeakOrStrongPoweredByCompatibleOrRestrictedCobalt(world, RedstoneSidePos, cobaltDirection)){
-                    newPower = redstoneIn - 1;
-                    nextCobaltInput = false;
-                }
+                newPower = redstoneIn - 1;
+                nextCobaltInput = false;
             }
         }
 
@@ -359,13 +274,13 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
     }
     // --- COBALT OVERRIDES ---
     @Override
-    public int getCobaltPower(BlockState state, Level world, BlockPos pos) {
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos) {
         // Emette Cobalt solo se la modalità è Redstone -> Cobalt
         return !state.getValue(COBALT_INPUT) ? state.getValue(POWER) : 0;
     }
 
     @Override
-    public int getStrongCobaltPower(BlockState state, Level world, BlockPos pos, Direction direction) {
+    public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         // Emette segnale forte verso il retro
         if (direction == state.getValue(FACING) && !state.getValue(COBALT_INPUT)) {
             return state.getValue(POWER);

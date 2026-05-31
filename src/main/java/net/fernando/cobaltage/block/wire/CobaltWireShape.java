@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.RedstoneSide;
 import org.jetbrains.annotations.Nullable;
-import static net.fernando.cobaltage.block.wire.CobaltWireNetwork.compatibleCobaltPowerSource;
+import static net.fernando.cobaltage.util.SignalHelper.compatibleCobaltPowerSource;
 
 public class CobaltWireShape {
 
@@ -160,10 +160,10 @@ public class CobaltWireShape {
                 compatibleCobaltPowerSource(targetState);
     }
 
-    private static boolean canRestrictedCobaltPowerSourceConnectTo(BlockState state, Direction askingForOutputDirection) {
+    private static boolean canRestrictedCobaltPowerSourceConnectTo(BlockState state, Direction askingForLinkDirection) {
         // The Observer emits only in its opposite facing
         // The Calibrated Sculk Sensor does emit in its opposite facing, but it is always connected to it
-        return( (state.is(Blocks.OBSERVER) && state.getValue(ObserverBlock.FACING) == askingForOutputDirection) ||
+        return( (state.is(Blocks.OBSERVER) && state.getValue(ObserverBlock.FACING) == askingForLinkDirection) ||
                 (state.is(Blocks.CALIBRATED_SCULK_SENSOR))
         );
     }

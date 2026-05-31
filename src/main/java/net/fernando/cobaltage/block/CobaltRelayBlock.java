@@ -1,6 +1,7 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.block.wire.CobaltWireNetwork;
+import net.fernando.cobaltage.block.wire.CobaltPowerSource;
+import net.fernando.cobaltage.util.SignalHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -91,7 +92,7 @@ public class CobaltRelayBlock extends CobaltWireBlock {
     private boolean canConnectTo(BlockState state) {
         if (state.is(ModBlocks.COBALT_DUST)) return true; // Includes only Dust Wires and not Relays
         if (state.getBlock() instanceof CobaltPowerSource) return true;
-        return CobaltWireNetwork.compatibleCobaltPowerSource(state) || CobaltWireNetwork.restrictedCobaltPowerSource(state);
+        return SignalHelper.compatibleCobaltPowerSource(state) || SignalHelper.restrictedCobaltPowerSource(state);
     }
 
     @Override
@@ -134,6 +135,24 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         }
 
         return 0;
+    }
+
+    @Override
+    public int getCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
+        int power = state.getValue(POWER);
+        if (power == 0) return 0;
+        Direction outDir = direction.getOpposite();
+        if (outDir == Direction.UP && state.getValue(UP)) return power;
+        if (outDir == Direction.DOWN && state.getValue(DOWN)) return power;
+        if (outDir.getAxis().isHorizontal()) {
+            if (state.getValue(getProperty(outDir)).isConnected()) return power;
+        }
+        return 0;
+    }
+
+    @Override
+    public int getDirectCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
+        return getCobaltSignalIfLinked(state, world, pos, direction);
     }
 
     @Override

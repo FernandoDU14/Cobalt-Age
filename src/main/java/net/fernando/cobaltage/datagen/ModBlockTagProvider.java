@@ -50,5 +50,13 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(Blocks.JUKEBOX)
                 .add(Blocks.TRAPPED_CHEST)
                 .add(Blocks.LECTERN);
+
+        valueLookupBuilder(ModTags.Blocks.INCOMPATIBLE_COBALT_SOURCES)
+                .addOptionalTag(BlockTags.REDSTONE_ORES)
+                .add(Blocks.REDSTONE_WIRE)
+                .add(Blocks.REDSTONE_TORCH)
+                .add(Blocks.REDSTONE_WALL_TORCH)
+                .add(Blocks.REPEATER)
+                .add(Blocks.COMPARATOR);
     }
 }

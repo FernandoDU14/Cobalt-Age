@@ -3,6 +3,7 @@ package net.fernando.cobaltage.block;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import net.fernando.cobaltage.block.wire.CobaltWireShape;
+import net.fernando.cobaltage.block.wire.CobaltWireSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
-public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
+public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltWireSource {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
     public static final EnumProperty<RedstoneSide> NORTH = BlockStateProperties.NORTH_REDSTONE;
@@ -301,7 +302,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
         return true;
     }
 
-    // 🔥 ENERGIA DEBOLE (Attiva pistoni, porte, ecc.)
+    // 🔥 ENERGIA DEBOLE (Attiva pistoni, porte, ecc. quando non c'è altra redstone vicino, ovvero tutti gli emettitore che ascoltano getSignal)
     @Override
     protected int getSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
         // In Minecraft, 'direction' è la faccia del cavo da cui il vicino sta chiedendo energia.
@@ -334,6 +335,31 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
         }
 
         // Se è una linea dritta che non punta verso il pistone, non si attiva!
+        return 0;
+    }
+
+    @Override
+    public int getCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
+        int power = state.getValue(POWER);
+        if (power == 0) return 0;
+        if (isNotConnected(state)) return 0;
+        if (direction == Direction.UP) return power;
+        Direction outDir = direction.getOpposite();
+        EnumProperty<RedstoneSide> property = getProperty(outDir);
+        if (state.getValue(property).isConnected()) return power;
+        return 0;
+    }
+
+    @Override
+    public int getDirectCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
+        if (direction == Direction.DOWN) return 0;
+        int power = state.getValue(POWER);
+        if (power <= 0) return 0;
+        Direction side = direction.getOpposite();
+        if (direction == Direction.UP) return power;
+        if (isNotConnected(state)) return 0;
+        EnumProperty<RedstoneSide> property = getProperty(side);
+        if (state.getValue(property).isConnected()) return power;
         return 0;
     }
 
@@ -476,6 +502,9 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock {
             // Se la forma calcolata è diversa da quella attuale, applichiamola immediatamente!
             if (state != newState) {
                 world.setBlock(pos, newState, Block.UPDATE_ALL);
+                for (Direction dir : Direction.values()) {
+                    world.updateNeighborsAt(pos.relative(dir), wireBlock);
+                }
             }
         }
     }
