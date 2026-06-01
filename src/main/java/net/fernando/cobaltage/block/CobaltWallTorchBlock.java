@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.block.wire.CobaltPowerSource;
-import net.fernando.cobaltage.util.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.block.wire.CobaltSignalSource;
+import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -23,9 +23,9 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.NonNull;
 
-import static net.fernando.cobaltage.util.SignalType.COBALT;
+import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
 
-public class CobaltWallTorchBlock extends RedstoneWallTorchBlock implements SimpleWaterloggedBlock, CobaltPowerSource {
+public class CobaltWallTorchBlock extends RedstoneWallTorchBlock implements SimpleWaterloggedBlock, CobaltSignalSource {
 
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
@@ -38,13 +38,15 @@ public class CobaltWallTorchBlock extends RedstoneWallTorchBlock implements Simp
 
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // La torcia dà Energia Forte SOLO verso l'alto (al blocco che ha sulla testa)
-        return (direction == Direction.UP && state.getValue(LIT)) ? 15 : 0;
+        // To give you direct signal, i must be down respect to you
+        return (direction == Direction.DOWN && state.getValue(LIT)) ? 15 : 0;
     }
 
     @Override
-    public int getCobaltSignal(BlockState state, Level world, BlockPos pos) {
-        return state.getValue(LIT) ? 15 : 0;
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
+        // All the valid are such that you are not my opposite facing
+        // [ (You as Block) <---(facing of torch)--- Torch Attached (Attached Block) ]
+        return (state.getValue(LIT) && direction != state.getValue(FACING)) ? 15 : 0;
     }
 
     @Override
@@ -153,7 +155,7 @@ public class CobaltWallTorchBlock extends RedstoneWallTorchBlock implements Simp
     protected boolean hasNeighborSignal(@NonNull Level world, BlockPos pos, BlockState state) {
         Direction facing = state.getValue(FACING);
         BlockPos attachedPos = pos.relative(facing.getOpposite());
-        return ((SignalTypeLevelExtensions) world).hasSignalByType(COBALT, attachedPos, facing);
+        return ((SignalTypeLevelExtensions) world).hasSignalByType(COBALT, attachedPos, facing.getOpposite());
     }
 
 

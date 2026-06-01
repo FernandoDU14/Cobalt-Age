@@ -1,9 +1,9 @@
 package net.fernando.cobaltage.mixin;
 
-import net.fernando.cobaltage.block.wire.CobaltPowerSource;
+import net.fernando.cobaltage.block.wire.CobaltSignalSource;
 import net.fernando.cobaltage.block.CobaltWireBlock;
-import net.fernando.cobaltage.util.SignalType;
-import net.fernando.cobaltage.util.SignalTypeBlockStateExtensions;
+import net.fernando.cobaltage.util.signal.SignalType;
+import net.fernando.cobaltage.util.signal.SignalTypeBlockStateExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
-import static net.fernando.cobaltage.util.SignalHelper.*;
+import static net.fernando.cobaltage.util.signal.SignalHelper.*;
 
 @Mixin(BlockBehaviour.BlockStateBase.class)
 public abstract class BlockStateMixin implements SignalTypeBlockStateExtensions {
@@ -66,8 +66,8 @@ public abstract class BlockStateMixin implements SignalTypeBlockStateExtensions 
             case COBALT -> {
                 if (!isCobaltish) yield 0;
                 // A. Cobalt sources
-                if (block instanceof CobaltPowerSource cobaltPowerSource && level instanceof Level world) {
-                    yield cobaltPowerSource.getCobaltSignal(state, world, pos);
+                if (block instanceof CobaltSignalSource cobaltSignalSource && level instanceof Level world) {
+                    yield cobaltSignalSource.getCobaltSignal(state, world, pos, dir);
                 }
                 if(block instanceof CobaltWireBlock cobaltWireBlock && level instanceof Level world ) {
                     yield cobaltWireBlock.getCobaltSignalIfLinked(state, world, pos, dir);
@@ -98,8 +98,8 @@ public abstract class BlockStateMixin implements SignalTypeBlockStateExtensions 
             case COBALT -> {
                 if (!isCobaltish) yield 0;
                 // Direct Cobalt Signal by Cobalt Power Sources
-                if (block instanceof CobaltPowerSource cobaltPowerSource && level instanceof Level world) {
-                    yield cobaltPowerSource.getDirectCobaltSignal(state, world, pos, dir.getOpposite());
+                if (block instanceof CobaltSignalSource cobaltSignalSource && level instanceof Level world) {
+                    yield cobaltSignalSource.getDirectCobaltSignal(state, world, pos, dir);
                 }
                 // Direct Cobalt Signal by Cobalt Wires
                 if (block instanceof CobaltWireBlock cobaltWireBlock && level instanceof Level world) {

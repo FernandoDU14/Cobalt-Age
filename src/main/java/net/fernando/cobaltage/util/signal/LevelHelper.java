@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.util;
+package net.fernando.cobaltage.util.signal;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;

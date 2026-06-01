@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.block.wire.CobaltPowerSource;
-import net.fernando.cobaltage.util.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.block.wire.CobaltSignalSource;
+import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -31,9 +31,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
-import static net.fernando.cobaltage.util.SignalType.*;
+import static net.fernando.cobaltage.util.signal.SignalType.*;
 
-public class CobaltConverterBlock extends Block implements SimpleWaterloggedBlock, CobaltPowerSource {
+public class CobaltConverterBlock extends Block implements SimpleWaterloggedBlock, CobaltSignalSource {
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
@@ -154,7 +154,7 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
         BlockPos cobaltSidePos = pos.relative(cobaltDirection);
         BlockState cobaltSideState = world.getBlockState(cobaltSidePos);
 
-        // Reading Redstone (and Compatible/Restricted Cobalt) signals like Redstone Repeater does
+        // Reading Redstone signals like a Redstone Repeater does
         int redstoneIn;
         int i = ((SignalTypeLevelExtensions) world).getSignalByType(REDSTONE, RedstoneSidePos, redstoneDirection);
         if (i >= 15) {
@@ -252,39 +252,30 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
         world.updateNeighborsAt(pos.relative(cobaltSide), this, null);
     }
 
-    // --- REDSTONE OVERRIDES ---
+
+    // --- Signal overrides ---
     @Override
     public boolean isSignalSource(@NonNull BlockState state) {
         return true;
     }
-
     @Override
     protected int getDirectSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        return getSignal(state, world, pos, direction);
+        return this.getSignal(state, world, pos, direction);
     }
-
     @Override
     // direction is the direction of the EMISSION
     protected int getSignal(BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        // Emette solo se la modalità è Cobalt -> Redstone e la faccia che chiede è quella davanti
-        if (state.getValue(COBALT_INPUT) && direction == state.getValue(FACING)) {
-            return state.getValue(POWER);
-        }
-        return 0;
+        // (F) Cobalt -> Redston (F.opposite) only from Facing direction
+        return (state.getValue(COBALT_INPUT) && direction == state.getValue(FACING)) ? state.getValue(POWER) : 0;
     }
-    // --- COBALT OVERRIDES ---
     @Override
-    public int getCobaltSignal(BlockState state, Level world, BlockPos pos) {
-        // Emette Cobalt solo se la modalità è Redstone -> Cobalt
-        return !state.getValue(COBALT_INPUT) ? state.getValue(POWER) : 0;
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
+        // Giving you signal if i'm not in cobalt input mode and i'm the opposite of my facing respect to you
+        return (!state.getValue(COBALT_INPUT) && direction == state.getValue(FACING).getOpposite()) ? state.getValue(POWER) : 0;
     }
-
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // Emette segnale forte verso il retro
-        if (direction == state.getValue(FACING) && !state.getValue(COBALT_INPUT)) {
-            return state.getValue(POWER);
-        }
-        return 0;
+        // Giving you the direct signal as I would've given as a signal
+        return this.getCobaltSignal(state, world, pos, direction);
     }
 }

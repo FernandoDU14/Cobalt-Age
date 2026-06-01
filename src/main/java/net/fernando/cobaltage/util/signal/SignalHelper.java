@@ -1,8 +1,9 @@
-package net.fernando.cobaltage.util;
+package net.fernando.cobaltage.util.signal;
 
 import net.fernando.cobaltage.block.CobaltConverterBlock;
 import net.fernando.cobaltage.block.CobaltWireBlock;
-import net.fernando.cobaltage.block.wire.CobaltPowerSource;
+import net.fernando.cobaltage.block.wire.CobaltSignalSource;
+import net.fernando.cobaltage.util.ModTags;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -14,7 +15,7 @@ public class SignalHelper {
         if (state.getBlock() instanceof CobaltConverterBlock) {
             return true;
         }
-        return !(state.getBlock() instanceof CobaltPowerSource ||
+        return !(state.getBlock() instanceof CobaltSignalSource ||
                 state.getBlock() instanceof CobaltWireBlock);
     }
 

@@ -1,7 +1,5 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.block.wire.CobaltPowerSource;
-import net.fernando.cobaltage.util.SignalHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -25,6 +23,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.NonNull;
+
+import static net.fernando.cobaltage.block.wire.CobaltWireShape.canCobaltWireRenderHorizontalConnectionTo;
 
 public class CobaltRelayBlock extends CobaltWireBlock {
 
@@ -65,41 +65,55 @@ public class CobaltRelayBlock extends CobaltWireBlock {
     }
 
     // Calcolo delle 6 connessioni per la grafica/logica direzionale
-    private BlockState calculateConnections(BlockGetter world, BlockPos pos, BlockState state) {
+    private BlockState getUpdatedState(BlockGetter world, BlockPos pos, BlockState state) {
         boolean up = true; // forced state
         boolean down = true; // forced state
-        boolean north = canConnectTo(world.getBlockState(pos.north()));
-        boolean south = canConnectTo(world.getBlockState(pos.south()));
-        boolean east = canConnectTo(world.getBlockState(pos.east()));
-        boolean west = canConnectTo(world.getBlockState(pos.west()));
+        RedstoneSide north = getRenderConnection(world, pos, Direction.NORTH);
+        RedstoneSide south = getRenderConnection(world, pos, Direction.SOUTH);
+        RedstoneSide east = getRenderConnection(world, pos, Direction.EAST);
+        RedstoneSide west = getRenderConnection(world, pos, Direction.WEST);
+
+        boolean hasNorth = north.isConnected();
+        boolean hasSouth = south.isConnected();
+        boolean hasEast = east.isConnected();
+        boolean hasWest = west.isConnected();
 
         return state
                 .setValue(UP, up)
                 .setValue(DOWN, down)
-                .setValue(NORTH, north ? RedstoneSide.SIDE : RedstoneSide.NONE)
-                .setValue(SOUTH, south ? RedstoneSide.SIDE : RedstoneSide.NONE)
-                .setValue(EAST, east ? RedstoneSide.SIDE : RedstoneSide.NONE)
-                .setValue(WEST, west ? RedstoneSide.SIDE : RedstoneSide.NONE);
+                .setValue(NORTH, hasNorth ? RedstoneSide.SIDE : RedstoneSide.NONE)
+                .setValue(SOUTH, hasSouth ? RedstoneSide.SIDE : RedstoneSide.NONE)
+                .setValue(EAST, hasEast ? RedstoneSide.SIDE : RedstoneSide.NONE)
+                .setValue(WEST, hasWest ? RedstoneSide.SIDE : RedstoneSide.NONE);
     }
+
+    public static RedstoneSide getRenderConnection(BlockGetter world, BlockPos pos, Direction direction) {
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+
+        BlockState sourceState = world.getBlockState(pos);
+
+        mutable.setWithOffset(pos, direction);
+        BlockState neighborState = world.getBlockState(mutable);
+
+        if (canCobaltWireRenderHorizontalConnectionTo(sourceState, neighborState, direction)) {
+            return RedstoneSide.SIDE;
+        }
+        return RedstoneSide.NONE;
+    }
+
+
 
     // Questo farà sì che forceShapeUpdate e i neighbor update usino la logica del Relay!
     @Override
     public BlockState getWireShapeState(BlockGetter world, BlockPos pos, BlockState state) {
-        return calculateConnections(world, pos, state);
-    }
-
-    // Controlla se il vicino supporta la rete Cobalt
-    private boolean canConnectTo(BlockState state) {
-        if (state.is(ModBlocks.COBALT_DUST)) return true; // Includes only Dust Wires and not Relays
-        if (state.getBlock() instanceof CobaltPowerSource) return true;
-        return SignalHelper.compatibleCobaltPowerSource(state) || SignalHelper.restrictedCobaltPowerSource(state);
+        return this.getUpdatedState(world, pos, state);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         BlockState state = super.getStateForPlacement(ctx);
         if (state != null) {
-            return calculateConnections(ctx.getLevel(), ctx.getClickedPos(), state);
+            return this.getUpdatedState(ctx.getLevel(), ctx.getClickedPos(), state);
         }
         return null;
     }
@@ -109,7 +123,7 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         BlockState baseUpdate = super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
         if (baseUpdate.is(Blocks.AIR)) return baseUpdate; // Eredita la logica dell'acqua/distruzione
 
-        return calculateConnections(world, pos, baseUpdate);
+        return this.getUpdatedState(world, pos, baseUpdate);
     }
 
     // Override dell'energia: Questo blocco emette sia sopra che sotto
@@ -140,19 +154,19 @@ public class CobaltRelayBlock extends CobaltWireBlock {
     @Override
     public int getCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
         int power = state.getValue(POWER);
-        if (power == 0) return 0;
-        Direction outDir = direction.getOpposite();
-        if (outDir == Direction.UP && state.getValue(UP)) return power;
-        if (outDir == Direction.DOWN && state.getValue(DOWN)) return power;
-        if (outDir.getAxis().isHorizontal()) {
-            if (state.getValue(getProperty(outDir)).isConnected()) return power;
+        // Always giving signal if i'm UP respect to you or DOWN respect to you
+        if (direction == Direction.UP && state.getValue(UP) || direction == Direction.DOWN && state.getValue(DOWN)) return power;
+        // Giving signal also when i'm connected to you
+        if (direction.getAxis().isHorizontal()) {
+            if (state.getValue(getProperty(direction.getOpposite())).isConnected()) return power;
         }
         return 0;
     }
 
     @Override
     public int getDirectCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
-        return getCobaltSignalIfLinked(state, world, pos, direction);
+        // Same as normal signal
+        return this.getCobaltSignalIfLinked(state, world, pos, direction);
     }
 
     @Override

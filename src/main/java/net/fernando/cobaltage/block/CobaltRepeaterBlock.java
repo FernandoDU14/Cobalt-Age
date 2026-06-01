@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.block.wire.CobaltPowerSource;
-import net.fernando.cobaltage.util.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.block.wire.CobaltSignalSource;
+import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -24,9 +24,9 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.NonNull;
 
-import static net.fernando.cobaltage.util.SignalType.COBALT;
+import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
 
-public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterloggedBlock, CobaltPowerSource {
+public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterloggedBlock, CobaltSignalSource {
     public CobaltRepeaterBlock(Properties settings) {
         super(settings);
         this.registerDefaultState(this.stateDefinition.any()
@@ -113,7 +113,7 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterlog
 
         // Reading Cobalt signal like A Vanilla Repeater does
         int cobaltIn;
-        int i = ((SignalTypeLevelExtensions) world).getSignalByType(COBALT, rearPos, direction);
+        int i = ((SignalTypeLevelExtensions) world).getSignalByType(COBALT, rearPos, direction.getOpposite());
         if (i >= 15) {
             cobaltIn = i;
         } else {
@@ -128,30 +128,46 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterlog
         Direction facing = state.getValue(FACING);
         Direction side1 = facing.getClockWise();
         Direction side2 = facing.getCounterClockWise();
-        return Math.max(getCobaltSidePower(world, pos.relative(side1), facing), getCobaltSidePower(world, pos.relative(side2), facing));
+        return Math.max(
+                getCobaltSidePower(world, pos.relative(side1), side1),
+                getCobaltSidePower(world, pos.relative(side2), side2)
+        );
     }
 
-    private int getCobaltSidePower(SignalGetter world, BlockPos sidePos, Direction facing) {
+    private int getCobaltSidePower(SignalGetter world, BlockPos sidePos, Direction sideDir) {
         BlockState state = world.getBlockState(sidePos);
+
         // Solo Repeater/Comparatori Cobalt possono bloccare un Repeater Cobalt
         if (state.getBlock() instanceof CobaltRepeaterBlock || state.getBlock() instanceof CobaltComparatorBlock) {
-            if((state.getValue(FACING) == facing.getClockWise()) || (state.getValue(FACING) == facing.getCounterClockWise()))
-                return ((CobaltPowerSource) state.getBlock()).getCobaltSignal(state, (Level) world, sidePos);
+            Direction sideFacing = state.getValue(FACING);
+
+            // Il blocco laterale deve essere rivolto VERSO il nostro blocco principale per poterlo bloccare.
+            // Significa che il suo FACING deve essere l'opposto di sideDir (es: se il lato è EAST, lui deve guardare WEST)
+            if (sideFacing == sideDir.getOpposite()) {
+                // Passiamo 'sideFacing' come direzione di emissione, soddisfacendo la nuova firma direzionale
+                return ((CobaltSignalSource) state.getBlock()).getCobaltSignal(state, (Level) world, sidePos, sideFacing);
+            }
         }
         return 0;
     }
 
     @Override
-    public int getCobaltSignal(BlockState state, Level world, BlockPos pos) {
-        // Il repeater emette energia SOLO se è acceso (POWERED)
-        return state.getValue(POWERED) ? 15 : 0;
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
+        // Instruction to comprehend the getSignal method:                          FACING COUNTERWISE / CLOCKWISE
+        //                                                          (block A)    FACING   -----REPEATER----->  OPPOSITE FACING      (block B)
+        //                                                                           FACING CLOCKWISE / COUNTERWISE
+        // The reading in this example is:
+        // To give you the signal, i must be powered and i must point such that respect to you, i'm at my FACING.
+        // In other words, "when the repeater is at the FACING of the Block", so Block B will be powered
+        // If I had put state.getValue(FACING), then it would've been "when the repeater is at FACING OPPOSITE of Block, so Block A would've been be powered.
+        // direction must be so the opposite of where you are respect to me
+        return (state.getValue(FACING) == direction && state.getValue(POWERED)) ? 15 : 0;
     }
 
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // Direction è la faccia del blocco adiacente che viene colpita.
-        // Il repeater emette "Strong Power" solo dalla sua faccia anteriore.
-        return (state.getValue(FACING).getOpposite() == direction && state.getValue(POWERED)) ? 15 : 0;
+        // Giving you the direct power the same direction and the same level of power as the normal signal.
+        return this.getCobaltSignal(state, world, pos, direction);
     }
 
     // --- ISOLAMENTO TOTALE ---

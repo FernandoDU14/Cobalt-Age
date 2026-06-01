@@ -1,5 +1,5 @@
 package net.fernando.cobaltage.mixin.consumers;
-import net.fernando.cobaltage.util.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.CopperBulbBlock;
 
-import static net.fernando.cobaltage.util.SignalType.COBALT;
+import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
 
 @Mixin(CopperBulbBlock.class)
 public abstract class CopperBulbMixin {

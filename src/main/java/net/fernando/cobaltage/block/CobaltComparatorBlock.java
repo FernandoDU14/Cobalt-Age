@@ -2,8 +2,8 @@ package net.fernando.cobaltage.block;
 
 import net.fernando.cobaltage.block.blockentities.CobaltComparatorBlockEntity;
 import net.fernando.cobaltage.block.blockentities.ModBlockEntities;
-import net.fernando.cobaltage.block.wire.CobaltPowerSource;
-import net.fernando.cobaltage.util.SignalHelper;
+import net.fernando.cobaltage.block.wire.CobaltSignalSource;
+import net.fernando.cobaltage.util.signal.SignalHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -42,7 +42,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 
-public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWaterloggedBlock, CobaltPowerSource {
+public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWaterloggedBlock, CobaltSignalSource {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     private static final net.fernando.cobaltage.block.wire.CobaltWireNetwork NETWORK_HANDLER = new net.fernando.cobaltage.block.wire.CobaltWireNetwork();
 
@@ -227,8 +227,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
                 int p = 0;
                 if (sideState.getBlock() instanceof CobaltWireBlock) {
                     p = sideState.getValue(CobaltWireBlock.POWER);
-                } else if (sideState.getBlock() instanceof CobaltPowerSource source) {
-                    p = source.getCobaltSignal(sideState, (Level)world, sidePos);
+                } else if (sideState.getBlock() instanceof CobaltSignalSource source) {
+                    p = source.getCobaltSignal(sideState, (Level)world, sidePos, side);
                 }
 
                 if (p > maxSidePower) maxSidePower = p;
@@ -246,9 +246,9 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
         BlockState rearState = world.getBlockState(rearPos);
 
         // --- 1. Cobalt Network Management ------
-        if (rearState.getBlock() instanceof CobaltPowerSource source) {
-            if (source.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                power = source.getCobaltSignal(rearState, world, rearPos);
+        if (rearState.getBlock() instanceof CobaltSignalSource source) {
+            if (source.getSignalType() == CobaltSignalSource.CobaltSignalType.COBALT) {
+                power = source.getCobaltSignal(rearState, world, rearPos, direction);
             }
         } else if (rearState.getBlock() instanceof CobaltWireBlock) {
             power = rearState.getValue(CobaltWireBlock.POWER);
@@ -268,8 +268,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
                     }
                 }
                 // Other Sources
-                else if (neighborState.getBlock() instanceof CobaltPowerSource src) {
-                    if (src.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
+                else if (neighborState.getBlock() instanceof CobaltSignalSource src) {
+                    if (src.getSignalType() == CobaltSignalSource.CobaltSignalType.COBALT) {
                         power = Math.max(power, src.getDirectCobaltSignal(neighborState, world, neighborPos, dir.getOpposite()));
                     }
                 } else if (SignalHelper.compatibleCobaltPowerSource(neighborState)) {
@@ -349,8 +349,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
 
         if (state.getBlock() instanceof CobaltWireBlock) {
             power = state.getValue(CobaltWireBlock.POWER);
-        } else if (state.getBlock() instanceof CobaltPowerSource source) {
-            power = source.getCobaltSignal(state, (Level)world, sidePos);
+        } else if (state.getBlock() instanceof CobaltSignalSource source) {
+            power = source.getCobaltSignal(state, (Level)world, sidePos, sideDir);
         } else if (SignalHelper.compatibleCobaltPowerSource(state)) {
             power = state.getSignal(world, sidePos, sideDir);
         } else if (SignalHelper.restrictedCobaltPowerSource(state)) {
@@ -360,9 +360,9 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
                 BlockPos neighborPos = sidePos.relative(dir);
                 BlockState neighborState = world.getBlockState(neighborPos);
 
-                if (neighborState.getBlock() instanceof CobaltPowerSource src) {
-                    if (src.getSignalType() == CobaltPowerSource.CobaltSignalType.COBALT) {
-                        power = Math.max(power, src.getDirectCobaltSignal(neighborState, (Level)world, neighborPos, dir.getOpposite()));
+                if (neighborState.getBlock() instanceof CobaltSignalSource src) {
+                    if (src.getSignalType() == CobaltSignalSource.CobaltSignalType.COBALT) {
+                        power = Math.max(power, src.getDirectCobaltSignal(neighborState, (Level)world, neighborPos, dir));
                     }
                 } else if (SignalHelper.compatibleCobaltPowerSource(neighborState)) {
                     power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
@@ -377,8 +377,9 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
 
     // --- Output Signal ---
     @Override
-    public int getCobaltSignal(BlockState state, Level world, BlockPos pos) {
-        if (world.getBlockEntity(pos) instanceof CobaltComparatorBlockEntity be) {
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
+        // Giving you the signal if i'm the direction of the facing respect to you.
+        if (world.getBlockEntity(pos) instanceof CobaltComparatorBlockEntity be && direction == state.getValue(FACING)) {
             return be.getOutputSignal();
         }
         return 0;
@@ -386,7 +387,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
 
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        return direction == state.getValue(FACING).getOpposite() ? this.getCobaltSignal(state, world, pos) : 0;
+        // Same as normal signal
+        return this.getCobaltSignal(state, world, pos, direction);
     }
 
     @Override public boolean isSignalSource(@NonNull BlockState state) { return false; }

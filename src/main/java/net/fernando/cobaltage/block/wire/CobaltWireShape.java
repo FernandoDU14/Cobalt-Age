@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.RedstoneSide;
 import org.jetbrains.annotations.Nullable;
-import static net.fernando.cobaltage.util.SignalHelper.compatibleCobaltPowerSource;
+import static net.fernando.cobaltage.util.signal.SignalHelper.compatibleCobaltPowerSource;
 
 public class CobaltWireShape {
 
@@ -109,7 +109,7 @@ public class CobaltWireShape {
         // 2. (a) Horizontal connection (side)
         // Resetting mutable cursor to neighbor block for horizontal connection validation
         mutable.setWithOffset(pos, direction);
-        if (canVisuallyHorizontallyConnectTo(sourceState, neighborState, direction)) {
+        if (canCobaltWireRenderHorizontalConnectionTo(sourceState, neighborState, direction)) {
             return RedstoneSide.SIDE;
         }
 
@@ -131,32 +131,42 @@ public class CobaltWireShape {
 
     // Helper to evaluate if two Cobalt Wire Instances blocks can connect visually (Horizontal connection)
     // This overrides the default behavior of compatible cobalt power source as you can see down below
-    private static boolean canVisuallyHorizontallyConnectTo(BlockState sourceState, BlockState targetState, @Nullable Direction dir) {
+    public static boolean canCobaltWireRenderHorizontalConnectionTo(BlockState sourceState, BlockState targetState, @Nullable Direction dir) {
 
-        if (sourceState.is(ModBlocks.COBALT_RELAY) && targetState.is(ModBlocks.COBALT_RELAY)) {
-            return false;
+        if (sourceState.is(ModBlocks.COBALT_RELAY)) {
+            if(targetState.is(ModBlocks.COBALT_RELAY)){
+                return false;
+            }
+            if(targetState.is(ModBlocks.COBALT_WALL_TORCH)){
+                if (dir == null) return true;
+                Direction attachedFace = targetState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
+                return dir == attachedFace;
+            }
+            // Future implementations for Cobalt Relay...
         }
 
         if (targetState.getBlock() instanceof CobaltWireBlock) return true;
 
-        // Special case (ModBlocks)
+        // Special cases (ModBlocks)
         if (targetState.getBlock() instanceof CobaltRepeaterBlock) {
             Direction facing = targetState.getValue(BlockStateProperties.HORIZONTAL_FACING);
-            if (dir == null) return true;
             return dir == facing || dir == facing.getOpposite();
         }
 
         if(targetState.getBlock() instanceof CobaltConverterBlock){
             Direction facing = targetState.getValue(BlockStateProperties.HORIZONTAL_FACING);
-            if (dir == null) return true;
             return dir == facing.getOpposite();
         }
 
-        if(canRestrictedCobaltPowerSourceConnectTo(targetState, dir)){
-            return true;
+        // Special cases (Vanilla blocks)
+        assert dir != null;
+        if(dir.getAxis().isHorizontal()){
+            if(canRestrictedCobaltPowerSourceConnectTo(targetState, dir)){
+                return true;
+            }
         }
 
-        return targetState.getBlock() instanceof CobaltPowerSource ||
+        return targetState.getBlock() instanceof CobaltSignalSource ||
                 compatibleCobaltPowerSource(targetState);
     }
 

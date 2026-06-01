@@ -3,7 +3,7 @@ package net.fernando.cobaltage.block;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import net.fernando.cobaltage.block.wire.CobaltWireShape;
-import net.fernando.cobaltage.block.wire.CobaltWireSource;
+import net.fernando.cobaltage.block.wire.CobaltWireSignal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -41,7 +41,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
-public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltWireSource {
+
+public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltWireSignal {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
     public static final EnumProperty<RedstoneSide> NORTH = BlockStateProperties.NORTH_REDSTONE;
@@ -153,7 +154,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
             case SOUTH -> SOUTH;
             case EAST -> EAST;
             case WEST -> WEST;
-            default -> throw new IllegalArgumentException("Invalid direction: %s".formatted(direction));
+            default -> throw new IllegalArgumentException("Invalid direction when calling getProperty in CobaltWireBlock: found %s but only NESW allowed".formatted(direction));
         };
     }
 
@@ -327,11 +328,8 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
 
         // 3. Controllo Direzionale (il modello tocca il blocco?)
         Direction outDir = direction.getOpposite(); // La direzione verso il blocco adiacente
-        EnumProperty<RedstoneSide> property = getProperty(outDir);
-
-        // Se c'è una connessione grafica (SIDE o UP) verso quel lato, passiamo l'energia
-        if (state.getValue(property).isConnected()) {
-            return power;
+        if (outDir.getAxis().isHorizontal()) {
+            if (state.getValue(getProperty(outDir)).isConnected()) return power;
         }
 
         // Se è una linea dritta che non punta verso il pistone, non si attiva!
@@ -340,27 +338,18 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
 
     @Override
     public int getCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
-        int power = state.getValue(POWER);
-        if (power == 0) return 0;
+        // Just need to be connected to you to give my signal
         if (isNotConnected(state)) return 0;
-        if (direction == Direction.UP) return power;
-        Direction outDir = direction.getOpposite();
-        EnumProperty<RedstoneSide> property = getProperty(outDir);
-        if (state.getValue(property).isConnected()) return power;
+        if (direction.getAxis().isHorizontal()) {
+            if (state.getValue(getProperty(direction.getOpposite())).isConnected()) return state.getValue(POWER);
+        }
         return 0;
     }
 
     @Override
     public int getDirectCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
-        if (direction == Direction.DOWN) return 0;
-        int power = state.getValue(POWER);
-        if (power <= 0) return 0;
-        Direction side = direction.getOpposite();
-        if (direction == Direction.UP) return power;
-        if (isNotConnected(state)) return 0;
-        EnumProperty<RedstoneSide> property = getProperty(side);
-        if (state.getValue(property).isConnected()) return power;
-        return 0;
+        // same as normal signals
+        return this.getCobaltSignalIfLinked(state, world, pos, direction);
     }
 
     // 🔥 ENERGIA FORTE (Ora alimenta anche i lati, come in Vanilla)
@@ -397,25 +386,27 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         if (isNotConnected(state)) return 0;
 
         // Se il modello del cavo è "connesso" (SIDE o UP) verso quella direzione
-        EnumProperty<RedstoneSide> property = getProperty(side);
-        if (state.getValue(property).isConnected()) {
+        if (side.getAxis().isHorizontal()) {
+            EnumProperty<RedstoneSide> property = getProperty(side);
+            if (state.getValue(property).isConnected()) {
 
-            BlockPos sideBlockPos = pos.relative(side);
-            BlockState sideBlockState = world.getBlockState(sideBlockPos);
+                BlockPos sideBlockPos = pos.relative(side);
+                BlockState sideBlockState = world.getBlockState(sideBlockPos);
 
-            // VEGGENZA: Isoliamo il blocco laterale!
-            // Se c'è della redstone vanilla che tocca questo blocco solido,
-            // la Cobalt Dust si rifiuta di caricarlo, proteggendo i circuiti.
-            // Se invece c'è solo un pistone, lo carica e lo fa scattare!
-            if (sideBlockState.isRedstoneConductor(world, sideBlockPos)) {
-                for (Direction dir : Direction.values()) {
-                    if (dir == side.getOpposite()) continue; // Ignoriamo il lato da cui arriva il cavo
-                    if (isVanillaRedstone(world.getBlockState(sideBlockPos.relative(dir)))) {
-                        return 0;
+                // VEGGENZA: Isoliamo il blocco laterale!
+                // Se c'è della redstone vanilla che tocca questo blocco solido,
+                // la Cobalt Dust si rifiuta di caricarlo, proteggendo i circuiti.
+                // Se invece c'è solo un pistone, lo carica e lo fa scattare!
+                if (sideBlockState.isRedstoneConductor(world, sideBlockPos)) {
+                    for (Direction dir : Direction.values()) {
+                        if (dir == side.getOpposite()) continue; // Ignoriamo il lato da cui arriva il cavo
+                        if (isVanillaRedstone(world.getBlockState(sideBlockPos.relative(dir)))) {
+                            return 0;
+                        }
                     }
                 }
+                return power;
             }
-            return power;
         }
 
         return 0;

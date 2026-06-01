@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.block.wire.CobaltPowerSource;
-import net.fernando.cobaltage.util.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.block.wire.CobaltSignalSource;
+import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -25,9 +25,9 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Objects;
 
-import static net.fernando.cobaltage.util.SignalType.COBALT;
+import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
 
-public class CobaltTorchBlock extends RedstoneTorchBlock implements SimpleWaterloggedBlock, CobaltPowerSource {
+public class CobaltTorchBlock extends RedstoneTorchBlock implements SimpleWaterloggedBlock, CobaltSignalSource {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
     public CobaltTorchBlock(Properties settings) {
@@ -38,13 +38,14 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements SimpleWaterl
 
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // La torcia dà Energia Forte SOLO verso l'alto (al blocco che ha sulla testa)
-        return (direction == Direction.UP && state.getValue(LIT)) ? 15 : 0;
+        // To give you the signal, i must be down
+        return (direction == Direction.DOWN && state.getValue(LIT)) ? 15 : 0;
     }
 
     @Override
-    public int getCobaltSignal(BlockState state, Level world, BlockPos pos) {
-        return state.getValue(LIT) ? 15 : 0;
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
+        // To give you the signal, i must be different from being up
+        return (state.getValue(LIT) && direction != Direction.UP)? 15 : 0;
     }
 
     @Override
@@ -150,6 +151,6 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements SimpleWaterl
     @Override
     protected boolean hasNeighborSignal(@NonNull Level world, BlockPos pos, @NonNull BlockState state) {
         BlockPos attachedPos = pos.below();
-        return ((SignalTypeLevelExtensions) world).hasSignalByType(COBALT, attachedPos, Direction.UP);
+        return ((SignalTypeLevelExtensions) world).hasSignalByType(COBALT, attachedPos, Direction.DOWN);
     }
 }

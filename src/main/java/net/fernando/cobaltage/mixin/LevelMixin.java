@@ -1,8 +1,8 @@
 package net.fernando.cobaltage.mixin;
 
-import net.fernando.cobaltage.util.SignalType;
-import net.fernando.cobaltage.util.SignalTypeBlockStateExtensions;
-import net.fernando.cobaltage.util.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.util.signal.SignalType;
+import net.fernando.cobaltage.util.signal.SignalTypeBlockStateExtensions;
+import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;

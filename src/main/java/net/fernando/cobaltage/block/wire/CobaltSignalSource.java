@@ -12,8 +12,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * Non contiene logica: serve solo per separare la rete Cobalt
  * dalla redstone vanilla.
  */
-public interface CobaltPowerSource {
-    int getCobaltSignal(BlockState state, Level world, BlockPos pos);
+public interface CobaltSignalSource {
+    int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction);
 
     // NUOVO: Calcola se il blocco sta iniettando "Energia Forte" in una specifica direzione
     default int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {

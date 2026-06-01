@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.util;
+package net.fernando.cobaltage.util.signal;
 
 public enum SignalType {
     COBALT,               // Cobalt Wires, Torches, Cobalt Converter while facing, Repeaters, Buttons, Levers etc.
