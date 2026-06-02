@@ -247,9 +247,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
 
         // --- 1. Cobalt Network Management ------
         if (rearState.getBlock() instanceof CobaltSignalSource source) {
-            if (source.getSignalType() == CobaltSignalSource.CobaltSignalType.COBALT) {
-                power = source.getCobaltSignal(rearState, world, rearPos, direction);
-            }
+            power = source.getCobaltSignal(rearState, world, rearPos, direction);
         } else if (rearState.getBlock() instanceof CobaltWireBlock) {
             power = rearState.getValue(CobaltWireBlock.POWER);
         } else if (SignalHelper.compatibleCobaltPowerSource(rearState)) {
@@ -269,9 +267,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
                 }
                 // Other Sources
                 else if (neighborState.getBlock() instanceof CobaltSignalSource src) {
-                    if (src.getSignalType() == CobaltSignalSource.CobaltSignalType.COBALT) {
-                        power = Math.max(power, src.getDirectCobaltSignal(neighborState, world, neighborPos, dir.getOpposite()));
-                    }
+                    power = Math.max(power, src.getDirectCobaltSignal(neighborState, world, neighborPos, dir.getOpposite()));
                 } else if (SignalHelper.compatibleCobaltPowerSource(neighborState)) {
                     power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
                 }else if (SignalHelper.restrictedCobaltPowerSource(neighborState)) {
@@ -361,9 +357,7 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
                 BlockState neighborState = world.getBlockState(neighborPos);
 
                 if (neighborState.getBlock() instanceof CobaltSignalSource src) {
-                    if (src.getSignalType() == CobaltSignalSource.CobaltSignalType.COBALT) {
-                        power = Math.max(power, src.getDirectCobaltSignal(neighborState, (Level)world, neighborPos, dir));
-                    }
+                    power = Math.max(power, src.getDirectCobaltSignal(neighborState, (Level)world, neighborPos, dir));
                 } else if (SignalHelper.compatibleCobaltPowerSource(neighborState)) {
                     power = Math.max(power, neighborState.getDirectSignal(world, neighborPos, dir));
                 } else if (SignalHelper.restrictedCobaltPowerSource(neighborState)) {
@@ -433,6 +427,8 @@ public class CobaltComparatorBlock extends ComparatorBlock implements SimpleWate
     private static boolean isVanillaRedstone(BlockState state) {
         return state.is(Blocks.REDSTONE_WIRE) ||
                 state.is(Blocks.REPEATER) ||
+                state.is(Blocks.POWERED_RAIL) ||
+                state.is(Blocks.ACTIVATOR_RAIL) ||
                 state.is(Blocks.COMPARATOR) ||
                 state.is(Blocks.REDSTONE_TORCH) ||
                 state.is(Blocks.REDSTONE_WALL_TORCH);

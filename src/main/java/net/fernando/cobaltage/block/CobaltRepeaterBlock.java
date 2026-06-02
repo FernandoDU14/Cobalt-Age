@@ -12,10 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.SignalGetter;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RepeaterBlock;
-import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -106,17 +103,16 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterlog
     }
     // --- LOGICA DI INPUT (DIETRO) ---
     @Override
-    protected int getInputSignal(Level world, BlockPos pos, BlockState state) {
+    protected int getInputSignal(@NonNull Level world, BlockPos pos, BlockState state) {
         Direction direction = state.getValue(FACING);
         BlockPos rearPos = pos.relative(direction);
-        BlockState rearState = world.getBlockState(rearPos);
-
         // Reading Cobalt signal like A Vanilla Repeater does
         int cobaltIn;
-        int i = ((SignalTypeLevelExtensions) world).getSignalByType(COBALT, rearPos, direction.getOpposite());
+        int i = ((SignalTypeLevelExtensions) world).getSignalByType(COBALT, rearPos, direction);
         if (i >= 15) {
             cobaltIn = i;
         } else {
+            BlockState rearState = world.getBlockState(rearPos);
             cobaltIn = Math.max(i, rearState.is(ModBlocks.COBALT_DUST) ? rearState.getValue(CobaltWireBlock.POWER) : 0);
         }
         return cobaltIn;
@@ -129,24 +125,15 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterlog
         Direction side1 = facing.getClockWise();
         Direction side2 = facing.getCounterClockWise();
         return Math.max(
-                getCobaltSidePower(world, pos.relative(side1), side1),
-                getCobaltSidePower(world, pos.relative(side2), side2)
+                getCobaltSideDiodeBlockPower(world, pos.relative(side1), side1),
+                getCobaltSideDiodeBlockPower(world, pos.relative(side2), side2)
         );
     }
-
-    private int getCobaltSidePower(SignalGetter world, BlockPos sidePos, Direction sideDir) {
+    private int getCobaltSideDiodeBlockPower(SignalGetter world, BlockPos sidePos, Direction sideDir) {
         BlockState state = world.getBlockState(sidePos);
-
-        // Solo Repeater/Comparatori Cobalt possono bloccare un Repeater Cobalt
-        if (state.getBlock() instanceof CobaltRepeaterBlock || state.getBlock() instanceof CobaltComparatorBlock) {
-            Direction sideFacing = state.getValue(FACING);
-
-            // Il blocco laterale deve essere rivolto VERSO il nostro blocco principale per poterlo bloccare.
-            // Significa che il suo FACING deve essere l'opposto di sideDir (es: se il lato è EAST, lui deve guardare WEST)
-            if (sideFacing == sideDir.getOpposite()) {
-                // Passiamo 'sideFacing' come direzione di emissione, soddisfacendo la nuova firma direzionale
-                return ((CobaltSignalSource) state.getBlock()).getCobaltSignal(state, (Level) world, sidePos, sideFacing);
-            }
+        // Solo Repeater/Comparatori/Converter Cobalt possono bloccare un Repeater Cobalt
+        if (state.getBlock() instanceof CobaltRepeaterBlock || state.getBlock() instanceof CobaltComparatorBlock || state.getBlock() instanceof CobaltConverterBlock) {
+            return ((CobaltSignalSource) state.getBlock()).getDirectCobaltSignal(state, (Level) world, sidePos, sideDir);
         }
         return 0;
     }
@@ -217,6 +204,8 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterlog
         // Here we need REDSTONE BLOCK
         return state.is(Blocks.REDSTONE_WIRE) ||
                 state.is(Blocks.REPEATER) ||
+                state.is(Blocks.POWERED_RAIL) ||
+                state.is(Blocks.ACTIVATOR_RAIL) ||
                 state.is(Blocks.COMPARATOR) ||
                 state.is(Blocks.REDSTONE_TORCH) ||
                 state.is(Blocks.REDSTONE_WALL_TORCH) ||

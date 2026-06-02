@@ -55,6 +55,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .addOptionalTag(BlockTags.REDSTONE_ORES)
                 .add(Blocks.REDSTONE_WIRE)
                 .add(Blocks.REDSTONE_TORCH)
+                .add(Blocks.ACTIVATOR_RAIL)
+                .add(Blocks.POWERED_RAIL)
                 .add(Blocks.REDSTONE_WALL_TORCH)
                 .add(Blocks.REPEATER)
                 .add(Blocks.COMPARATOR);

@@ -334,10 +334,8 @@ public class CobaltWireNetwork {
             BlockState sourceState = world.getBlockState(mutable);
 
             if (sourceState.getBlock() instanceof CobaltSignalSource source) {
-                if (source.getSignalType() == CobaltSignalSource.CobaltSignalType.COBALT) {
-                    // We ask for Strong Cobalt Power
-                    maxStrong = Math.max(maxStrong, source.getDirectCobaltSignal(sourceState, world, mutable, dir));
-                }
+                // We ask for Strong Cobalt Power
+                maxStrong = Math.max(maxStrong, source.getDirectCobaltSignal(sourceState, world, mutable, dir));
             }
 
             if (SignalHelper.compatibleCobaltPowerSource(sourceState)) {

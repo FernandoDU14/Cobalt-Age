@@ -15,7 +15,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DropExperienceBlock;
-import net.minecraft.world.level.block.PoweredRailBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -45,9 +44,6 @@ public class ModBlocks {
                     .instrument(NoteBlockInstrument.IRON_XYLOPHONE).requiresCorrectToolForDrops()
                     .strength(4.0F, 6.0F).sound(SoundType.METAL)));
 
-    public static final Block COBALT_RAIL = registerBlock("cobalt_rail",
-            settings -> new PoweredRailBlock(settings.noCollision().strength(0.7F).sound(SoundType.METAL)));
-
     // Method to register blocks which "don't have an item"
     private static Block registerBlockWithoutItem(String name, Block block) {
         return Registry.register(BuiltInRegistries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, name), block);
@@ -71,6 +67,10 @@ public class ModBlocks {
                 new BlockItem(block, new Item.Properties().setId(itemKey)));
     }
     // Repeater e Comparator
+    public static final Block COBALT_RAIL = registerBlock("cobalt_rail",
+            settings -> new CobaltRailBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.POWERED_RAIL)
+                    .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_rail")))));
+
     public static final Block COBALT_REPEATER = registerBlock("cobalt_repeater",
             settings -> new CobaltRepeaterBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.REPEATER)
                     .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_repeater")))));

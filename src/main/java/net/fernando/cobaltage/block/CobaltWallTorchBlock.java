@@ -146,6 +146,8 @@ public class CobaltWallTorchBlock extends RedstoneWallTorchBlock implements Simp
         return state.is(Blocks.REDSTONE_WIRE) ||
                 state.is(Blocks.REPEATER) ||
                 state.is(Blocks.COMPARATOR) ||
+                state.is(Blocks.POWERED_RAIL) ||
+                state.is(Blocks.ACTIVATOR_RAIL) ||
                 state.is(Blocks.REDSTONE_TORCH) ||
                 state.is(Blocks.REDSTONE_WALL_TORCH) ||
                 state.is(Blocks.REDSTONE_BLOCK);

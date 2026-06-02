@@ -6,6 +6,8 @@
     },
     "minecraft:redstone_wire",
     "minecraft:redstone_torch",
+    "minecraft:activator_rail",
+    "minecraft:powered_rail",
     "minecraft:redstone_wall_torch",
     "minecraft:repeater",
     "minecraft:comparator"

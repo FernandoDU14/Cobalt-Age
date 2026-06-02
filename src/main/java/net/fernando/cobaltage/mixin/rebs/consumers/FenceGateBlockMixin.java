@@ -1,16 +1,16 @@
-package net.fernando.cobaltage.mixin.consumers;
+package net.fernando.cobaltage.mixin.rebs.consumers;
 import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
 
-@Mixin(DispenserBlock.class)
-public abstract class DispenserBlockMixin {
+@Mixin(FenceGateBlock.class)
+public abstract class FenceGateBlockMixin {
 
     @Redirect(
             method = "neighborChanged",
@@ -19,5 +19,4 @@ public abstract class DispenserBlockMixin {
     private boolean cobalt$combinePowerSources(Level world, BlockPos pos) {
         return world.hasNeighborSignal(pos) || ((SignalTypeLevelExtensions) world).hasNeighbourSignalByType(COBALT, pos);
     }
-
 }

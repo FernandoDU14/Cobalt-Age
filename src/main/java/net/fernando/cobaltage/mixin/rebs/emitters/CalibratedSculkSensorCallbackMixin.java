@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.mixin.emitters;
+package net.fernando.cobaltage.mixin.rebs.emitters;
 
 import net.fernando.cobaltage.block.CobaltWireBlock;
 import net.minecraft.core.BlockPos;

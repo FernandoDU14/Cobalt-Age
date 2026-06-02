@@ -1,16 +1,17 @@
-package net.fernando.cobaltage.mixin.consumers;
+package net.fernando.cobaltage.mixin.rebs.consumers;
+
 import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.BellBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
 
-@Mixin(FenceGateBlock.class)
-public abstract class FenceGateBlockMixin {
+@Mixin(BellBlock.class)
+public abstract class BellBlockMixin {
 
     @Redirect(
             method = "neighborChanged",

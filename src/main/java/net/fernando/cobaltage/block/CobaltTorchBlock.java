@@ -22,14 +22,12 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.NonNull;
-
 import java.util.Objects;
 
 import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
 
 public class CobaltTorchBlock extends RedstoneTorchBlock implements SimpleWaterloggedBlock, CobaltSignalSource {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-
     public CobaltTorchBlock(Properties settings) {
         super(settings);
         this.registerDefaultState(this.stateDefinition.any().setValue(LIT, true).setValue(WATERLOGGED, false));
@@ -142,6 +140,8 @@ public class CobaltTorchBlock extends RedstoneTorchBlock implements SimpleWaterl
         return state.is(Blocks.REDSTONE_WIRE) ||
                 state.is(Blocks.REPEATER) ||
                 state.is(Blocks.COMPARATOR) ||
+                state.is(Blocks.POWERED_RAIL) ||
+                state.is(Blocks.ACTIVATOR_RAIL) ||
                 state.is(Blocks.REDSTONE_TORCH) ||
                 state.is(Blocks.REDSTONE_WALL_TORCH) ||
                 state.is(Blocks.REDSTONE_BLOCK);

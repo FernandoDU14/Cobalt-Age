@@ -14,20 +14,8 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 public interface CobaltSignalSource {
     int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction);
-
     // NUOVO: Calcola se il blocco sta iniettando "Energia Forte" in una specifica direzione
     default int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         return 0; // Di default nessun blocco spara energia forte attraverso i blocchi
     }
-
-    default CobaltSignalType getSignalType() {
-        return CobaltSignalType.COBALT;
-    }
-
-    enum CobaltSignalType {
-        COBALT,               // Cobalt Wires, Torches, Cobalt Converter while facing, Repeaters, etc.
-        NONE,             // Redstone Wires, Torches, Repeaters, ecc.
-        MYCOOLLNAME   // Dual Energy Blocks - Levers, Buttons, ecc.
-    }
-
 }

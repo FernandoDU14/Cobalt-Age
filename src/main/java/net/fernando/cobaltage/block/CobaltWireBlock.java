@@ -340,6 +340,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     public int getCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
         // Just need to be connected to you to give my signal
         if (isNotConnected(state)) return 0;
+        if(direction == Direction.UP) return state.getValue(POWER);
         if (direction.getAxis().isHorizontal()) {
             if (state.getValue(getProperty(direction.getOpposite())).isConnected()) return state.getValue(POWER);
         }
@@ -411,16 +412,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
 
         return 0;
     }
-
-    private boolean isVanillaRedstone(BlockState state) {
-        return state.is(Blocks.REDSTONE_WIRE) ||
-                state.is(Blocks.REPEATER) ||
-                state.is(Blocks.COMPARATOR) ||
-                state.is(Blocks.REDSTONE_TORCH) ||
-                state.is(Blocks.REDSTONE_WALL_TORCH) ||
-                state.is(Blocks.REDSTONE_BLOCK);
-    }
-
     private void updateAllNeighbors(Level world, BlockPos pos) {
 
         // Update of the next 6 neighbors
@@ -619,6 +610,16 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
                 .setValue(WEST, RedstoneSide.SIDE);
     }
 
+    private boolean isVanillaRedstone(BlockState state) {
+        return state.is(Blocks.REDSTONE_WIRE) ||
+                state.is(Blocks.REPEATER) ||
+                state.is(Blocks.COMPARATOR) ||
+                state.is(Blocks.REDSTONE_TORCH) ||
+                state.is(Blocks.POWERED_RAIL) ||
+                state.is(Blocks.ACTIVATOR_RAIL) ||
+                state.is(Blocks.REDSTONE_WALL_TORCH) ||
+                state.is(Blocks.REDSTONE_BLOCK);
+    }
 
 
 

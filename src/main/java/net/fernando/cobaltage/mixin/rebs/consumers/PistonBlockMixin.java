@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.mixin.consumers;
+package net.fernando.cobaltage.mixin.rebs.consumers;
 import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
