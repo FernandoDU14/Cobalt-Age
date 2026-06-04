@@ -101,7 +101,7 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterlog
         }
         return newState;
     }
-    // --- LOGICA DI INPUT (DIETRO) ---
+    // --- LOGICA DI INPUT (DIETRO) --- (Same as Cobalt Comparator, valutate to merge them)
     @Override
     protected int getInputSignal(@NonNull Level world, BlockPos pos, BlockState state) {
         Direction direction = state.getValue(FACING);
@@ -125,17 +125,9 @@ public class CobaltRepeaterBlock extends RepeaterBlock implements SimpleWaterlog
         Direction side1 = facing.getClockWise();
         Direction side2 = facing.getCounterClockWise();
         return Math.max(
-                getCobaltSideDiodeBlockPower(world, pos.relative(side1), side1),
-                getCobaltSideDiodeBlockPower(world, pos.relative(side2), side2)
+                !world.getBlockState(pos.relative(side1)).is(ModBlocks.COBALT_DUST) ? ((SignalTypeLevelExtensions) world).getDirectSignalByType(COBALT, pos.relative(side1), side1) : 0,
+                !world.getBlockState(pos.relative(side2)).is(ModBlocks.COBALT_DUST) ? ((SignalTypeLevelExtensions) world).getDirectSignalByType(COBALT, pos.relative(side2), side2) : 0
         );
-    }
-    private int getCobaltSideDiodeBlockPower(SignalGetter world, BlockPos sidePos, Direction sideDir) {
-        BlockState state = world.getBlockState(sidePos);
-        // Solo Repeater/Comparatori/Converter Cobalt possono bloccare un Repeater Cobalt
-        if (state.getBlock() instanceof CobaltRepeaterBlock || state.getBlock() instanceof CobaltComparatorBlock || state.getBlock() instanceof CobaltConverterBlock) {
-            return ((CobaltSignalSource) state.getBlock()).getDirectCobaltSignal(state, (Level) world, sidePos, sideDir);
-        }
-        return 0;
     }
 
     @Override

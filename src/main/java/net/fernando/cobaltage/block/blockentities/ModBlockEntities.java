@@ -12,13 +12,12 @@ public class ModBlockEntities {
     public static BlockEntityType<CobaltComparatorBlockEntity> COBALT_COMPARATOR_ENTITY;
 
     public static void registerBlockEntities() {
-        // Qui ASSEGNIAMO il valore alla variabile
         COBALT_COMPARATOR_ENTITY = Registry.register(
                 BuiltInRegistries.BLOCK_ENTITY_TYPE,
                 Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_comparator_be"),
                 FabricBlockEntityTypeBuilder.create(
                         CobaltComparatorBlockEntity::new,
-                        ModBlocks.COBALT_COMPARATOR // Assicurati che questo blocco non sia null!
+                        ModBlocks.COBALT_COMPARATOR
                 ).build()
         );
     }
