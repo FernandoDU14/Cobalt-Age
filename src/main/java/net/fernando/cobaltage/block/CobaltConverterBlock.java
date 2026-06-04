@@ -185,13 +185,13 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
         if (isCobaltInputMode) {
             // Stiamo traducendo da Cobalt a Redstone
             if (cobaltIn > 0) {
-                newPower = cobaltIn - 1;
+                newPower = cobaltIn;
             }
             currentPower = state.getValue(POWER);
         } else {
             // Stiamo traducendo da Redstone a Cobalt
             if (redstoneIn > 0) {
-                newPower = redstoneIn - 1;
+                newPower = redstoneIn;
             }
             currentPower = state.getValue(POWER);
         }
@@ -201,11 +201,11 @@ public class CobaltConverterBlock extends Block implements SimpleWaterloggedBloc
         // segnale da ENTRAMBE le parti. Chi arriva prima, vince.
         if (newPower == 0) {
             if (cobaltIn > 0) {
-                newPower = cobaltIn - 1;
+                newPower = cobaltIn;
                 nextCobaltInput = true;
             } else if (redstoneIn > 0) {
                 // Esclusione delle sorgenti compatibili dal controllo di blocco, getCobaltInputPower contiene anche compatibleCobaltPowerSource
-                newPower = redstoneIn - 1;
+                newPower = redstoneIn;
                 nextCobaltInput = false;
             }
         }
