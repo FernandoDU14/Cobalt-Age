@@ -1,9 +1,8 @@
 package net.fernando.cobaltage.block;
 
+import net.fernando.cobaltage.block.abstracts.CobaltDiodeBlock;
 import com.mojang.serialization.MapCodec;
 import net.fernando.cobaltage.block.blockentities.CobaltComparatorBlockEntity;
-import net.fernando.cobaltage.block.wire.CobaltSignalSource;
-import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -18,7 +17,6 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
-import net.minecraft.world.level.SignalGetter;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -37,14 +35,14 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 
-import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
 import static net.minecraft.world.level.block.state.properties.ComparatorMode.COMPARE;
 
-public class CobaltComparatorBlock extends DiodeBlock implements SimpleWaterloggedBlock, CobaltSignalSource, EntityBlock {
+public class CobaltComparatorBlock extends CobaltDiodeBlock implements SimpleWaterloggedBlock, EntityBlock {
 
     public static final MapCodec<CobaltComparatorBlock> CODEC = simpleCodec(CobaltComparatorBlock::new);
     public static final EnumProperty<ComparatorMode> MODE;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+    private static final int UPDATE_DELAY = 2;
 
     static {
         MODE = BlockStateProperties.MODE_COMPARATOR;
@@ -64,29 +62,27 @@ public class CobaltComparatorBlock extends DiodeBlock implements SimpleWaterlogg
     }
 
     protected int getDelay(@NonNull BlockState blockState) {
-        return 2;
+        return UPDATE_DELAY;
     }
 
-    @Override
     public @NonNull BlockState getStateForPlacement(BlockPlaceContext ctx) {
         FluidState fluidState = ctx.getLevel().getFluidState(ctx.getClickedPos());
         BlockState state = super.getStateForPlacement(ctx);
+        assert state != null;
         return state.setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER);
     }
 
-    @Override
     public @NonNull FluidState getFluidState(BlockState state) {
         return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
-    // All rewritten vanilla:
     public @NonNull BlockState updateShape(BlockState state, @NonNull LevelReader world, @NonNull ScheduledTickAccess tickView, @NonNull BlockPos pos, @NonNull Direction direction, @NonNull BlockPos neighborPos, @NonNull BlockState neighborState, @NonNull RandomSource random) {
         if (state.getValue(WATERLOGGED)) {
             tickView.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
         }
         BlockState newState =  super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
         if (newState.is(this)) {
-            return newState.setValue(WATERLOGGED, state.getValue(WATERLOGGED));
+            return direction == Direction.DOWN && !this.canSurviveOn(world, neighborPos, neighborState) ? Blocks.AIR.defaultBlockState() : newState.setValue(WATERLOGGED, state.getValue(WATERLOGGED));
         }
         return newState;
     }
@@ -124,17 +120,17 @@ public class CobaltComparatorBlock extends DiodeBlock implements SimpleWaterlogg
         }
     }
 
-    protected int getInputSignal(@NonNull Level level, @NonNull BlockPos blockPos, @NonNull BlockState blockState) {
-        int i = getCobaltInputSignal(level, blockPos, blockState);
+    protected int getInputSignal(@NonNull Level level, BlockPos blockPos, BlockState blockState) {
+        int i = super.getInputSignal(level, blockPos, blockState);
         Direction direction = blockState.getValue(FACING);
         BlockPos blockPos2 = blockPos.relative(direction);
         BlockState blockState2 = level.getBlockState(blockPos2);
         if (blockState2.hasAnalogOutputSignal()) {
             i = blockState2.getAnalogOutputSignal(level, blockPos2, direction.getOpposite());
-        } else if (i < 15 && (blockState2.isRedstoneConductor(level, blockPos2) || blockState2.getBlock() instanceof PoweredBlock)) {
+        } else if (i < 15 && blockState2.isRedstoneConductor(level, blockPos2)) {
             blockPos2 = blockPos2.relative(direction);
             blockState2 = level.getBlockState(blockPos2);
-            ItemFrame itemFrame = getItemFrame(level, direction, blockPos2);
+            ItemFrame itemFrame = this.getItemFrame(level, direction, blockPos2);
             int j = Math.max(itemFrame == null ? Integer.MIN_VALUE : itemFrame.getAnalogOutput(), blockState2.hasAnalogOutputSignal() ? blockState2.getAnalogOutputSignal(level, blockPos2, direction.getOpposite()) : Integer.MIN_VALUE);
             if (j != Integer.MIN_VALUE) {
                 i = j;
@@ -207,88 +203,7 @@ public class CobaltComparatorBlock extends DiodeBlock implements SimpleWaterlogg
         return new CobaltComparatorBlockEntity(blockPos, blockState);
     }
 
-    @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, POWERED, MODE, WATERLOGGED);
-    }
-
-    // Fast extraction from vanilla which would've required more extensions
-    protected int getCobaltInputSignal(Level level, BlockPos blockPos, BlockState blockState) {
-        Direction direction = blockState.getValue(FACING);
-        BlockPos blockPos2 = blockPos.relative(direction);
-        int i = ((SignalTypeLevelExtensions) level).getSignalByType(COBALT, blockPos2, direction);
-        if (i >= 15) {
-            return i;
-        } else {
-            BlockState blockState2 = level.getBlockState(blockPos2);
-            return Math.max(i, blockState2.is(ModBlocks.COBALT_DUST) ? blockState2.getValue(CobaltWireBlock.POWER) : 0);
-        }
-    }
-
-    @Override
-    protected int getAlternateSignal(@NonNull SignalGetter world, BlockPos pos, BlockState state) {
-        Direction facing = state.getValue(FACING);
-        Direction side1 = facing.getClockWise();
-        Direction side2 = facing.getCounterClockWise();
-
-        // Now we get the power from the sides
-        return Math.max(
-                ((SignalTypeLevelExtensions) world).getSignalByType(COBALT, pos.relative(side1), side1),
-                ((SignalTypeLevelExtensions) world).getSignalByType(COBALT, pos.relative(side2), side2)
-        );
-    }
-
-    // --- Output Signal ---
-    @Override
-    public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // Giving you the signal if i'm the direction of the facing respect to you.
-        if (world.getBlockEntity(pos) instanceof CobaltComparatorBlockEntity be && direction == state.getValue(FACING)) {
-            return be.getOutputSignal();
-        }
-        return 0;
-    }
-
-    @Override
-    public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // Same as normal signal
-        return this.getCobaltSignal(state, world, pos, direction);
-    }
-
-    @Override public boolean isSignalSource(@NonNull BlockState state) { return false; }
-    @Override
-    protected int getSignal(@NonNull BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
-        BlockPos neighborPos = pos.relative(direction.getOpposite());
-        BlockState neighborState = world.getBlockState(neighborPos);
-        if (isVanillaRedstone(neighborState)) {
-            return 0;
-        }
-        return super.getSignal(state, world, pos, direction);
-    }
-
-    @Override
-    protected int getDirectSignal(@NonNull BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
-        BlockPos targetPos = pos.relative(direction.getOpposite());
-        BlockState targetState = world.getBlockState(targetPos);
-        if (targetState.isRedstoneConductor(world, targetPos)) {
-            for (Direction side : Direction.values()) {
-                if (side == direction) continue;
-                BlockPos checkPos = targetPos.relative(side);
-                BlockState checkState = world.getBlockState(checkPos);
-                if (isVanillaRedstone(checkState)) {
-                    return 0;
-                }
-            }
-        }
-        return super.getDirectSignal(state, world, pos, direction);
-    }
-
-    private static boolean isVanillaRedstone(BlockState state) {
-        return state.is(Blocks.REDSTONE_WIRE) ||
-                state.is(Blocks.REPEATER) ||
-                state.is(Blocks.POWERED_RAIL) ||
-                state.is(Blocks.ACTIVATOR_RAIL) ||
-                state.is(Blocks.COMPARATOR) ||
-                state.is(Blocks.REDSTONE_TORCH) ||
-                state.is(Blocks.REDSTONE_WALL_TORCH);
     }
 }

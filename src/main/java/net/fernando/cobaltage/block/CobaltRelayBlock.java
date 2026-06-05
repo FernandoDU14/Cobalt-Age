@@ -58,7 +58,6 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         return Shapes.block();
     }
 
-    // Il relè può fluttuare nell'aria o essere impilato, a differenza della polvere
     @Override
     public boolean canSurvive(@NonNull BlockState state, LevelReader world, @NonNull BlockPos pos) {
         return true;
@@ -130,33 +129,7 @@ public class CobaltRelayBlock extends CobaltWireBlock {
     @Override
     protected int getSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
         int power = state.getValue(POWER);
-        if (power == 0) return 0;
-
-        BlockPos neighborPos = pos.relative(direction.getOpposite());
-        if (isVanillaRedstone(world.getBlockState(neighborPos))) return 0;
-
-        Direction outDir = direction.getOpposite();
-
-        // Emette in verticale se c'è connessione grafica
-        if (outDir == Direction.UP && state.getValue(UP)) return power;
-        if (outDir == Direction.DOWN && state.getValue(DOWN)) return power;
-
-        // Emette in orizzontale se c'è connessione grafica
-        if (outDir.getAxis().isHorizontal()) {
-            if (state.getValue(getProperty(outDir)).isConnected()) {
-                return power;
-            }
-        }
-
-        return 0;
-    }
-
-    @Override
-    public int getCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
-        int power = state.getValue(POWER);
-        // Always giving signal if i'm UP respect to you or DOWN respect to you
         if (direction == Direction.UP && state.getValue(UP) || direction == Direction.DOWN && state.getValue(DOWN)) return power;
-        // Giving signal also when i'm connected to you
         if (direction.getAxis().isHorizontal()) {
             if (state.getValue(getProperty(direction.getOpposite())).isConnected()) return power;
         }
@@ -164,27 +137,23 @@ public class CobaltRelayBlock extends CobaltWireBlock {
     }
 
     @Override
-    public int getDirectCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // Same as normal signal
-        return this.getCobaltSignalIfLinked(state, world, pos, direction);
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
+        int power = state.getValue(POWER);
+        if (direction == Direction.UP && state.getValue(UP) || direction == Direction.DOWN && state.getValue(DOWN)) return power;
+        if (direction.getAxis().isHorizontal()) {
+            if (state.getValue(getProperty(direction.getOpposite())).isConnected()) return power;
+        }
+        return 0;
+    }
+
+    @Override
+    public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
+        return this.getCobaltSignal(state, world, pos, direction);
     }
 
     @Override
     protected int getDirectSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        // La logica forte è simile a quella debole ma con i controlli isolamento Vanilla che già usi
-        int power = getSignal(state, world, pos, direction);
-        if (power == 0) return 0;
-
-        BlockPos targetPos = pos.relative(direction.getOpposite());
-        if (world.getBlockState(targetPos).isRedstoneConductor(world, targetPos)) {
-            for (Direction dir : Direction.values()) {
-                if (dir == direction) continue;
-                if (isVanillaRedstone(world.getBlockState(targetPos.relative(dir)))) {
-                    return 0; // Protezione isolamento Vanilla
-                }
-            }
-        }
-        return power;
+        return this.getSignal(state, world, pos, direction);
     }
 
     @Override
@@ -216,13 +185,5 @@ public class CobaltRelayBlock extends CobaltWireBlock {
             double dZ = pos.getZ() + 0.5D + (random.nextDouble() - 0.5) * 0.4;
             world.addParticle(new DustParticleOptions(colorInt, 1.0F), dX, dY, dZ, 0.0, 0.0, 0.0);
         }
-    }
-
-    private boolean isVanillaRedstone(BlockState state) {
-        return state.is(Blocks.REDSTONE_WIRE) || state.is(Blocks.REPEATER) ||
-                state.is(Blocks.COMPARATOR) || state.is(Blocks.REDSTONE_TORCH) ||
-                state.is(Blocks.POWERED_RAIL) ||
-                state.is(Blocks.ACTIVATOR_RAIL) ||
-                state.is(Blocks.REDSTONE_WALL_TORCH) || state.is(Blocks.REDSTONE_BLOCK);
     }
 }

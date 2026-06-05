@@ -2,8 +2,8 @@ package net.fernando.cobaltage.block;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import net.fernando.cobaltage.block.wire.CobaltSignalEmitter;
 import net.fernando.cobaltage.block.wire.CobaltWireShape;
-import net.fernando.cobaltage.block.wire.CobaltWireSignal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -25,11 +25,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.block.state.properties.RedstoneSide;
+import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.redstone.Orientation;
@@ -42,7 +38,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
 
-public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltWireSignal {
+public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltSignalEmitter {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
     public static final EnumProperty<RedstoneSide> NORTH = BlockStateProperties.NORTH_REDSTONE;
@@ -73,16 +69,13 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
             Direction.UP,    Block.box(3.0, 0.0, 3.0, 13.0, 16.0, 13.0)
     ));
 
-    // Stubs verticali estratti in costanti per pulizia
     private static final VoxelShape UP_NORTH_STUB = Block.box(3.0, 0.0, 0.0, 13.0, 16.0, 1.0);
     private static final VoxelShape UP_SOUTH_STUB = Block.box(3.0, 0.0, 15.0, 13.0, 16.0, 16.0);
     private static final VoxelShape UP_EAST_STUB = Block.box(15.0, 0.0, 3.0, 16.0, 16.0, 13.0);
     private static final VoxelShape UP_WEST_STUB = Block.box(0.0, 0.0, 3.0, 1.0, 16.0, 13.0);
 
-    // 2. L'array che conterrà le 81 combinazioni
     private static final VoxelShape[] SHAPE_CACHE = new VoxelShape[81];
 
-    // 3. Generazione automatica all'avvio del gioco
     static {
         for (RedstoneSide north : RedstoneSide.values()) {
             for (RedstoneSide south : RedstoneSide.values()) {
@@ -162,11 +155,9 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         return CobaltWireShape.getUpdatedState(world, pos, state);
     }
 
-    // Function to compute the color gradient of the Cobalt Dust
+    // Function to compute the colour of the Cobalt Dust
     private static int getCobaltColor(int power) {
         float f = (float)power / 15.0F;
-        // Calcoliamo le componenti R, G, B basandoci sul livello di carica
-        // Per il cobalto: poco rosso, medio verde, molto blu
         float r = f * 0.1f + 0.1f;
         float g = f * 0.5f + 0.3f;
         float b = f * 1.1f + 0.4f;
@@ -183,40 +174,30 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         return red << 16 | green << 8 | blue;
     }
 
-    // Questo è il metodo "segreto" di Vanilla che posiziona le particelle lungo i fili
     private void addPoweredParticles(Level world, RandomSource random, BlockPos pos, int colorInt, Direction direction, Direction direction2, float f, float g) {
         float h = g - f;
-        if (!(random.nextFloat() > 0.2F * h)) { // Non evocare troppe particelle
+        if (!(random.nextFloat() > 0.2F * h)) {
             float j = f + h * random.nextFloat();
             double d = (double)pos.getX() + 0.5 + (double)(0.4375F * (float)direction.getStepX() + j * (float)direction2.getStepX());
             double e = (double)pos.getY() + 0.5 + (double)(0.4375F * (float)direction.getStepY() + j * (float)direction2.getStepY());
             double k = (double)pos.getZ() + 0.5 + (double)(0.4375F * (float)direction.getStepZ() + j * (float)direction2.getStepZ());
-
-            // Creiamo l'effetto polvere col colore dinamico
             DustParticleOptions particleEffect = new DustParticleOptions(colorInt, 1.0F);
             world.addParticle(particleEffect, d, e, k, 0.0, 0.0, 0.0);
         }
     }
 
-
-
     @Override
     public void animateTick(BlockState state, @NonNull Level world, @NonNull BlockPos pos, @NonNull RandomSource random) {
         int power = state.getValue(POWER);
         if (power == 0) return;
-
-        // 1. Otteniamo il colore dinamico usando la tua funzione
         int colorInt = getCobaltColor(power);
-
-        // 2. Ciclo sulle direzioni orizzontali (esattamente come Vanilla)
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            // Recuperiamo la connessione per quella direzione
             EnumProperty<RedstoneSide> property = getProperty(direction);
 
             switch (state.getValue(property)) {
                 case UP:
                     addPoweredParticles(world, random, pos, colorInt, direction, Direction.UP, -0.5F, 0.5F);
-                    break; // Aggiunto break per sicurezza
+                    break;
                 case SIDE:
                     addPoweredParticles(world, random, pos, colorInt, Direction.DOWN, direction, 0.0F, 0.5F);
                     break;
@@ -227,7 +208,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
             }
         }
     }
-
 
     @Override
     public boolean canSurvive(@NonNull BlockState state, LevelReader world, @NonNull BlockPos pos) {
@@ -256,7 +236,12 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     @Override
     public void neighborChanged(@NonNull BlockState state, Level world, @NonNull BlockPos pos, @NonNull Block sourceBlock, @Nullable Orientation orientation, boolean notify) {
         if (!world.isClientSide()) {
-            NETWORK_HANDLER.updateNetwork(world, pos);
+            if (state.canSurvive(world, pos)) {
+                NETWORK_HANDLER.updateNetwork(world, pos);
+            } else {
+                dropResources(state, world, pos);
+                world.removeBlock(pos, false);
+            }
         }
     }
 
@@ -266,20 +251,13 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
             @NonNull BlockPos pos, @NonNull Direction direction, @NonNull BlockPos neighborPos,
             @NonNull BlockState neighborState, @NonNull RandomSource random
     ) {
-        // 💧 waterlogged handling
         if (state.getValue(WATERLOGGED)) {
             tickView.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
         }
-
-        // ❌ se non può stare lì → aria
         if (!state.canSurvive(world, pos)) {
             return Blocks.AIR.defaultBlockState();
         }
-
-        // 🔌 aggiorna connessioni (la TUA logica, non vanilla)
         BlockState newState = this.getWireShapeState(world, pos, state);
-
-        // 💧 preserva waterlogged
         return newState.setValue(WATERLOGGED, state.getValue(WATERLOGGED));
     }
 
@@ -287,11 +265,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         Level world = ctx.getLevel();
         BlockPos pos = ctx.getClickedPos();
-
-        // 1. stato base con shape corretta (connessioni)
         BlockState state = this.getWireShapeState(world, pos, this.defaultBlockState());
-
-        // 2. gestione waterlogged
         FluidState fluidState = world.getFluidState(pos);
         boolean waterlogged = fluidState.getType() == Fluids.WATER;
 
@@ -303,41 +277,22 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         return true;
     }
 
-    // 🔥 ENERGIA DEBOLE (Attiva pistoni, porte, ecc. quando non c'è altra redstone vicino, ovvero tutti gli emettitore che ascoltano getSignal)
     @Override
     protected int getSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        // In Minecraft, 'direction' è la faccia del cavo da cui il vicino sta chiedendo energia.
-        // Se il vicino è SOPRA il cavo, chiederà energia alla faccia superiore (Direction.DOWN).
-
-        // 1. Il cavo NON attiva mai i blocchi posti esattamente sopra di esso.
-        if (direction == Direction.DOWN) return 0;
-
-        int power = state.getValue(POWER);
-        if (power == 0) return 0;
-
-        // Se è un puntino (tutti i lati su NONE), non alimenta i vicini orizzontali.
-        if (isNotConnected(state)) {
-            return 0;
+        if (isNotConnected(state)) return 0;
+        if(direction == Direction.UP) return state.getValue(POWER);
+        if (direction.getAxis().isHorizontal()) {
+            if (state.getValue(getProperty(direction.getOpposite())).isConnected()) return state.getValue(POWER);
         }
-
-        BlockPos neighborPos = pos.relative(direction.getOpposite());
-        if (isVanillaRedstone(world.getBlockState(neighborPos))) return 0; // Isolamento Vanilla
-
-        // 2. Alimenta sempre verso il basso (il blocco di supporto)
-        if (direction == Direction.UP) return power;
-
-        // 3. Controllo Direzionale (il modello tocca il blocco?)
-        Direction outDir = direction.getOpposite(); // La direzione verso il blocco adiacente
-        if (outDir.getAxis().isHorizontal()) {
-            if (state.getValue(getProperty(outDir)).isConnected()) return power;
-        }
-
-        // Se è una linea dritta che non punta verso il pistone, non si attiva!
         return 0;
+    }
+    @Override
+    protected int getDirectSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
+        return this.getSignal(state, world, pos, direction);
     }
 
     @Override
-    public int getCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
+    public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         // Just need to be connected to you to give my signal
         if (isNotConnected(state)) return 0;
         if(direction == Direction.UP) return state.getValue(POWER);
@@ -346,72 +301,11 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         }
         return 0;
     }
-
     @Override
-    public int getDirectCobaltSignalIfLinked(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // same as normal signals
-        return this.getCobaltSignalIfLinked(state, world, pos, direction);
+    public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
+        return this.getCobaltSignal(state, world, pos, direction);
     }
 
-    // 🔥 ENERGIA FORTE (Ora alimenta anche i lati, come in Vanilla)
-    @Override
-    protected int getDirectSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        // La redstone non dà mai energia forte verso l'alto
-        if (direction == Direction.DOWN) return 0;
-
-        int power = state.getValue(POWER);
-        if (power <= 0) return 0;
-
-        Direction side = direction.getOpposite();
-
-        // 1. ALIMENTARE IL BLOCCO SOTTOSTANTE
-        if (direction == Direction.UP) {
-            // Il puntino in Vanilla alimenta sempre il blocco su cui poggia.
-            BlockPos blockBelowPos = pos.below();
-            BlockState blockBelowState = world.getBlockState(blockBelowPos);
-
-            // VEGGENZA: Isoliamo il blocco sottostante dalla vanilla
-            if (blockBelowState.isRedstoneConductor(world, blockBelowPos)) {
-                for (Direction dir : Direction.values()) {
-                    if (dir == Direction.UP) continue; // Ignoriamo il cavo stesso
-                    if (isVanillaRedstone(world.getBlockState(blockBelowPos.relative(dir)))) {
-                        return 0;
-                    }
-                }
-            }
-            return power;
-        }
-
-        // 2. ALIMENTARE I BLOCCHI LATERALI (La tua rifinitura!)
-        // Un puntino non spara energia forte ai lati
-        if (isNotConnected(state)) return 0;
-
-        // Se il modello del cavo è "connesso" (SIDE o UP) verso quella direzione
-        if (side.getAxis().isHorizontal()) {
-            EnumProperty<RedstoneSide> property = getProperty(side);
-            if (state.getValue(property).isConnected()) {
-
-                BlockPos sideBlockPos = pos.relative(side);
-                BlockState sideBlockState = world.getBlockState(sideBlockPos);
-
-                // VEGGENZA: Isoliamo il blocco laterale!
-                // Se c'è della redstone vanilla che tocca questo blocco solido,
-                // la Cobalt Dust si rifiuta di caricarlo, proteggendo i circuiti.
-                // Se invece c'è solo un pistone, lo carica e lo fa scattare!
-                if (sideBlockState.isRedstoneConductor(world, sideBlockPos)) {
-                    for (Direction dir : Direction.values()) {
-                        if (dir == side.getOpposite()) continue; // Ignoriamo il lato da cui arriva il cavo
-                        if (isVanillaRedstone(world.getBlockState(sideBlockPos.relative(dir)))) {
-                            return 0;
-                        }
-                    }
-                }
-                return power;
-            }
-        }
-
-        return 0;
-    }
     private void updateAllNeighbors(Level world, BlockPos pos) {
 
         // Update of the next 6 neighbors
@@ -508,7 +402,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
                 return InteractionResult.PASS;
             }
             // Se è cross -> diventa puntino. Se è puntino -> torna cross.
-            BlockState newState = isFullyConnected(state) ? getDotState(state) : getCrossState(state);
+            BlockState newState = isFullyConnected(state) ? setDotState(state) : setCrossState(state);
 
             // 1. Manteniamo il livello di potenza attuale durante la transizione
             newState = newState.setValue(POWER, state.getValue(POWER));
@@ -578,13 +472,12 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         return false;
     }
     // Helper per creare lo stato a puntino (tutti NONE)
-    private BlockState getDotState(BlockState state) {
+    private BlockState setDotState(BlockState state) {
         return state.setValue(NORTH, RedstoneSide.NONE)
                 .setValue(SOUTH, RedstoneSide.NONE)
                 .setValue(EAST, RedstoneSide.NONE)
                 .setValue(WEST, RedstoneSide.NONE);
     }
-
 
     // Helper to check if it's currently a dot
     private boolean isNotConnected(BlockState state) {
@@ -603,24 +496,10 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     }
 
     // Forces all 4 sides to 'SIDE' to create the cross look
-    private BlockState getCrossState(BlockState state) {
+    private BlockState setCrossState(BlockState state) {
         return state.setValue(NORTH, RedstoneSide.SIDE)
                 .setValue(SOUTH, RedstoneSide.SIDE)
                 .setValue(EAST, RedstoneSide.SIDE)
                 .setValue(WEST, RedstoneSide.SIDE);
     }
-
-    private boolean isVanillaRedstone(BlockState state) {
-        return state.is(Blocks.REDSTONE_WIRE) ||
-                state.is(Blocks.REPEATER) ||
-                state.is(Blocks.COMPARATOR) ||
-                state.is(Blocks.REDSTONE_TORCH) ||
-                state.is(Blocks.POWERED_RAIL) ||
-                state.is(Blocks.ACTIVATOR_RAIL) ||
-                state.is(Blocks.REDSTONE_WALL_TORCH) ||
-                state.is(Blocks.REDSTONE_BLOCK);
-    }
-
-
-
 }

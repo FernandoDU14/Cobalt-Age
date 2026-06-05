@@ -1,9 +1,10 @@
 package net.fernando.cobaltage.mixin;
 
-import net.fernando.cobaltage.block.wire.CobaltSignalSource;
-import net.fernando.cobaltage.block.CobaltWireBlock;
+import net.fernando.cobaltage.block.CobaltDustBlock;
+import net.fernando.cobaltage.block.wire.CobaltSignalEmitter;
 import net.fernando.cobaltage.util.signal.SignalType;
 import net.fernando.cobaltage.util.signal.SignalTypeBlockStateExtensions;
+import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -14,7 +15,6 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 
 import static net.fernando.cobaltage.util.signal.SignalHelper.*;
 
@@ -25,62 +25,40 @@ public abstract class BlockStateMixin implements SignalTypeBlockStateExtensions 
     @Shadow public abstract int getSignal(BlockGetter level, BlockPos pos, Direction direction);
     @Shadow public abstract int getDirectSignal(BlockGetter level, BlockPos pos, Direction direction);
 
-    @Unique
-    private static final ThreadLocal<BlockPos.MutableBlockPos> STATIC_MUTABLE = ThreadLocal.withInitial(BlockPos.MutableBlockPos::new);
-
-    @Unique
-    private int collectDirectSignalFromNeighbors(SignalType type, Level world, BlockPos pos) {
-        int maxStrong = 0;
-        BlockPos.MutableBlockPos mutable = STATIC_MUTABLE.get();
-
-        for (Direction direction : Direction.values()) {
-            BlockPos neighborPos = mutable.setWithOffset(pos, direction);
-            BlockState neighborState = world.getBlockState(neighborPos);
-
-            int strong = ((SignalTypeBlockStateExtensions) neighborState).getDirectSignalByType(type, world, neighborPos, direction);
-            if (strong > maxStrong) {
-                maxStrong = strong;
-                if (maxStrong >= 15) return 15; // Short-circuit
-            }
-        }
-        return maxStrong;
-    }
-
     @Override
     public int getSignalByType(SignalType type, BlockGetter level, BlockPos pos, Direction dir) {
         BlockState state = (BlockState) (Object) this;
-
         Block block = this.getBlock();
+
         boolean isCobaltish = isPartOfCobaltSignalChannel(state);
         boolean isRedstonish = isPartOfRedstoneSignalChannel(state);
 
         return switch (type) {
             case REDSTONE -> {
-                // 0. Simple Redstone Sources
-                if (!isRedstonish) yield 0;
-                if (level instanceof Level world && state.isRedstoneConductor(world, pos)) {
-                    yield collectDirectSignalFromNeighbors(type, world, pos);
+                int i = 0;
+                // Reading the Direct Power from Conductors
+                if (level instanceof Level world && (state.isRedstoneConductor(world, pos) || block instanceof CobaltDustBlock)) {
+                      i = ((SignalTypeLevelExtensions) level).getDirectSignalToByType(type, pos);
                 }
-                yield this.getSignal(level, pos, dir);
+                // The rest if it can be read
+                if (!isRedstonish && i==0) yield 0;
+                yield Math.max(i, this.getSignal(level, pos, dir));
             }
             case COBALT -> {
-                if (!isCobaltish) yield 0;
-                // A. Cobalt sources
-                if (block instanceof CobaltSignalSource cobaltSignalSource && level instanceof Level world) {
-                    yield cobaltSignalSource.getCobaltSignal(state, world, pos, dir);
-                }
-                if(block instanceof CobaltWireBlock cobaltWireBlock && level instanceof Level world ) {
-                    yield cobaltWireBlock.getCobaltSignalIfLinked(state, world, pos, dir);
-                }
-                // B. Compatible or restricted cobalt sources
-                if (compatibleCobaltPowerSource(state) || restrictedCobaltPowerSource(state)) {
-                    yield this.getSignal(level, pos, dir);
-                }
-                // C. Direct Signal from Neighbours
+                int i = 0;
+                // Reading the Direct Power from Conductors
                 if (level instanceof Level world && (state.isRedstoneConductor(world, pos) || block instanceof PoweredBlock)) {
-                    yield collectDirectSignalFromNeighbors(type, world, pos);
+                    i = Math.max(i, ((SignalTypeLevelExtensions) level).getDirectSignalToByType(type, pos));
                 }
-                yield 0;
+                // The rest if it can be read
+                if (!isCobaltish && i==0) yield 0;
+                if (compatibleCobaltPowerSource(state) || restrictedCobaltPowerSource(state)) {
+                    i = Math.max(i, this.getSignal(level, pos, dir));
+                }
+                if (block instanceof CobaltSignalEmitter cobaltSignalEmitter && level instanceof Level world) {
+                    i = Math.max(i, cobaltSignalEmitter.getCobaltSignal(state, world, pos, dir));
+                }
+                yield i;
             }
         };
     }
@@ -98,12 +76,8 @@ public abstract class BlockStateMixin implements SignalTypeBlockStateExtensions 
             case COBALT -> {
                 if (!isCobaltish) yield 0;
                 // Direct Cobalt Signal by Cobalt Power Sources
-                if (block instanceof CobaltSignalSource cobaltSignalSource && level instanceof Level world) {
-                    yield cobaltSignalSource.getDirectCobaltSignal(state, world, pos, dir);
-                }
-                // Direct Cobalt Signal by Cobalt Wires
-                if (block instanceof CobaltWireBlock cobaltWireBlock && level instanceof Level world) {
-                    yield cobaltWireBlock.getDirectCobaltSignalIfLinked(state, world, pos, dir);
+                if (block instanceof CobaltSignalEmitter cobaltSignalEmitter && level instanceof Level world) {
+                    yield cobaltSignalEmitter.getDirectCobaltSignal(state, world, pos, dir);
                 }
                 // Direct Redstone Signal
                 yield this.getDirectSignal(level, pos, dir);

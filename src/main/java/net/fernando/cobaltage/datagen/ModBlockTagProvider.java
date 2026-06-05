@@ -38,7 +38,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         valueLookupBuilder(BlockTags.BEACON_BASE_BLOCKS)
                 .add(ModBlocks.COBALT_BLOCK);
 
-        valueLookupBuilder(ModTags.Blocks.COMPATIBLE_COBALT_SOURCES)
+        valueLookupBuilder(ModTags.Blocks.CAN_EMIT_IN_COBALT_SIGNAL_CHANNEL)
                 .addOptionalTag(BlockTags.BUTTONS)
                 .addOptionalTag(BlockTags.PRESSURE_PLATES)
                 .addOptionalTag(BlockTags.LIGHTNING_RODS)
@@ -51,8 +51,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(Blocks.TRAPPED_CHEST)
                 .add(Blocks.LECTERN);
 
-        valueLookupBuilder(ModTags.Blocks.INCOMPATIBLE_COBALT_SOURCES)
-                .addOptionalTag(BlockTags.REDSTONE_ORES)
+        valueLookupBuilder(ModTags.Blocks.CANT_RECIVE_FROM_COBALT_SIGNAL_CHANNEL)
                 .add(Blocks.REDSTONE_WIRE)
                 .add(Blocks.REDSTONE_TORCH)
                 .add(Blocks.ACTIVATOR_RAIL)

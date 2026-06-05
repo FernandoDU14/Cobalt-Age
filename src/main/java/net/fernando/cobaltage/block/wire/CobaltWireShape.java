@@ -166,7 +166,7 @@ public class CobaltWireShape {
             }
         }
 
-        return targetState.getBlock() instanceof CobaltSignalSource ||
+        return targetState.getBlock() instanceof CobaltSignalEmitter ||
                 compatibleCobaltPowerSource(targetState);
     }
 

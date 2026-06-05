@@ -1,6 +1,6 @@
 // 1.21.11	-999999999-01-01T00:00:00	Cobalt Age/Tags for minecraft:block
-29605136380ab102fd5ebcc9e6c52ec873e13b98 data/cobaltage/tags/block/compatible_cobalt_sources.json
-ec935c4be23c311e352843b20ad8209e4bbd2339 data/cobaltage/tags/block/incompatible_cobalt_sources.json
+29605136380ab102fd5ebcc9e6c52ec873e13b98 data/cobaltage/tags/block/can_emit_in_cobalt_signal_channel.json
+7501528e967c4f4073836566ba80d8763a12987c data/cobaltage/tags/block/cant_recive_from_cobalt_signal_channel.json
 4a4e653b7d125a43c175da98f3731f79c97566ec data/minecraft/tags/block/beacon_base_blocks.json
 9316f47020a5abde6dc58852209bfa3d608d05de data/minecraft/tags/block/mineable/pickaxe.json
 d2469c0ef70e36f5d0bc0fad5cb338c9d2046022 data/minecraft/tags/block/needs_iron_tool.json

@@ -1,8 +1,7 @@
 package net.fernando.cobaltage.util.signal;
 
 import net.fernando.cobaltage.block.CobaltConverterBlock;
-import net.fernando.cobaltage.block.CobaltWireBlock;
-import net.fernando.cobaltage.block.wire.CobaltSignalSource;
+import net.fernando.cobaltage.block.wire.CobaltSignalEmitter;
 import net.fernando.cobaltage.util.ModTags;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Blocks;
@@ -15,24 +14,21 @@ public class SignalHelper {
         if (state.getBlock() instanceof CobaltConverterBlock) {
             return true;
         }
-        return !(state.getBlock() instanceof CobaltSignalSource ||
-                state.getBlock() instanceof CobaltWireBlock);
+        return !(state.getBlock() instanceof CobaltSignalEmitter);
     }
 
     public static boolean isPartOfCobaltSignalChannel(BlockState state) {
-        return !state.is(ModTags.Blocks.INCOMPATIBLE_COBALT_SOURCES);
+        return !state.is(ModTags.Blocks.CANT_RECIVE_FROM_COBALT_SIGNAL_CHANNEL);
     }
 
     public static boolean restrictedCobaltPowerSource(BlockState state) {
-        // The Observer emits only in its opposite facing
-        // The Calibrated Sculk Sensor does emit in its opposite facing
         return( state.is(Blocks.OBSERVER) ||
                 state.is(Blocks.CALIBRATED_SCULK_SENSOR)
         );
     }
 
     public static boolean compatibleCobaltPowerSource(BlockState state) {
-        return state.is(ModTags.Blocks.COMPATIBLE_COBALT_SOURCES);
+        return state.is(ModTags.Blocks.CAN_EMIT_IN_COBALT_SIGNAL_CHANNEL);
     }
 
     public static boolean isWirePointingTo(BlockState state, Direction dirToTarget) {

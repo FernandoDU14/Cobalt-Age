@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.mixin.rebs.emitters;
+package net.fernando.cobaltage.mixin.signal.both;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
