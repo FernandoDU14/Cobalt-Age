@@ -4,12 +4,12 @@
   "key": {
     "B": "minecraft:breeze_rod",
     "C": "cobaltage:cobalt_ingot",
-    "R": "minecraft:redstone"
+    "D": "cobaltage:cobalt_dust"
   },
   "pattern": [
     "C C",
     "CBC",
-    "CRC"
+    "CDC"
   ],
   "result": {
     "count": 6,

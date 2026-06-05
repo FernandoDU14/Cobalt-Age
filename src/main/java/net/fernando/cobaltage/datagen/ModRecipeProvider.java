@@ -56,10 +56,10 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 shaped(RecipeCategory.MISC, ModBlocks.COBALT_RAIL, 6)
                         .pattern("C C")
                         .pattern("CBC")
-                        .pattern("CRC")
+                        .pattern("CDC")
                         .define('C', ModItems.COBALT_INGOT)
                         .define('B', Items.BREEZE_ROD)
-                        .define('R', Items.REDSTONE)
+                        .define('D', ModItems.COBALT_DUST)
                         .unlockedBy(getHasName(ModItems.COBALT_INGOT), has(ModItems.COBALT_INGOT))
                         .save(output);
 
