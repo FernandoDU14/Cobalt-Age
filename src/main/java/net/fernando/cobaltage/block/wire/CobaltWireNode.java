@@ -13,12 +13,11 @@ public class CobaltWireNode extends CobaltNode {
     public int externalPower;
     public int oldPower;
 
-    // Maschere di bit dedicate (Il bit 0 è ereditato da FLAG_INVALID in CobaltNode)
+    // Bit masks
     private static final byte FLAG_EXTERNAL_CALCULATED = 2;   // Bit 1 (0010)
     private static final byte FLAG_DISCOVERED_DEPENDENT = 4;  // Bit 2 (0100)
     private static final byte FLAG_ADDED_TO_BUCKET = 8;       // Bit 3 (1000)
 
-    // Ottimizzazione RAM: Capacità iniziale impostata a 4 (allocazione mirata)
     public final List<CobaltWireNode> connectedWires = new ArrayList<>(4);
 
     public CobaltWireNode(BlockPos pos, BlockState state) {

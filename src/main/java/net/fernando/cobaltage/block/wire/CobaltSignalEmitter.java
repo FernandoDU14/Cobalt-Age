@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * dalla redstone vanilla.
  */
 public interface CobaltSignalEmitter {
+    // The logic is the same of getSignal and getDirectSignal
     int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction);
     default int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         return 0;

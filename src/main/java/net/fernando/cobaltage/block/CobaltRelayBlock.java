@@ -24,17 +24,14 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.NonNull;
 
-import static net.fernando.cobaltage.block.wire.CobaltWireShape.canCobaltWireRenderHorizontalConnectionTo;
+import static net.fernando.cobaltage.block.wire.CobaltWireShape.canSourceConnectToTarget;
 
 public class CobaltRelayBlock extends CobaltWireBlock {
-
-    // Aggiungiamo le direzioni verticali. (Orizzontali e POWER sono eredidate)
     public static final BooleanProperty UP = BlockStateProperties.UP;
     public static final BooleanProperty DOWN = BlockStateProperties.DOWN;
 
     public CobaltRelayBlock(Properties settings) {
         super(settings);
-        // Sovrascriviamo il default state per includere UP e DOWN
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(UP, true)
                 .setValue(DOWN, true)
@@ -52,7 +49,6 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         builder.add(UP, DOWN);
     }
 
-    // Essendo un blocco di vetro/relè, occupa l'intero spazio
     @Override
     public @NonNull VoxelShape getShape(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull CollisionContext context) {
         return Shapes.block();
@@ -63,7 +59,6 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         return true;
     }
 
-    // Calcolo delle 6 connessioni per la grafica/logica direzionale
     private BlockState getUpdatedState(BlockGetter world, BlockPos pos, BlockState state) {
         boolean up = true; // forced state
         boolean down = true; // forced state
@@ -94,15 +89,12 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         mutable.setWithOffset(pos, direction);
         BlockState neighborState = world.getBlockState(mutable);
 
-        if (canCobaltWireRenderHorizontalConnectionTo(sourceState, neighborState, direction)) {
+        if (canSourceConnectToTarget(sourceState, neighborState, direction)) {
             return RedstoneSide.SIDE;
         }
         return RedstoneSide.NONE;
     }
 
-
-
-    // Questo farà sì che forceShapeUpdate e i neighbor update usino la logica del Relay!
     @Override
     public BlockState getWireShapeState(BlockGetter world, BlockPos pos, BlockState state) {
         return this.getUpdatedState(world, pos, state);
@@ -125,7 +117,6 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         return this.getUpdatedState(world, pos, baseUpdate);
     }
 
-    // Override dell'energia: Questo blocco emette sia sopra che sotto
     @Override
     protected int getSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
         int power = state.getValue(POWER);
@@ -135,7 +126,6 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         }
         return 0;
     }
-
     @Override
     public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         int power = state.getValue(POWER);
@@ -145,12 +135,10 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         }
         return 0;
     }
-
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         return this.getCobaltSignal(state, world, pos, direction);
     }
-
     @Override
     protected int getDirectSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
         return this.getSignal(state, world, pos, direction);

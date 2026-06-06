@@ -6,8 +6,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class CobaltNode {
     public BlockPos pos;
     public BlockState state;
-
-    // Maschera di bit per compattare i booleani (Occupa solo 1 byte anziché multipli)
+    // Bit mask for booleans
     protected byte flags;
 
     public CobaltNode(BlockPos pos, BlockState state) {

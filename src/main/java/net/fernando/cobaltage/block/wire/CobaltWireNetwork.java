@@ -18,16 +18,13 @@ public class CobaltWireNetwork {
 
     private static final int POWER_MAX_LENGTH = 15;
     private final Long2ObjectOpenHashMap<CobaltNode> nodes = new Long2ObjectOpenHashMap<>();
-    // BUCKET QUEUE: Insert O(1) for every node to update, ordered by virtual power (0-15)
     private final Queue<CobaltWireNode>[] priorityBuckets = new Queue[POWER_MAX_LENGTH+1];
     private boolean isUpdating = false;
 
-    // ⚡ Instance reusable fields (no more allocation for every tick)
+    // 1-Time allocation
     private final BlockPos.MutableBlockPos reusableMutable = new BlockPos.MutableBlockPos();
     private static final ThreadLocal<BlockPos.MutableBlockPos> STATIC_MUTABLE = ThreadLocal.withInitial(BlockPos.MutableBlockPos::new);
     private final List<CobaltWireNode> changedWiresCache = new ArrayList<>();
-
-
 
     public CobaltWireNetwork() {
         for (int i = 0; i < POWER_MAX_LENGTH+1; i++) {
@@ -46,31 +43,29 @@ public class CobaltWireNetwork {
             int oldPower = startNode.currentPower;
             int newExt = calculateExternalPower(world, startNode.pos);
 
-            // ⚡ fast quit when no energy now and before
+            // Fast quit
             if (oldPower == 0 && newExt == 0) return;
-
             startNode.externalPower = newExt;
             startNode.setExternalCalculated(true);
-
             Queue<CobaltWireNode> depletionQueue = new ArrayDeque<>();
 
             if (newExt > oldPower) {
-                // Increment: Skip depletion, go directly to propagation
+                // Increment (Skip depletion, go directly to propagation)
                 startNode.virtualPower = newExt;
                 addToBucket(startNode, newExt);
             } else if (newExt < oldPower) {
-                // Decrement: (Observer if it turns off/broken cable): Cutting only the branch was depending on us
+                // Decrement (Practical example: observer with lever, if it turns off, cutting only the branch was depending on the observer)
                 startNode.oldPower = oldPower;
                 startNode.virtualPower = newExt;
                 startNode.setDiscoveredAsDependent(true);
                 depletionQueue.add(startNode);
             } else {
-                // Same energy (shape could be changed in the adjacent site). Putting in bucket to update neighbors.
+                // Same energy (shape could be changed in the adjacent site). Putting in bucket to update neighbours.
                 startNode.virtualPower = newExt;
                 addToBucket(startNode, newExt);
             }
 
-            // --- ⚡ PHASE 1: DEPLETION (selected energy drop) ---
+            // Depletion Phase
             while (!depletionQueue.isEmpty()) {
                 CobaltWireNode node = depletionQueue.poll();
 
@@ -107,29 +102,25 @@ public class CobaltWireNetwork {
                     if (neighbor.currentPower > 0 && neighbor.currentPower <= node.oldPower - 1) {
                         // If the glass blocked us from passing energy to him, it couldn't depend on us
                         if (!weCanSendToNeighbor) continue;
-
                         neighbor.setDiscoveredAsDependent(true);
                         neighbor.oldPower = neighbor.currentPower;
-
                         if (!neighbor.isExternalCalculated()) {
                             neighbor.externalPower = calculateExternalPower(world, neighbor.pos);
                             neighbor.setExternalCalculated(true);
                         }
                         neighbor.virtualPower = neighbor.externalPower;
                         depletionQueue.add(neighbor);
-
                     } else if (neighbor.currentPower > node.oldPower - 1) {
-                        // Backfill: The neighbor has high energy
+                        // Backfill: The neighbour has high energy
                         // But it can help us only if its block allows it to send energy down.
                         if (!neighborCanSendToUs) continue;
-
                         neighbor.virtualPower = neighbor.currentPower;
                         addToBucket(neighbor, neighbor.virtualPower);
                     }
                 }
             }
 
-            // --- ⚡ PHASE 2: RAM PROPAGATION ---
+            // Propagation Phase
             for (int p = POWER_MAX_LENGTH; p > 0; p--) {
                 Queue<CobaltWireNode> currentBucket = priorityBuckets[p];
 
@@ -151,7 +142,6 @@ public class CobaltWireNetwork {
                     boolean hasCheckedSolidBelow = false;
 
                     for (CobaltWireNode neighbor : node.connectedWires) {
-
                         // Glass Diode
                         boolean differentXZ = node.pos.getX() != neighbor.pos.getX() || node.pos.getZ() != neighbor.pos.getZ();
                         if (neighbor.pos.getY() < node.pos.getY() && differentXZ) {
@@ -161,7 +151,6 @@ public class CobaltWireNetwork {
                             }
                             if (!isSolidBelow) continue;
                         }
-
                         if (powerToTransmit > neighbor.virtualPower) {
                             neighbor.virtualPower = powerToTransmit;
                             addToBucket(neighbor, powerToTransmit);
@@ -169,10 +158,8 @@ public class CobaltWireNetwork {
                     }
                 }
             }
-
-            // --- ⚡ PHASE 3: WRITING AND UPDATE ---
+            // Write and Update
             applyPowerChanges(world);
-
         } finally {
             // Free Cache
             nodes.clear();
@@ -193,7 +180,6 @@ public class CobaltWireNetwork {
     private void applyPowerChanges(Level world) {
         if (!(world instanceof ServerLevel serverLevel)) return;
         changedWiresCache.clear();
-
         for (CobaltNode node : nodes.values()) {
             if (node.isWire()) {
                 CobaltWireNode wireNode = node.asWire();
@@ -207,7 +193,6 @@ public class CobaltWireNetwork {
                 }
             }
         }
-
         for (CobaltWireNode wire : changedWiresCache) {
             updateNeighbors(world, wire);
         }
@@ -235,9 +220,6 @@ public class CobaltWireNetwork {
 
             // 2. Block descent
             if (!neighborState.isRedstoneConductor(world, reusableMutable)) { // The Diagonal Block That Could Interrupt The Wire Web
-                // 🛑 Important: We do not check 'canGoDown' here, as the wire web could still be
-                // influenced by a (diagonal) above cobalt wire.
-                // Memorizing the neighbor regardless to receive potential Backfill
                 reusableMutable.setWithOffset(pos, dir).move(Direction.DOWN);
                 checkAndLink(world, node, reusableMutable.immutable(), null);
             }
@@ -251,7 +233,7 @@ public class CobaltWireNetwork {
         }
     }
 
-    // Helper to check and link between wires and relays, implementing here the logic for their mixed behavior
+    // Helper to check and link between wires and relays, implementing here the logic for their mixed behaviour
     private void checkAndLink(Level world, CobaltWireNode source, BlockPos targetPos, @Nullable BlockState knownState) {
         CobaltWireNode target = getOrAddWireNode(world, targetPos, knownState);
         if (target == null) return;
@@ -313,7 +295,7 @@ public class CobaltWireNetwork {
         return maxPower;
     }
 
-    public static int getDirectCobaltSignalWithoutCobaltWireSignal(Level world, BlockPos blockPos) {
+    private static int getDirectCobaltSignalWithoutCobaltWireSignal(Level world, BlockPos blockPos) {
         int maxStrong = 0;
         BlockPos.MutableBlockPos mutable = STATIC_MUTABLE.get();
         for (Direction dir : Direction.values()) {
@@ -352,12 +334,12 @@ public class CobaltWireNetwork {
         return node.isWire() ? node.asWire() : null;
     }
 
-    // Helper to evaluate which neighbors should update their state by a Cobalt Wire Node update
+    // Helper to evaluate which neighbours should update their state by a Cobalt Wire Node update
     private void updateNeighbors(Level world, CobaltWireNode node) {
 
         Block block = world.getBlockState(node.pos).getBlock();
 
-        // 1. Six Neighbours
+        // 1. Six Neighbours Solid State Flags
         boolean isSolidD = false, isSolidU = false, isSolidN = false, isSolidS = false, isSolidW = false, isSolidE = false;
 
         // North
@@ -368,10 +350,10 @@ public class CobaltWireNetwork {
                 stateN.updateShape(
                         world,                       // LevelReader
                         world,                       // ScheduledTickAccess
-                        reusableMutable,             // BlockPos (Posizione dell'Observer)
-                        Direction.SOUTH,             // Direction (Da dove arriva l'aggiornamento) NORHT -> SOUTH
-                        node.pos,                    // BlockPos2 (Posizione del cavo)
-                        node.state,                  // BlockState (Stato del cavo)
+                        reusableMutable,             // BlockPos (Observer position)
+                        Direction.SOUTH,             // Direction (Where the update comes from)
+                        node.pos,                    // BlockPos2 (Node pos)
+                        node.state,                  // BlockState (Note state)
                         world.getRandom()            // RandomSource
                 );
             } else if (stateN.getBlock() instanceof CobaltSignalEmitter || SignalHelper.isWirePointingTo(node.state, Direction.NORTH)) {
@@ -448,13 +430,13 @@ public class CobaltWireNetwork {
         if (isSolidD) world.neighborChanged(node.pos.offset(0, -2, 0), block, null);
 
         // Diagonal Updates
-        // Diagonali Orizzontali
+        // Horizontal Diagonals
         if (isSolidN || isSolidE) world.neighborChanged(node.pos.offset(1, 0, -1), block, null);
         if (isSolidN || isSolidW) world.neighborChanged(node.pos.offset(-1, 0, -1), block, null);
         if (isSolidS || isSolidE) world.neighborChanged(node.pos.offset(1, 0, 1), block, null);
         if (isSolidS || isSolidW) world.neighborChanged(node.pos.offset(-1, 0, 1), block, null);
 
-        // Diagonali Verticali
+        // Vertical Diagonals
         if (isSolidU || isSolidN) world.neighborChanged(node.pos.offset(0, 1, -1), block, null);
         if (isSolidU || isSolidS) world.neighborChanged(node.pos.offset(0, 1, 1), block, null);
         if (isSolidU || isSolidE) world.neighborChanged(node.pos.offset(1, 1, 0), block, null);

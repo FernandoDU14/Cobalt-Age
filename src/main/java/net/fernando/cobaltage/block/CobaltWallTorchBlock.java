@@ -99,8 +99,7 @@ public class CobaltWallTorchBlock extends CobaltTorchBlock {
 
     @Override
     public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // All the valid are such that you are not my opposite facing
-        // [ (You as Block) <---(facing of torch)--- Torch Attached (Attached Block) ]
+        // [ (You) <---(facing of torch)--- Torch Attached (Attached Block) ]
         return (state.getValue(LIT) && direction != state.getValue(FACING)) ? 15 : 0;
     }
 

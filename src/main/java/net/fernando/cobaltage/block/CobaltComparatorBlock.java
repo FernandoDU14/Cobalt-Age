@@ -42,7 +42,7 @@ public class CobaltComparatorBlock extends CobaltDiodeBlock implements SimpleWat
     public static final MapCodec<CobaltComparatorBlock> CODEC = simpleCodec(CobaltComparatorBlock::new);
     public static final EnumProperty<ComparatorMode> MODE;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-    private static final int UPDATE_DELAY = 2;
+    private static final int UPDATE_DELAY = 2; // 1 rt (1 redstone tick = 0.1 seconds = 2 ticks)
 
     static {
         MODE = BlockStateProperties.MODE_COMPARATOR;

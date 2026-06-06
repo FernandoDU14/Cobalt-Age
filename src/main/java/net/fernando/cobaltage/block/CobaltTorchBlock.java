@@ -38,15 +38,14 @@ public class CobaltTorchBlock extends BaseTorchBlock implements SimpleWaterlogge
     public static final BooleanProperty LIT;
     private static final Map<BlockGetter, List<CobaltTorchBlock.Toggle>> RECENT_TOGGLES;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-    public static final long RECENT_TOGGLE_TIMER = 60; // Number of ticks to wait before clearing recent toggles (20 ticks = 1 second)
-    public static final int MAX_RECENT_TOGGLES = 8; // Number of flicks before burnout
-    public static final int RESTART_DELAY = 160; // Number of ticks to wait before restart (20 ticks = 1 second, 160 = 8 seconds)
-    private static final int UPDATE_DELAY = 2; // Number of tick delay when updated
+    public static final long RECENT_TOGGLE_TIMER = 60; // Temporal window of registering toggles (ticks) -> 20 ticks = 1 second
+    public static final int MAX_RECENT_TOGGLES = 8; // Number of filps between on/off state before burnout (1)
+    public static final int RESTART_DELAY = 160; // Number of ticks to wait before trying to repower (ticks) -> 160 = 8 seconds
+    private static final int UPDATE_DELAY = 2; // Number of tick delay when updated 2 ticks = 0.1 seconds = 1 redstone tick
 
     public @NonNull MapCodec<? extends CobaltTorchBlock> codec() {
         return CODEC;
     }
-
 
     public CobaltTorchBlock(Properties settings) {
         super(settings);

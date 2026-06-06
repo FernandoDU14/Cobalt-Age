@@ -14,8 +14,8 @@ import static net.fernando.cobaltage.util.signal.SignalHelper.compatibleCobaltPo
 
 public class CobaltWireShape {
 
+    // Helper to compute the new wire state shapes
     public static BlockState getUpdatedState(BlockGetter world, BlockPos pos, BlockState state) {
-        // In new Mojang Mappings, RedstoneSide substitutes WireConnection
         RedstoneSide north = getRenderConnection(world, pos, Direction.NORTH);
         RedstoneSide south = getRenderConnection(world, pos, Direction.SOUTH);
         RedstoneSide east = getRenderConnection(world, pos, Direction.EAST);
@@ -27,15 +27,10 @@ public class CobaltWireShape {
         boolean hasEast = east.isConnected();
         boolean hasWest = west.isConnected();
 
-        // 🛑 Default state return logic
         if (!hasNorth && !hasSouth && !hasEast && !hasWest) {
-            // Keeping dot state
             if (isNotConnected(state)) {
                 return state;
             }
-            // If it's not a dot and has no neighbors (e.g., if I just broke the last neighboring wire),
-            // go back to cross-shape state (default placement state).
-            // this will force a block update and of its neighbors
             return state
                     .setValue(CobaltWireBlock.NORTH, RedstoneSide.SIDE)
                     .setValue(CobaltWireBlock.SOUTH, RedstoneSide.SIDE)
@@ -69,6 +64,7 @@ public class CobaltWireShape {
                 .setValue(CobaltWireBlock.WEST, west);
     }
 
+    // is . State?
     private static boolean isNotConnected(BlockState state) {
         return state.getValue(CobaltWireBlock.NORTH) == RedstoneSide.NONE &&
                 state.getValue(CobaltWireBlock.SOUTH) == RedstoneSide.NONE &&
@@ -76,58 +72,50 @@ public class CobaltWireShape {
                 state.getValue(CobaltWireBlock.WEST) == RedstoneSide.NONE;
     }
 
-    // Helper to evaluate the wire connection for a given direction
+    // Helper to compute the wire connection for a given direction
     public static RedstoneSide getRenderConnection(BlockGetter world, BlockPos pos, Direction direction) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-
         BlockState sourceState = world.getBlockState(pos);
-
         mutable.setWithOffset(pos, direction);
         BlockState neighborState = world.getBlockState(mutable);
-
         mutable.setWithOffset(pos, Direction.UP);
         BlockState stateAboveNeighbor = world.getBlockState(mutable);
 
         boolean canAscend = !stateAboveNeighbor.isRedstoneConductor(world, mutable);
 
-        // 1. Ascent - Run on Top - Climb Up
+        // 1. Computing ascent checks
         if (canAscend) {
             // Moving mutable cursor
             mutable.setWithOffset(pos, direction).move(Direction.UP);
             if (world.getBlockState(mutable).is(ModBlocks.COBALT_DUST)) {
-
                 // Removing mutable cursor
                 mutable.setWithOffset(pos, direction);
                 boolean canSurviveOnNeighbor = neighborState.getBlock() instanceof TrapDoorBlock ||
                         neighborState.isFaceSturdy(world, mutable, Direction.UP) ||
                         neighborState.is(Blocks.HOPPER);
-
                 if (canSurviveOnNeighbor) {
-                    // If the lateral face of the neighbor block is sturdy (e.g. solid block or glass), you can climb up
+                    // If the lateral face of the neighbour block is sturdy (e.g. solid block or glass), you can climb up
                     if (neighborState.isFaceSturdy(world, mutable, direction.getOpposite()) &&
-                    !neighborState.is(ModBlocks.COBALT_RELAY) // If the neighbor is a relay, it connects just horizontally
+                    !neighborState.is(ModBlocks.COBALT_RELAY) // If the neighbour is a relay, it connects just horizontally
                     ) {
                         return RedstoneSide.UP;
                     }
-                    // If it is not sturdy (es. Top-Slab o Scale), it connects diagonally
+                    // If it is not sturdy (ex. top-slab or diagonal stairs), it just connects horizontally
                     return RedstoneSide.SIDE;
                 }
             }
         }
 
-        // 2. (a) Horizontal connection (side)
-        // Resetting mutable cursor to neighbor block for horizontal connection validation
+        // 2. Computing horizontal checks
         mutable.setWithOffset(pos, direction);
-        if (canCobaltWireRenderHorizontalConnectionTo(sourceState, neighborState, direction)) {
+        if (canSourceConnectToTarget(sourceState, neighborState, direction)) {
             return RedstoneSide.SIDE;
         }
 
-        // 3. (d) Horizontal connection (side) for descent
-        // Does the neighbor block obstruct the passage (is it an opaque conductor)?
+        // 3. Computing descend checks
         if (!neighborState.isRedstoneConductor(world, mutable)) {
             mutable.setWithOffset(pos, Direction.DOWN);
             if (!world.getBlockState(mutable).is(ModBlocks.COBALT_RELAY)) {
-                // If the block in which I survive is a relay, it does not connect to the other dust
                 mutable.setWithOffset(pos, direction).move(Direction.DOWN);
                 if (world.getBlockState(mutable).is(ModBlocks.COBALT_DUST)) {
                     return RedstoneSide.SIDE;
@@ -138,9 +126,8 @@ public class CobaltWireShape {
         return RedstoneSide.NONE;
     }
 
-    // Helper to evaluate if two Cobalt Wire Instances blocks can connect visually (Horizontal connection)
-    // This overrides the default behavior of compatible cobalt power source as you can see down below
-    public static boolean canCobaltWireRenderHorizontalConnectionTo(BlockState sourceState, BlockState targetState, @Nullable Direction dir) {
+    // Helper to evaluate if two Cobalt Wire Instances blocks can connect (just visually a horizontal connection)
+    public static boolean canSourceConnectToTarget(BlockState sourceState, BlockState targetState, @Nullable Direction dir) {
 
         if (sourceState.is(ModBlocks.COBALT_RELAY)) {
             if(targetState.is(ModBlocks.COBALT_RELAY)){

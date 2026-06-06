@@ -61,37 +61,27 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
     @Override
     public void animateTick(BlockState state, @NonNull Level world, BlockPos pos, RandomSource random) {
         Direction facing = state.getValue(FACING);
-
-        // 1. Troviamo il centro esatto del blocco
         double centerX = pos.getX() + 0.5;
-        double centerY = pos.getY() + 0.4; // L'altezza delle torce
+        double centerY = pos.getY() + 0.4;
         double centerZ = pos.getZ() + 0.5;
-
-        // 2. Creiamo l'oscillazione casuale (il tremolio del fumo)
         double randX = (random.nextDouble() - 0.5) * 0.2;
         double randY = (random.nextDouble() - 0.5) * 0.2;
         double randZ = (random.nextDouble() - 0.5) * 0.2;
-
-        // 3. Offset di distanza dal centro: 4 pixel (0.25 blocchi)
         double offsetDistance = 0.25;
 
         if (state.getValue(COBALT_LIT)) {
-            // La torcia Cobalt è spostata "IN AVANTI" rispetto al centro
             double x = centerX + (facing.getStepX() * offsetDistance) + randX;
             double y = centerY + randY;
             double z = centerZ + (facing.getStepZ() * offsetDistance) + randZ;
-
             int cobaltBlue = (0) | (153 << 8) | 255;
             DustParticleOptions cobaltDust = new DustParticleOptions(cobaltBlue, 1.0f);
             world.addParticle(cobaltDust, x, y, z, 0.0, 0.0, 0.0);
         }
 
         if (state.getValue(REDSTONE_LIT)) {
-            // La torcia Redstone è spostata "ALL'INDIETRO" rispetto al centro (nota il segno meno)
             double x = centerX - (facing.getStepX() * offsetDistance) + randX;
             double y = centerY + randY;
             double z = centerZ - (facing.getStepZ() * offsetDistance) + randZ;
-
             world.addParticle(DustParticleOptions.REDSTONE, x, y, z, 0.0F, 0.0F, 0.0F);
         }
     }
@@ -155,7 +145,7 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
         BlockPos cobaltSidePos = pos.relative(cobaltDirection);
         BlockState cobaltSideState = world.getBlockState(cobaltSidePos);
 
-        // Reading Redstone signals like a Redstone Repeater does
+        // Reading methods inherited by diode blocks
         int newRed;
         int i = ((SignalTypeLevelExtensions) world).getSignalByType(REDSTONE, RedstoneSidePos, redstoneDirection);
         if (i >= 15) {
@@ -163,7 +153,6 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
         } else {
             newRed = Math.max(i, redstoneSideState.is(Blocks.REDSTONE_WIRE) ? redstoneSideState.getValue(RedStoneWireBlock.POWER) : 0);
         }
-        // Reading Cobalt signal like Cobalt Repeater does
         int newCob;
         i = ((SignalTypeLevelExtensions) world).getSignalByType(COBALT, cobaltSidePos, cobaltDirection);
         if (i >= 15) {
@@ -223,16 +212,12 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
     private void updateNeighbors(Level world, BlockPos pos, BlockState state) {
         Direction cobaltSide = state.getValue(FACING);
         Direction redstoneSide = cobaltSide.getOpposite();
-
-        // Aggiorna Tutti i Primi Vicini e Primi Vicini Diagonali
         world.updateNeighborsAt(pos, this, null);
         world.updateNeighborsAt(pos.relative(redstoneSide), this, null);
         world.updateNeighborsAt(pos.relative(cobaltSide), this, null);
 
     }
 
-
-    // --- Signal overrides ---
     @Override
     public boolean isSignalSource(@NonNull BlockState state) {
         return true;
@@ -242,19 +227,15 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
         return this.getSignal(state, world, pos, direction);
     }
     @Override
-    // direction is the direction of the EMISSION
     protected int getSignal(BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        // (F) Cobalt -> Redston (F.opposite) only from Facing direction
         return (state.getValue(FLOWING_SIDE) == FlowingSide.TOWARDS_REDSTONE && direction == state.getValue(FACING)) ? state.getValue(POWER) : 0;
     }
     @Override
     public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // Giving you signal if i'm not in cobalt input mode and i'm the opposite of my facing respect to you
         return (state.getValue(FLOWING_SIDE).equals(FlowingSide.TOWARDS_COBALT) && direction == state.getValue(FACING).getOpposite()) ? state.getValue(POWER) : 0;
     }
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // Giving you the direct signal as I would've given as a signal
         return this.getCobaltSignal(state, world, pos, direction);
     }
 }

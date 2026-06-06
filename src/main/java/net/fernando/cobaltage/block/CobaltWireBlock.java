@@ -138,7 +138,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
 
     @Override
     protected @NonNull VoxelShape getShape(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull CollisionContext context) {
-        return SHAPE_CACHE[getShapeIndex(state)]; // Costo O(1), zero allocazioni, performance fulminee
+        return SHAPE_CACHE[getShapeIndex(state)]; // O(1)
     }
 
     public static EnumProperty<RedstoneSide> getProperty(Direction direction) {
@@ -161,12 +161,10 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         float r = f * 0.1f + 0.1f;
         float g = f * 0.5f + 0.3f;
         float b = f * 1.1f + 0.4f;
-
         if(f!=0){
             b = b + 0.1f;
             g = g + 0.1f;
         }
-
         int red = Mth.clamp((int)(r * 255.0F), 0, 255);
         int green = Mth.clamp((int)(g * 255.0F), 0, 255);
         int blue = Mth.clamp((int)(b * 255.0F), 0, 255);
@@ -193,7 +191,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         int colorInt = getCobaltColor(power);
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             EnumProperty<RedstoneSide> property = getProperty(direction);
-
             switch (state.getValue(property)) {
                 case UP:
                     addPoweredParticles(world, random, pos, colorInt, direction, Direction.UP, -0.5F, 0.5F);
@@ -221,7 +218,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     public @NonNull FluidState getFluidState(BlockState state) {
         return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
-
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -268,7 +264,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         BlockState state = this.getWireShapeState(world, pos, this.defaultBlockState());
         FluidState fluidState = world.getFluidState(pos);
         boolean waterlogged = fluidState.getType() == Fluids.WATER;
-
         return state.setValue(WATERLOGGED, waterlogged);
     }
 
@@ -293,7 +288,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
 
     @Override
     public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // Just need to be connected to you to give my signal
         if (isNotConnected(state)) return 0;
         if(direction == Direction.UP) return state.getValue(POWER);
         if (direction.getAxis().isHorizontal()) {
@@ -301,24 +295,18 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         }
         return 0;
     }
+
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         return this.getCobaltSignal(state, world, pos, direction);
     }
 
     private void updateAllNeighbors(Level world, BlockPos pos) {
-
-        // Update of the next 6 neighbors
         world.updateNeighborsAt(pos, this, null);
-
-        // Update of the next 8 diagonals neighbors
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             mutable.setWithOffset(pos, dir);
-
-            // Per updateNeighborsAlways, Minecraft Vanilla preferisce gli Immutable per evitare side-effect asincroni.
             BlockPos immutableSide = mutable.immutable();
-
             world.updateNeighborsAt(immutableSide, this, null);
             world.updateNeighborsAt(immutableSide.above(), this, null);
             world.updateNeighborsAt(immutableSide.below(), this, null);
@@ -345,21 +333,16 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         }
     }
 
-    // --- NUOVI METODI PER FORZARE LA GRAFICA ---
-
     private void updateDiagonalShapes(Level world, BlockPos pos) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-
-        // Update of the next 6 neighbors
+        // 6 Prime Neighbours
         for (Direction dir : Direction.values()) {
             forceShapeUpdate(world, mutable.setWithOffset(pos, dir));
         }
-
-        // Update of the next 8 diagonals neighbors
+        // 8 Diagonal Neighbours (4 UP, 4 DOWN)
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             mutable.setWithOffset(pos, dir);
             forceShapeUpdate(world, mutable.move(Direction.UP));
-
             mutable.setWithOffset(pos, dir);
             forceShapeUpdate(world, mutable.move(Direction.DOWN));
         }
@@ -367,13 +350,8 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
 
     private void forceShapeUpdate(Level world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
-
-        // Controlliamo se il blocco in questa posizione è una tua polvere
         if (state.getBlock() instanceof CobaltWireBlock wireBlock) {
-            // Calcoliamo la nuova forma (Punto, Linea, Rampa, ecc.)
             BlockState newState = wireBlock.getWireShapeState(world, pos, state);
-
-            // Se la forma calcolata è diversa da quella attuale, applichiamola immediatamente!
             if (state != newState) {
                 world.setBlock(pos, newState, Block.UPDATE_ALL);
                 for (Direction dir : Direction.values()) {
@@ -392,51 +370,32 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     @Override
     protected @NonNull InteractionResult useWithoutItem(@NonNull BlockState state, @NonNull Level world, @NonNull BlockPos pos, Player player, @NonNull BlockHitResult hit) {
         if (!player.getAbilities().mayBuild) return InteractionResult.PASS;
-
-        // Se è un cross completo o un puntino, permettiamo il toggle
+        // + or .
         if (isFullyConnected(state) || isNotConnected(state)) {
-            if(hasNeighborSignals(world, pos)){
+            if(hasForcedConnection(world, pos)){
                 return InteractionResult.PASS;
             }
-            // Se è cross -> diventa puntino. Se è puntino -> torna cross.
             BlockState newState = isFullyConnected(state) ? setDotState(state) : setCrossState(state);
-
-            // 1. Manteniamo il livello di potenza attuale durante la transizione
             newState = newState.setValue(POWER, state.getValue(POWER));
             world.setBlock(pos, newState, Block.UPDATE_ALL);
-
-            // --- FIX DEL BUG DELLA TORCIA ---
-            // 2. Avvisiamo i vicini dei vicini! Così il blocco in diagonale
-            // scopre che il cavo non lo sta più puntando e fa riaccendere la torcia.
             this.updateAllNeighbors(world, pos);
-
-            // 3. Ricalcoliamo la rete. Cambiando forma, il cavo potrebbe
-            // essersi disconnesso (o connesso) a una fonte di energia.
             NETWORK_HANDLER.updateNetwork(world, pos);
-
             return InteractionResult.SUCCESS;
         }
-        // (world.getBlockState(pos.below()).is(ModBlocks.COBALT_RELAY)
+        // - with 1 free side
         if (hasOneFreeConnectionInALineShape(world, pos)) {
-            // Invertiamo lo stato di isolamento (true <-> false)
             BlockState newState = state.cycle(RETRACTED);
-
-            // Aggiorna il blocco nel mondo ricalcolando la forma con il nuovo stato
             world.setBlock(pos, CobaltWireShape.getUpdatedState(world, pos, newState), Block.UPDATE_ALL);
             this.updateAllNeighbors(world, pos);
             NETWORK_HANDLER.updateNetwork(world, pos);
-
             return InteractionResult.SUCCESS;
         }
-
         return InteractionResult.PASS;
     }
 
-    // Helper per capire se lo stato è 4 libero o 4 forzato da connessioni esterne
-    private boolean hasNeighborSignals(Level world, BlockPos pos) {
+    // has at least 1 connection?
+    private boolean hasForcedConnection(Level world, BlockPos pos) {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            // Se getRenderConnection (quello che usi per la forma) restituisce qualcosa
-            // di diverso da NONE per una direzione, allora c'è un vicino.
             if (CobaltWireShape.getRenderConnection(world, pos, direction) != RedstoneSide.NONE) {
                 return true;
             }
@@ -444,7 +403,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         return false;
     }
 
-    // Helper per capire se lo stato è di tipo side
+    // is - state with only 1 free connection on the same axis?
     public static boolean hasOneFreeConnectionInALineShape(Level world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
         int i = 0;
@@ -468,15 +427,8 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         }
         return false;
     }
-    // Helper per creare lo stato a puntino (tutti NONE)
-    private BlockState setDotState(BlockState state) {
-        return state.setValue(NORTH, RedstoneSide.NONE)
-                .setValue(SOUTH, RedstoneSide.NONE)
-                .setValue(EAST, RedstoneSide.NONE)
-                .setValue(WEST, RedstoneSide.NONE);
-    }
 
-    // Helper to check if it's currently a dot
+    // is . State?
     private boolean isNotConnected(BlockState state) {
         return state.getValue(NORTH) == RedstoneSide.NONE &&
                 state.getValue(SOUTH) == RedstoneSide.NONE &&
@@ -484,7 +436,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
                 state.getValue(WEST) == RedstoneSide.NONE;
     }
 
-    // Helper to check if it's currently a cross
+    // is + State?
     private boolean isFullyConnected(BlockState state) {
         return state.getValue(NORTH) == RedstoneSide.SIDE &&
                 state.getValue(SOUTH) == RedstoneSide.SIDE &&
@@ -492,7 +444,15 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
                 state.getValue(WEST) == RedstoneSide.SIDE;
     }
 
-    // Forces all 4 sides to 'SIDE' to create the cross look
+    // . State
+    private BlockState setDotState(BlockState state) {
+        return state.setValue(NORTH, RedstoneSide.NONE)
+                .setValue(SOUTH, RedstoneSide.NONE)
+                .setValue(EAST, RedstoneSide.NONE)
+                .setValue(WEST, RedstoneSide.NONE);
+    }
+
+    // + State
     private BlockState setCrossState(BlockState state) {
         return state.setValue(NORTH, RedstoneSide.SIDE)
                 .setValue(SOUTH, RedstoneSide.SIDE)

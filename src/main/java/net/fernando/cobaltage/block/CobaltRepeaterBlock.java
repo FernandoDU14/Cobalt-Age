@@ -42,7 +42,7 @@ public class CobaltRepeaterBlock extends CobaltDiodeBlock implements SimpleWater
         super(settings);
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
-                .setValue(DELAY, 1)
+                .setValue(DELAY, 1) // Delay (redstone ticks) -> 1 rt = 0.1 sec = 2 ticks
                 .setValue(LOCKED, false)
                 .setValue(POWERED, false)
                 .setValue(WATERLOGGED, false));
