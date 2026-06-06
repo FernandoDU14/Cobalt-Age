@@ -32,10 +32,9 @@ import org.jspecify.annotations.NonNull;
 
 import static net.fernando.cobaltage.util.signal.SignalType.*;
 
-public class CobaltConverterBlock extends Block implements SimpleWaterloggedBlock, CobaltSignalEmitter {
+public class CobaltConverterBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock, CobaltSignalEmitter {
 
     public static final MapCodec<CobaltConverterBlock> CODEC = simpleCodec(CobaltConverterBlock::new);
-    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     private static final VoxelShape SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 2.0, 16.0);

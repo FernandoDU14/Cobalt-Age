@@ -4,6 +4,7 @@ import net.fernando.cobaltage.block.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -19,6 +20,7 @@ public class CobaltWireShape {
         RedstoneSide south = getRenderConnection(world, pos, Direction.SOUTH);
         RedstoneSide east = getRenderConnection(world, pos, Direction.EAST);
         RedstoneSide west = getRenderConnection(world, pos, Direction.WEST);
+        boolean isRetracted = state.hasProperty(CobaltWireBlock.RETRACTED) && state.getValue(CobaltWireBlock.RETRACTED);
 
         boolean hasNorth = north.isConnected();
         boolean hasSouth = south.isConnected();
@@ -41,9 +43,7 @@ public class CobaltWireShape {
                     .setValue(CobaltWireBlock.WEST, RedstoneSide.SIDE);
         }
 
-        // When connections are present, recalculate shape normally
-        boolean isIsolated = state.hasProperty(CobaltWireBlock.ISOLATED) && state.getValue(CobaltWireBlock.ISOLATED);
-        if (!isIsolated) {
+        if (!isRetracted) {
             if (!hasNorth && !hasSouth) {
                 if (!hasEast) east = RedstoneSide.SIDE;
                 if (!hasWest) west = RedstoneSide.SIDE;
@@ -51,6 +51,15 @@ public class CobaltWireShape {
                 if (!hasNorth) north = RedstoneSide.SIDE;
                 if (!hasSouth) south = RedstoneSide.SIDE;
             }
+        }else{
+            return state
+                    .setValue(CobaltWireBlock.RETRACTED,
+                            world.getBlockState(pos.below()).is(ModBlocks.COBALT_RELAY)
+                            || CobaltWireBlock.hasOneFreeConnectionInALineShape( (Level) world, pos))
+                    .setValue(CobaltWireBlock.NORTH, north)
+                    .setValue(CobaltWireBlock.SOUTH, south)
+                    .setValue(CobaltWireBlock.EAST, east)
+                    .setValue(CobaltWireBlock.WEST, west);
         }
 
         return state

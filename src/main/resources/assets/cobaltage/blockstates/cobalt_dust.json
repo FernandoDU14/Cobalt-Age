@@ -29,7 +29,7 @@
             "west": "side|up"
           },
           {
-            "isolated": "true"
+            "retracted": "true"
           }
         ]
       }

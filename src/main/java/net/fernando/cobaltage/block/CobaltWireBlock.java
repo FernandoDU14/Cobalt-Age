@@ -45,7 +45,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     public static final EnumProperty<RedstoneSide> SOUTH = BlockStateProperties.SOUTH_REDSTONE;
     public static final EnumProperty<RedstoneSide> EAST = BlockStateProperties.EAST_REDSTONE;
     public static final EnumProperty<RedstoneSide> WEST = BlockStateProperties.WEST_REDSTONE;
-    public static final BooleanProperty ISOLATED = BooleanProperty.create("isolated");
+    public static final BooleanProperty RETRACTED = BooleanProperty.create("retracted");
     private static final net.fernando.cobaltage.block.wire.CobaltWireNetwork NETWORK_HANDLER = new net.fernando.cobaltage.block.wire.CobaltWireNetwork();
 
     public CobaltWireBlock(Properties settings) {
@@ -56,7 +56,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
                 .setValue(SOUTH, RedstoneSide.SIDE)
                 .setValue(EAST, RedstoneSide.SIDE)
                 .setValue(WEST, RedstoneSide.SIDE)
-                .setValue(ISOLATED, false)
+                .setValue(RETRACTED, false)
                 .setValue(WATERLOGGED, false));
     }
     
@@ -225,7 +225,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(POWER, NORTH, SOUTH, EAST, WEST, ISOLATED, WATERLOGGED);
+        builder.add(POWER, NORTH, SOUTH, EAST, WEST, RETRACTED, WATERLOGGED);
     }
 
     @Override
@@ -325,8 +325,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         }
     }
 
-
-    // This method is called when this block has been placed
     @Override
     public void onPlace(BlockState state, @NonNull Level world, @NonNull BlockPos pos, BlockState oldState, boolean notify) {
         if (!oldState.is(state.getBlock()) && !world.isClientSide()) {
@@ -387,7 +385,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
 
     @Override
     public void setPlacedBy(@NonNull Level world, @NonNull BlockPos pos, @NonNull BlockState state, @Nullable LivingEntity placer, @NonNull ItemStack stack) {
-        // Notifichiamo che l'energia è sparita
         this.updateAllNeighbors(world, pos);
         NETWORK_HANDLER.updateNetwork(world, pos);
     }
@@ -422,7 +419,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         // (world.getBlockState(pos.below()).is(ModBlocks.COBALT_RELAY)
         if (hasOneFreeConnectionInALineShape(world, pos)) {
             // Invertiamo lo stato di isolamento (true <-> false)
-            BlockState newState = state.cycle(ISOLATED);
+            BlockState newState = state.cycle(RETRACTED);
 
             // Aggiorna il blocco nel mondo ricalcolando la forma con il nuovo stato
             world.setBlock(pos, CobaltWireShape.getUpdatedState(world, pos, newState), Block.UPDATE_ALL);
@@ -448,7 +445,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     }
 
     // Helper per capire se lo stato è di tipo side
-    private boolean hasOneFreeConnectionInALineShape(Level world, BlockPos pos) {
+    public static boolean hasOneFreeConnectionInALineShape(Level world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
         int i = 0;
         int j = 0;
