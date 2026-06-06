@@ -60,7 +60,9 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
 
     /**
      * @author Un JaviDP
-     * @reason DIPPI DIH (try find me!)
+     * @reason DIPPI DIH (try find me!) your method is not good bc
+     * of the fact it doesnt go well with copper rails! massive skill issue
+     * peak gg sb unjavidp unjaviDP unjaviDP dihhhh ._. ._. ._. ._.
      */
     @Overwrite
     public double getMaxSpeed(ServerLevel serverWorld) {
