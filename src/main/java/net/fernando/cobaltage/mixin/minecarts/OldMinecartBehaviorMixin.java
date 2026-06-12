@@ -25,9 +25,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(OldMinecartBehavior.class)
+@Mixin(value = OldMinecartBehavior.class,  priority = 1500)
 public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
 
     protected OldMinecartBehaviorMixin(AbstractMinecart minecart) {
@@ -47,7 +46,7 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
     }
 
     @Unique
-    public int getMaxRailSpeed(BlockState blockState) {
+    public int cobaltage$getMaxRailSpeed(BlockState blockState) {
         MinecraftServer server = this.minecart.level().getServer();
         if (server == null) {
             CobaltAge.LOGGER.error("Could not access server gamerules! Please report this bug");
@@ -60,9 +59,7 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
 
     /**
      * @author Un JaviDP
-     * @reason DIPPI DIH (try find me!) your method is not good bc
-     * of the fact it doesnt go well with copper rails! massive skill issue
-     * peak gg sb unjavidp unjaviDP unjaviDP dihhhh ._. ._. ._. ._.
+     * @reason DIPPI DIH
      */
     @Overwrite
     public double getMaxSpeed(ServerLevel serverWorld) {
@@ -78,112 +75,192 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
         }
     }
 
-    @Redirect(
+    @WrapOperation(
             method = "moveAlongTrack",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/vehicle/minecart/OldMinecartBehavior;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
-                    ordinal = 9))
-    public void setVelocityClamp(OldMinecartBehavior minecart, Vec3 velocity) {
-        double maxSpeed = getMaxRailSpeed(this.minecart.level().getBlockState(this.minecart.blockPosition())) / 20.0F;
-        minecart.setDeltaMovement(convergeAbs(velocity.x, maxSpeed), velocity.y, convergeAbs(velocity.z, maxSpeed));
+                    ordinal = 9
+            )
+    )
+    private void wrapVelocityClamp(
+            OldMinecartBehavior minecart,
+            Vec3 velocity,
+            Operation<Void> original
+    ) {
+        double maxSpeed =
+                cobaltage$getMaxRailSpeed(
+                        this.minecart.level().getBlockState(this.minecart.blockPosition())
+                ) / 20.0F;
+
+        original.call(
+                minecart,
+                new Vec3(
+                        convergeAbs(velocity.x, maxSpeed),
+                        velocity.y,
+                        convergeAbs(velocity.z, maxSpeed)
+                )
+        );
     }
 
-    @Redirect(
+    @WrapOperation(
             method = "moveAlongTrack",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/vehicle/minecart/OldMinecartBehavior;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
-                    ordinal = 0))
-    public void setVelocityAscendingEast(OldMinecartBehavior minecart, Vec3 velocity_adder) {
+                    ordinal = 0
+            )
+    )
+    private void wrapAscendingEast( OldMinecartBehavior minecart, Vec3 velocityAdder, Operation<Void> original) {
         Vec3 velocity = minecart.getDeltaMovement();
-        double v_x = velocity_adder.x;
-        double v_y = velocity_adder.y;
-        double v_z = velocity_adder.z;
-        if (velocity.x > CobaltAgeConfig.MAX_ASCENDING_SPEED) {
-            v_x = CobaltAgeConfig.MAX_ASCENDING_SPEED;
+        double vx = velocityAdder.x;
+        if (velocity.x > CobaltAgeConfig.MAX_ASCENDING_SPEED) vx = CobaltAgeConfig.MAX_ASCENDING_SPEED;
+        original.call(minecart, new Vec3(vx, velocityAdder.y, velocityAdder.z));
+    }
+
+    @WrapOperation(
+            method = "moveAlongTrack",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/vehicle/minecart/OldMinecartBehavior;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
+                    ordinal = 1
+            )
+    )
+    private void wrapAscendingWest(
+            OldMinecartBehavior minecart,
+            Vec3 velocityAdder,
+            Operation<Void> original
+    ) {
+        Vec3 velocity = minecart.getDeltaMovement();
+
+        double vx = velocityAdder.x;
+
+        if (velocity.x < -CobaltAgeConfig.MAX_ASCENDING_SPEED) {
+            vx = -CobaltAgeConfig.MAX_ASCENDING_SPEED;
         }
-        minecart.setDeltaMovement(v_x, v_y, v_z);
+
+        original.call(
+                minecart,
+                new Vec3(
+                        vx,
+                        velocityAdder.y,
+                        velocityAdder.z
+                )
+        );
     }
 
-    @Redirect(
+    @WrapOperation(
             method = "moveAlongTrack",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/vehicle/minecart/OldMinecartBehavior;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
-                    ordinal = 1))
-    public void setVelocityAscendingWest(OldMinecartBehavior minecart, Vec3 velocity_adder) {
+                    ordinal = 2
+            )
+    )
+    private void wrapAscendingNorth(
+            OldMinecartBehavior minecart,
+            Vec3 velocityAdder,
+            Operation<Void> original
+    ) {
         Vec3 velocity = minecart.getDeltaMovement();
-        double v_x = velocity_adder.x;
-        double v_y = velocity_adder.y;
-        double v_z = velocity_adder.z;
-        if (velocity.x < - CobaltAgeConfig.MAX_ASCENDING_SPEED) {
-            v_x = - CobaltAgeConfig.MAX_ASCENDING_SPEED;
+
+        double vz = velocityAdder.z;
+
+        if (velocity.z < -CobaltAgeConfig.MAX_ASCENDING_SPEED) {
+            vz = -CobaltAgeConfig.MAX_ASCENDING_SPEED;
         }
-        minecart.setDeltaMovement(v_x, v_y, v_z);
+
+        original.call(
+                minecart,
+                new Vec3(
+                        velocityAdder.x,
+                        velocityAdder.y,
+                        vz
+                )
+        );
     }
 
-    @Redirect(
+    @WrapOperation(
             method = "moveAlongTrack",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/vehicle/minecart/OldMinecartBehavior;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
-                    ordinal = 2))
-    public void setVelocityAscendingNorth(OldMinecartBehavior minecart, Vec3 velocity_adder) {
+                    ordinal = 3
+            )
+    )
+    private void wrapAscendingSouth(
+            OldMinecartBehavior minecart,
+            Vec3 velocityAdder,
+            Operation<Void> original
+    ) {
         Vec3 velocity = minecart.getDeltaMovement();
-        double v_x = velocity_adder.x;
-        double v_y = velocity_adder.y;
-        double v_z = velocity_adder.z;
-        if (velocity.z < - CobaltAgeConfig.MAX_ASCENDING_SPEED) {
-            v_z = - CobaltAgeConfig.MAX_ASCENDING_SPEED;
-        }
-        minecart.setDeltaMovement(v_x, v_y, v_z);
-    }
 
-    @Redirect(
-            method = "moveAlongTrack",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/vehicle/minecart/OldMinecartBehavior;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
-                    ordinal = 3))
-    public void setVelocityAscendingSouth(OldMinecartBehavior minecart, Vec3 velocity_adder) {
-        Vec3 velocity = minecart.getDeltaMovement();
-        double v_x = velocity_adder.x;
-        double v_y = velocity_adder.y;
-        double v_z = velocity_adder.z;
+        double vz = velocityAdder.z;
+
         if (velocity.z > CobaltAgeConfig.MAX_ASCENDING_SPEED) {
-            v_z = CobaltAgeConfig.MAX_ASCENDING_SPEED;
+            vz = CobaltAgeConfig.MAX_ASCENDING_SPEED;
         }
-        minecart.setDeltaMovement(v_x, v_y, v_z);
+
+        original.call(
+                minecart,
+                new Vec3(
+                        velocityAdder.x,
+                        velocityAdder.y,
+                        vz
+                )
+        );
     }
 
-    @Redirect(
+    @WrapOperation(
             method = "moveAlongTrack",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/vehicle/minecart/AbstractMinecart;move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V"
             )
     )
-    public void accurateCollisionCheckOnMove(AbstractMinecart minecart, MoverType movementType, Vec3 vec3d, @Local(ordinal = 0) RailShape railShape) {
-        if (vec3d.horizontalDistance() < 0.6) {
-            minecart.move(movementType, vec3d);
+    private void accurateCollisionCheckOnMove(
+            AbstractMinecart minecart,
+            MoverType movementType,
+            Vec3 movement,
+            Operation<Void> original,
+            @Local(ordinal = 0) RailShape railShape
+    ) {
+        if (movement.horizontalDistance() < 0.6) {
+            original.call(minecart, movementType, movement);
             return;
         }
-        Vec3 destination = this.minecart.position().add(vec3d);
+
+        Vec3 destination = this.minecart.position().add(movement);
+
         int i = Mth.floor(destination.x);
         int j = Mth.floor(destination.y);
         int k = Mth.floor(destination.z);
-        BlockState destinationBlockState = this.minecart.level().getBlockState(new BlockPos(i, j, k));
+
+        BlockState destinationBlockState =
+                this.minecart.level().getBlockState(new BlockPos(i, j, k));
+
         if (destinationBlockState.is(BlockTags.RAILS)) {
-            RailShape destinationShape = destinationBlockState.getValue(((BaseRailBlock) destinationBlockState.getBlock()).getShapeProperty());
-            if (destinationShape == RailShape.ASCENDING_EAST && vec3d.x > 0.6 ||
-                    destinationShape == RailShape.ASCENDING_WEST && vec3d.x < -0.6 ||
-                    destinationShape == RailShape.ASCENDING_SOUTH && vec3d.z > 0.6 ||
-                    destinationShape == RailShape.ASCENDING_NORTH && vec3d.z > -0.6
+
+            RailShape destinationShape =
+                    destinationBlockState.getValue(
+                            ((BaseRailBlock) destinationBlockState.getBlock())
+                                    .getShapeProperty()
+                    );
+
+            if (
+                    destinationShape == RailShape.ASCENDING_EAST && movement.x > 0.6 ||
+                            destinationShape == RailShape.ASCENDING_WEST && movement.x < -0.6 ||
+                            destinationShape == RailShape.ASCENDING_SOUTH && movement.z > 0.6 ||
+                            destinationShape == RailShape.ASCENDING_NORTH && movement.z < -0.6
             ) {
-                this.setPos(this.minecart.getX(), this.minecart.getY() + 1, this.minecart.getZ());
+                this.setPos(
+                        this.minecart.getX(),
+                        this.minecart.getY() + 1,
+                        this.minecart.getZ()
+                );
             }
         }
-        minecart.move(movementType, vec3d);
+
+        original.call(minecart, movementType, movement);
     }
 }
