@@ -2,7 +2,7 @@ package net.fernando.cobaltage.block;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import net.fernando.cobaltage.block.wire.CobaltSignalEmitter;
+import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
 import net.fernando.cobaltage.block.wire.CobaltWireShape;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -38,7 +38,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
 
-public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltSignalEmitter {
+public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltEmitter {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
     public static final EnumProperty<RedstoneSide> NORTH = BlockStateProperties.NORTH_REDSTONE;
