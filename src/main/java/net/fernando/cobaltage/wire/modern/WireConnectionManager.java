@@ -39,7 +39,7 @@ public class WireConnectionManager {
 		this.iFlowDir = -1;
 	}
 
-	void set(NodeProvider nodes) {
+	void set(NodeProvider nodes, WireHandler wireHandler) {
 		if (total > 0) {
 			clear();
 		}
@@ -51,22 +51,26 @@ public class WireConnectionManager {
 			Node neighbor = nodes.getNeighbor(owner, iDir);
 
 			if (neighbor.isWire()) {
-				add(neighbor.asWire(), iDir, true, true);
+				if (wireHandler.shouldCobaltWireNodesLink(owner, neighbor.asWire())) {
+					add(neighbor.asWire(), iDir, true, true);
+				}
 			} else {
 				boolean sideIsConductor = neighbor.isConductor();
 
 				if (!sideIsConductor) {
 					Node node = nodes.getNeighbor(neighbor, Directions.DOWN);
-
 					if (node.isWire()) {
-						add(node.asWire(), iDir, belowIsConductor, true);
+						if (wireHandler.shouldCobaltWireNodesLink(owner, node.asWire())) {
+							add(node.asWire(), iDir, belowIsConductor, true);
+						}
 					}
 				}
 				if (!aboveIsConductor) {
 					Node node = nodes.getNeighbor(neighbor, Directions.UP);
-
 					if (node.isWire()) {
-						add(node.asWire(), iDir, true, sideIsConductor);
+						if (wireHandler.shouldCobaltWireNodesLink(owner, node.asWire())) {
+							add(node.asWire(), iDir, true, sideIsConductor);
+						}
 					}
 				}
 			}

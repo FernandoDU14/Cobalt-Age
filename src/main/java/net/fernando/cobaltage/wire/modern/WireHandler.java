@@ -628,7 +628,7 @@ public class WireHandler {
 		wire.virtualPower = wire.currentPower;
 		wire.externalPower = POWER_MIN - 1;
 
-		wire.connections.set(this::getNeighbor);
+		wire.connections.set(this::getNeighbor, this);
 	}
 
 	/**
@@ -1093,7 +1093,7 @@ public class WireHandler {
 	 * It simulates the behaviour of the old 'checkAndLink' method, verifying if two WireNode
 	 * can exchange energy according to the rules of the Cobalt Relay.
 	 */
-	private boolean shouldCobaltWireNodesLink(WireNode nodeA, WireNode nodeB) {
+	public boolean shouldCobaltWireNodesLink(WireNode nodeA, WireNode nodeB) {
 		BlockState stateA = nodeA.state;
 		BlockState stateB = nodeB.state;
 

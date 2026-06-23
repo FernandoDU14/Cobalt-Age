@@ -119,29 +119,43 @@ public class CobaltRelayBlock extends CobaltWireBlock {
 
     @Override
     protected int getSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        int power = state.getValue(POWER);
-        if (direction == Direction.UP && state.getValue(UP) || direction == Direction.DOWN && state.getValue(DOWN)) return power;
-        if (direction.getAxis().isHorizontal()) {
-            if (state.getValue(getProperty(direction.getOpposite())).isConnected()) return power;
+        if (this.shouldSignal) {
+            int i = state.getValue(POWER);
+            if (i == 0) {
+                return 0;
+            }
+            else if(direction == Direction.UP && state.getValue(UP) || direction == Direction.DOWN && state.getValue(DOWN)){
+                return i;
+            } else {
+                return !(state.getValue(getProperty(direction.getOpposite())).isConnected()) ? 0 : i;
+            }
+        } else {
+            return 0;
         }
-        return 0;
     }
     @Override
     public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        int power = state.getValue(POWER);
-        if (direction == Direction.UP && state.getValue(UP) || direction == Direction.DOWN && state.getValue(DOWN)) return power;
-        if (direction.getAxis().isHorizontal()) {
-            if (state.getValue(getProperty(direction.getOpposite())).isConnected()) return power;
+        if (this.shouldSignal) {
+            int i = state.getValue(POWER);
+            if (i == 0) {
+                return 0;
+            }
+            else if(direction == Direction.UP && state.getValue(UP) || direction == Direction.DOWN && state.getValue(DOWN)){
+                return i;
+            } else {
+                return !(state.getValue(getProperty(direction.getOpposite())).isConnected()) ? 0 : i;
+            }
+        } else {
+            return 0;
         }
-        return 0;
     }
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        return this.getCobaltSignal(state, world, pos, direction);
+        return !this.shouldSignal ? 0 : this.getCobaltSignal(state, world, pos, direction);
     }
     @Override
     protected int getDirectSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        return this.getSignal(state, world, pos, direction);
+        return !this.shouldSignal ? 0 : this.getSignal(state, world, pos, direction);
     }
 
     @Override

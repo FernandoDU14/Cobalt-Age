@@ -49,7 +49,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     public static final EnumProperty<RedstoneSide> WEST = BlockStateProperties.WEST_REDSTONE;
     public static final BooleanProperty RETRACTED = BooleanProperty.create("retracted");
     private final CobaltWireEvaluator evaluator = new DefaultCobaltWireEvaluator(this);
-    private boolean shouldSignal = true;
+    protected boolean shouldSignal = true;
 
     public CobaltWireBlock(Properties settings) {
         super(settings);
@@ -321,31 +321,39 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
 
     @Override
     protected int getDirectSignal(@NonNull BlockState blockState, @NonNull BlockGetter blockGetter, @NonNull BlockPos blockPos, @NonNull Direction direction) {
-        return this.getSignal(blockState, blockGetter, blockPos, direction);
+        return !this.shouldSignal ? 0 : this.getSignal(blockState, blockGetter, blockPos, direction);
     }
     @Override
     protected int getSignal(@NonNull BlockState blockState, @NonNull BlockGetter blockGetter, @NonNull BlockPos blockPos, @NonNull Direction direction) {
-        if (!this.shouldSignal || isNotConnected(blockState)) return 0;
-        if(direction == Direction.UP) return blockState.getValue(POWER);
-        if (direction.getAxis().isHorizontal()) {
-            if (blockState.getValue(getProperty(direction.getOpposite())).isConnected()) return blockState.getValue(POWER);
+        if (this.shouldSignal && direction != Direction.DOWN) {
+            int i = blockState.getValue(POWER);
+            if (i == 0) {
+                return 0;
+            } else {
+                return direction != Direction.UP && !(blockState.getValue(getProperty(direction.getOpposite())).isConnected()) ? 0 : i;
+            }
+        } else {
+            return 0;
         }
-        return 0;
     }
 
     @Override
     public int getDirectCobaltSignal(BlockState blockState, Level world, BlockPos pos, Direction direction) {
-        return this.getCobaltSignal(blockState, world, pos, direction);
+        return !this.shouldSignal ? 0 : this.getCobaltSignal(blockState, world, pos, direction);
     }
 
     @Override
     public int getCobaltSignal(BlockState blockState, Level world, BlockPos pos, Direction direction) {
-        if (!this.shouldSignal || isNotConnected(blockState)) return 0;
-        if(direction == Direction.UP) return blockState.getValue(POWER);
-        if (direction.getAxis().isHorizontal()) {
-            if (blockState.getValue(getProperty(direction.getOpposite())).isConnected()) return blockState.getValue(POWER);
+        if (this.shouldSignal && direction != Direction.DOWN) {
+            int i = blockState.getValue(POWER);
+            if (i == 0) {
+                return 0;
+            } else {
+                return direction != Direction.UP && !(blockState.getValue(getProperty(direction.getOpposite())).isConnected()) ? 0 : i;
+            }
+        } else {
+            return 0;
         }
-        return 0;
     }
 
     @Override
