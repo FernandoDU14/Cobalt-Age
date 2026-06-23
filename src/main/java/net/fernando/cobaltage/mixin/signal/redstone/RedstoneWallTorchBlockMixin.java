@@ -2,7 +2,7 @@ package net.fernando.cobaltage.mixin.signal.redstone;
 
 
 import net.fernando.cobaltage.util.signal.SignalType;
-import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -16,7 +16,7 @@ public class RedstoneWallTorchBlockMixin {
 
     @Redirect(method = "hasNeighborSignal", at = @At(value="INVOKE", target="Lnet/minecraft/world/level/Level;hasSignal(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z"))
     private boolean hasSignalByType(Level level, BlockPos blockPos, Direction direction) {
-        return ((SignalTypeLevelExtensions) level).hasSignalByType(SignalType.REDSTONE, blockPos, direction);
+        return ((SignalGetterByType) level).cobaltage$hasSignalByType(SignalType.REDSTONE, blockPos, direction);
     }
 
 }

@@ -1,6 +1,6 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -32,7 +32,7 @@ public class CobaltRailBlock extends PoweredRailBlock {
     @Override
     protected void updateState(BlockState blockState, @NonNull Level level, @NonNull BlockPos blockPos, @NonNull Block block) {
         boolean bl = blockState.getValue(POWERED);
-        boolean bl2 = ((SignalTypeLevelExtensions) level).hasNeighbourSignalByType(COBALT, blockPos) || this.findPoweredRailSignal(level, blockPos, blockState, true, 0) || this.findPoweredRailSignal(level, blockPos, blockState, false, 0);
+        boolean bl2 = ((SignalGetterByType) level).cobaltage$hasNeighbourSignalByType(COBALT, blockPos) || this.findPoweredRailSignal(level, blockPos, blockState, true, 0) || this.findPoweredRailSignal(level, blockPos, blockState, false, 0);
         if (bl2 != bl) {
             level.setBlock(blockPos, blockState.setValue(POWERED, bl2), 3);
             level.updateNeighborsAt(blockPos.below(), this);
@@ -49,7 +49,7 @@ public class CobaltRailBlock extends PoweredRailBlock {
             return blockState;
         } else {
             RailShape railShape = blockState.getValue(this.getShapeProperty());
-            return (new RailState(level, blockPos, blockState)).place(((SignalTypeLevelExtensions) level).hasNeighbourSignalByType(COBALT, blockPos), bl, railShape).getState();
+            return (new RailState(level, blockPos, blockState)).place(((SignalGetterByType) level).cobaltage$hasNeighbourSignalByType(COBALT, blockPos), bl, railShape).getState();
         }
     }
 
@@ -63,7 +63,7 @@ public class CobaltRailBlock extends PoweredRailBlock {
             if (railShape != RailShape.EAST_WEST || railShape2 != RailShape.NORTH_SOUTH && railShape2 != RailShape.ASCENDING_NORTH && railShape2 != RailShape.ASCENDING_SOUTH) {
                 if (railShape != RailShape.NORTH_SOUTH || railShape2 != RailShape.EAST_WEST && railShape2 != RailShape.ASCENDING_EAST && railShape2 != RailShape.ASCENDING_WEST) {
                     if (blockState.getValue(POWERED)) {
-                        return ((SignalTypeLevelExtensions) level).hasNeighbourSignalByType(COBALT, blockPos) || this.findPoweredRailSignal(level, blockPos, blockState, bl, i + 1);
+                        return ((SignalGetterByType) level).cobaltage$hasNeighbourSignalByType(COBALT, blockPos) || this.findPoweredRailSignal(level, blockPos, blockState, bl, i + 1);
                     } else {
                         return false;
                     }

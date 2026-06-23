@@ -1,12 +1,12 @@
 package net.fernando.cobaltage.util.signal;
 
 import net.fernando.cobaltage.block.CobaltConverterBlock;
-import net.fernando.cobaltage.block.wire.CobaltSignalEmitter;
 import net.fernando.cobaltage.util.ModTags;
+import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ObserverBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class SignalHelper {
 
@@ -14,7 +14,7 @@ public class SignalHelper {
         if (state.getBlock() instanceof CobaltConverterBlock) {
             return true;
         }
-        return !(state.getBlock() instanceof CobaltSignalEmitter);
+        return !(state.getBlock() instanceof CobaltEmitter);
     }
 
     public static boolean isPartOfCobaltSignalChannel(BlockState state) {
@@ -31,14 +31,11 @@ public class SignalHelper {
         return state.is(ModTags.Blocks.CAN_EMIT_IN_COBALT_SIGNAL_CHANNEL);
     }
 
-    public static boolean isWirePointingTo(BlockState state, Direction dirToTarget) {
-        return switch (dirToTarget) {
-            case NORTH -> state.getValue(BlockStateProperties.NORTH_REDSTONE).isConnected();
-            case SOUTH -> state.getValue(BlockStateProperties.SOUTH_REDSTONE).isConnected();
-            case EAST -> state.getValue(BlockStateProperties.EAST_REDSTONE).isConnected();
-            case WEST -> state.getValue(BlockStateProperties.WEST_REDSTONE).isConnected();
-            case UP -> state.getValue(BlockStateProperties.UP);
-            case DOWN -> state.getValue(BlockStateProperties.DOWN);
-        };
+    public static boolean canRestrictedCobaltPowerSourceConnectTo(BlockState state, Direction askingForLinkDirection) {
+        // The Observer emits only in its opposite facing
+        // The Calibrated Sculk Sensor does emit in its opposite facing, but it is always connected to it
+        return( (state.is(Blocks.OBSERVER) && state.getValue(ObserverBlock.FACING) == askingForLinkDirection) ||
+                (state.is(Blocks.CALIBRATED_SCULK_SENSOR))
+        );
     }
 }

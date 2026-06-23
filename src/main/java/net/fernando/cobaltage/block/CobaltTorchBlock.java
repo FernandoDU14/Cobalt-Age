@@ -2,8 +2,8 @@ package net.fernando.cobaltage.block;
 
 import com.google.common.collect.Lists;
 import com.mojang.serialization.MapCodec;
-import net.fernando.cobaltage.block.wire.CobaltSignalEmitter;
-import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
+import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -33,7 +33,7 @@ import java.util.WeakHashMap;
 
 import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
 
-public class CobaltTorchBlock extends BaseTorchBlock implements SimpleWaterloggedBlock, CobaltSignalEmitter {
+public class CobaltTorchBlock extends BaseTorchBlock implements SimpleWaterloggedBlock, CobaltEmitter {
     public static final MapCodec<CobaltTorchBlock> CODEC = simpleCodec(CobaltTorchBlock::new);
     public static final BooleanProperty LIT;
     private static final Map<BlockGetter, List<CobaltTorchBlock.Toggle>> RECENT_TOGGLES;
@@ -135,7 +135,7 @@ public class CobaltTorchBlock extends BaseTorchBlock implements SimpleWaterlogge
         return true;
     }
     protected boolean hasNeighborSignal(@NonNull Level world, BlockPos pos, @NonNull BlockState state) {
-        return ((SignalTypeLevelExtensions) world).hasSignalByType(COBALT, pos.below(), Direction.DOWN);
+        return ((SignalGetterByType) world).cobaltage$hasSignalByType(COBALT, pos.below(), Direction.DOWN);
     }
     protected int getSignal(BlockState blockState, @NonNull BlockGetter blockGetter, @NonNull BlockPos blockPos, @NonNull Direction direction) {
         return blockState.getValue(LIT) && Direction.UP != direction ? 15 : 0;

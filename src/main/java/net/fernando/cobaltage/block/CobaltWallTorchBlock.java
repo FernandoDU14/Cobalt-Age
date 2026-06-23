@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.block;
 
 import com.mojang.serialization.MapCodec;
-import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -117,7 +117,7 @@ public class CobaltWallTorchBlock extends CobaltTorchBlock {
     protected boolean hasNeighborSignal(@NonNull Level world, BlockPos pos, @NonNull BlockState state) {
         Direction facing = state.getValue(FACING);
         BlockPos attachedPos = pos.relative(facing.getOpposite());
-        return ((SignalTypeLevelExtensions) world).hasSignalByType(COBALT, attachedPos, facing.getOpposite());
+        return ((SignalGetterByType) world).cobaltage$hasSignalByType(COBALT, attachedPos, facing.getOpposite());
     }
 
     protected @NonNull BlockState rotate(BlockState blockState, Rotation rotation) {

@@ -24,7 +24,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.NonNull;
 
-import static net.fernando.cobaltage.block.wire.CobaltWireShape.canSourceConnectToTarget;
+import static net.fernando.cobaltage.wire.CobaltWireShape.canSourceConnectToTarget;
 
 public class CobaltRelayBlock extends CobaltWireBlock {
     public static final BooleanProperty UP = BlockStateProperties.UP;

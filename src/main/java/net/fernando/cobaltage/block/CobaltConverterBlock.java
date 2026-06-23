@@ -1,9 +1,9 @@
 package net.fernando.cobaltage.block;
 
 import com.mojang.serialization.MapCodec;
-import net.fernando.cobaltage.block.wire.CobaltSignalEmitter;
-import net.fernando.cobaltage.util.signal.FlowingSide;
-import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
+import net.fernando.cobaltage.util.signal.converter.FlowingSide;
+import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -32,7 +32,7 @@ import org.jspecify.annotations.NonNull;
 
 import static net.fernando.cobaltage.util.signal.SignalType.*;
 
-public class CobaltConverterBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock, CobaltSignalEmitter {
+public class CobaltConverterBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock, CobaltEmitter {
 
     public static final MapCodec<CobaltConverterBlock> CODEC = simpleCodec(CobaltConverterBlock::new);
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
@@ -147,14 +147,14 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
 
         // Reading methods inherited by diode blocks
         int newRed;
-        int i = ((SignalTypeLevelExtensions) world).getSignalByType(REDSTONE, RedstoneSidePos, redstoneDirection);
+        int i = ((SignalGetterByType) world).cobaltage$getSignalByType(REDSTONE, RedstoneSidePos, redstoneDirection);
         if (i >= 15) {
             newRed = i;
         } else {
             newRed = Math.max(i, redstoneSideState.is(Blocks.REDSTONE_WIRE) ? redstoneSideState.getValue(RedStoneWireBlock.POWER) : 0);
         }
         int newCob;
-        i = ((SignalTypeLevelExtensions) world).getSignalByType(COBALT, cobaltSidePos, cobaltDirection);
+        i = ((SignalGetterByType) world).cobaltage$getSignalByType(COBALT, cobaltSidePos, cobaltDirection);
         if (i >= 15) {
             newCob = i;
         } else {

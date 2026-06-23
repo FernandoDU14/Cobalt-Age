@@ -2,8 +2,14 @@ package net.fernando.cobaltage.block;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.mojang.serialization.MapCodec;
+import net.fernando.cobaltage.CobaltAge;
 import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
-import net.fernando.cobaltage.block.wire.CobaltWireShape;
+import net.fernando.cobaltage.util.interfaces.mixin.IServerLevel;
+import net.fernando.cobaltage.wire.CobaltWireShape;
+import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
+import net.fernando.cobaltage.wire.CobaltWireEvaluator;
+import net.fernando.cobaltage.wire.DefaultCobaltWireEvaluator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -11,18 +17,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.ScheduledTickAccess;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.*;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.*;
@@ -38,7 +37,10 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
 
+import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
+
 public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltEmitter {
+    public static final MapCodec<CobaltWireBlock> CODEC = simpleCodec(CobaltWireBlock::new);
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
     public static final EnumProperty<RedstoneSide> NORTH = BlockStateProperties.NORTH_REDSTONE;
@@ -46,7 +48,8 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     public static final EnumProperty<RedstoneSide> EAST = BlockStateProperties.EAST_REDSTONE;
     public static final EnumProperty<RedstoneSide> WEST = BlockStateProperties.WEST_REDSTONE;
     public static final BooleanProperty RETRACTED = BooleanProperty.create("retracted");
-    private static final net.fernando.cobaltage.block.wire.CobaltWireNetwork NETWORK_HANDLER = new net.fernando.cobaltage.block.wire.CobaltWireNetwork();
+    private final CobaltWireEvaluator evaluator = new DefaultCobaltWireEvaluator(this);
+    private boolean shouldSignal = true;
 
     public CobaltWireBlock(Properties settings) {
         super(settings);
@@ -229,16 +232,60 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         return RenderShape.MODEL;
     }
 
+    private void updatePowerStrength(Level level, BlockPos blockPos, BlockState blockState, @Nullable Orientation orientation) {
+        if (!CobaltAge.ModernCobaltEngine) {
+            //if (useExperimentalEvaluator(level)) {
+            // (new ExperimentalRedstoneWireEvaluator(this)).updatePowerStrength(level, blockPos, blockState, orientation, bl);
+            //} else {
+            this.evaluator.updatePowerStrength(level, blockPos, blockState, orientation, false);
+            //}
+        }
+    }
+
     @Override
-    public void neighborChanged(@NonNull BlockState state, Level world, @NonNull BlockPos pos, @NonNull Block sourceBlock, @Nullable Orientation orientation, boolean notify) {
+    public void neighborChanged(@NonNull BlockState state, Level world, @NonNull BlockPos pos, @NonNull Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {
         if (!world.isClientSide()) {
-            if (state.canSurvive(world, pos)) {
-                NETWORK_HANDLER.updateNetwork(world, pos);
-            } else {
-                dropResources(state, world, pos);
-                world.removeBlock(pos, false);
+            if (neighborBlock != this || !useExperimentalEvaluator(world)) {
+                if (state.canSurvive(world, pos)) {
+                    // Modern Engine Switch
+                    if (CobaltAge.ModernCobaltEngine){
+                        ((IServerLevel)world).cobaltage$getWireHandler().onWireUpdated(pos, state, orientation);
+                    }else{
+                        this.updatePowerStrength(world, pos, state, orientation);
+                    }
+                } else {
+                    dropResources(state, world, pos);
+                    world.removeBlock(pos, false);
+                }
             }
         }
+    }
+
+    public int getBlockSignal(Level level, BlockPos blockPos) {
+        this.shouldSignal = false;
+        int i = ((SignalGetterByType)level).cobaltage$getBestNeighborSignalByType(COBALT, blockPos);
+        this.shouldSignal = true;
+        return i;
+    }
+
+    protected void affectNeighborsAfterRemoval(@NonNull BlockState blockState, @NonNull ServerLevel serverLevel, @NonNull BlockPos blockPos, boolean bl) {
+        if (!bl) {
+            for(Direction direction : Direction.values()) {
+                serverLevel.updateNeighborsAt(blockPos.relative(direction), this);
+            }
+            // Modern Engine Switch
+            if (CobaltAge.ModernCobaltEngine){
+                ((IServerLevel)serverLevel).cobaltage$getWireHandler().onWireRemoved(blockPos, blockState);
+            }else{
+                this.updatePowerStrength(serverLevel, blockPos, blockState, null);
+            }
+            this.updateAllNeighbors(serverLevel, blockPos);
+            this.updateDiagonalShapes(serverLevel, blockPos);
+        }
+    }
+
+    private static boolean useExperimentalEvaluator(Level level) {
+        return level.enabledFeatures().contains(FeatureFlags.REDSTONE_EXPERIMENTS);
     }
 
     @Override
@@ -273,32 +320,46 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     }
 
     @Override
-    protected int getSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        if (isNotConnected(state)) return 0;
-        if(direction == Direction.UP) return state.getValue(POWER);
-        if (direction.getAxis().isHorizontal()) {
-            if (state.getValue(getProperty(direction.getOpposite())).isConnected()) return state.getValue(POWER);
-        }
-        return 0;
+    protected int getDirectSignal(@NonNull BlockState blockState, @NonNull BlockGetter blockGetter, @NonNull BlockPos blockPos, @NonNull Direction direction) {
+        return this.getSignal(blockState, blockGetter, blockPos, direction);
     }
     @Override
-    protected int getDirectSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        return this.getSignal(state, world, pos, direction);
-    }
-
-    @Override
-    public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        if (isNotConnected(state)) return 0;
-        if(direction == Direction.UP) return state.getValue(POWER);
+    protected int getSignal(@NonNull BlockState blockState, @NonNull BlockGetter blockGetter, @NonNull BlockPos blockPos, @NonNull Direction direction) {
+        if (!this.shouldSignal || isNotConnected(blockState)) return 0;
+        if(direction == Direction.UP) return blockState.getValue(POWER);
         if (direction.getAxis().isHorizontal()) {
-            if (state.getValue(getProperty(direction.getOpposite())).isConnected()) return state.getValue(POWER);
+            if (blockState.getValue(getProperty(direction.getOpposite())).isConnected()) return blockState.getValue(POWER);
         }
         return 0;
     }
 
     @Override
-    public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        return this.getCobaltSignal(state, world, pos, direction);
+    public int getDirectCobaltSignal(BlockState blockState, Level world, BlockPos pos, Direction direction) {
+        return this.getCobaltSignal(blockState, world, pos, direction);
+    }
+
+    @Override
+    public int getCobaltSignal(BlockState blockState, Level world, BlockPos pos, Direction direction) {
+        if (!this.shouldSignal || isNotConnected(blockState)) return 0;
+        if(direction == Direction.UP) return blockState.getValue(POWER);
+        if (direction.getAxis().isHorizontal()) {
+            if (blockState.getValue(getProperty(direction.getOpposite())).isConnected()) return blockState.getValue(POWER);
+        }
+        return 0;
+    }
+
+    @Override
+    public void onPlace(@NonNull BlockState state, @NonNull Level level, @NonNull BlockPos pos, @NonNull BlockState oldState, boolean bl) {
+        if (!oldState.is(state.getBlock()) && !level.isClientSide()) {
+            // Modern Engine Switch
+            if (CobaltAge.ModernCobaltEngine){
+                ((IServerLevel)level).cobaltage$getWireHandler().onWireAdded(pos, state);
+            }else{
+                this.updatePowerStrength(level, pos, state, null);
+            }
+            this.updateAllNeighbors(level,pos);
+            this.updateDiagonalShapes(level, pos);
+        }
     }
 
     private void updateAllNeighbors(Level world, BlockPos pos) {
@@ -313,26 +374,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         }
     }
 
-    @Override
-    public void onPlace(BlockState state, @NonNull Level world, @NonNull BlockPos pos, BlockState oldState, boolean notify) {
-        if (!oldState.is(state.getBlock()) && !world.isClientSide()) {
-            this.updateDiagonalShapes(world, pos);
-            this.updateAllNeighbors(world, pos);
-            NETWORK_HANDLER.updateNetwork(world, pos);
-        }
-    }
-
-    @Override
-    protected void affectNeighborsAfterRemoval(@NonNull BlockState state, @NonNull ServerLevel world, @NonNull BlockPos pos, boolean moved) {
-        if (moved) return;
-        super.affectNeighborsAfterRemoval(state, world, pos, false);
-        if (!world.isClientSide()) {
-            this.updateDiagonalShapes(world, pos);
-            this.updateAllNeighbors(world, pos);
-            NETWORK_HANDLER.updateNetwork(world, pos);
-        }
-    }
-
     private void updateDiagonalShapes(Level world, BlockPos pos) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         // 6 Prime Neighbours
@@ -341,10 +382,10 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         }
         // 8 Diagonal Neighbours (4 UP, 4 DOWN)
         for (Direction dir : Direction.Plane.HORIZONTAL) {
-            mutable.setWithOffset(pos, dir);
-            forceShapeUpdate(world, mutable.move(Direction.UP));
-            mutable.setWithOffset(pos, dir);
-            forceShapeUpdate(world, mutable.move(Direction.DOWN));
+        mutable.setWithOffset(pos, dir);
+        forceShapeUpdate(world, mutable.move(Direction.UP));
+        mutable.setWithOffset(pos, dir);
+        forceShapeUpdate(world, mutable.move(Direction.DOWN));
         }
     }
 
@@ -362,12 +403,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     }
 
     @Override
-    public void setPlacedBy(@NonNull Level world, @NonNull BlockPos pos, @NonNull BlockState state, @Nullable LivingEntity placer, @NonNull ItemStack stack) {
-        this.updateAllNeighbors(world, pos);
-        NETWORK_HANDLER.updateNetwork(world, pos);
-    }
-
-    @Override
     protected @NonNull InteractionResult useWithoutItem(@NonNull BlockState state, @NonNull Level world, @NonNull BlockPos pos, Player player, @NonNull BlockHitResult hit) {
         if (!player.getAbilities().mayBuild) return InteractionResult.PASS;
         // + or .
@@ -379,7 +414,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
             newState = newState.setValue(POWER, state.getValue(POWER));
             world.setBlock(pos, newState, Block.UPDATE_ALL);
             this.updateAllNeighbors(world, pos);
-            NETWORK_HANDLER.updateNetwork(world, pos);
             return InteractionResult.SUCCESS;
         }
         // - with 1 free side
@@ -387,7 +421,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
             BlockState newState = state.cycle(RETRACTED);
             world.setBlock(pos, CobaltWireShape.getUpdatedState(world, pos, newState), Block.UPDATE_ALL);
             this.updateAllNeighbors(world, pos);
-            NETWORK_HANDLER.updateNetwork(world, pos);
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;

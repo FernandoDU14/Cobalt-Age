@@ -3,8 +3,8 @@ package net.fernando.cobaltage.block.abstracts;
 import com.mojang.serialization.MapCodec;
 import net.fernando.cobaltage.block.CobaltWireBlock;
 import net.fernando.cobaltage.block.ModBlocks;
-import net.fernando.cobaltage.block.wire.CobaltSignalEmitter;
-import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
+import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -33,7 +33,7 @@ import org.jspecify.annotations.Nullable;
 
 import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
 
-public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implements CobaltSignalEmitter {
+public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implements CobaltEmitter {
     public static final BooleanProperty POWERED;
     private static final VoxelShape SHAPE;
 
@@ -147,7 +147,7 @@ public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implem
     protected int getInputSignal(@NonNull Level level, BlockPos blockPos, BlockState blockState) {
         Direction direction = blockState.getValue(FACING);
         BlockPos rearPos = blockPos.relative(direction);
-        int i = ((SignalTypeLevelExtensions) level).getSignalByType(COBALT, rearPos, direction);
+        int i = ((SignalGetterByType) level).cobaltage$getSignalByType(COBALT, rearPos, direction);
         if (i >= 15) {
             return i;
         } else {
@@ -161,7 +161,7 @@ public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implem
         Direction direction2 = direction.getClockWise();
         Direction direction3 = direction.getCounterClockWise();
         boolean bl = this.sideInputDiodesOnly();
-        return Math.max(((SignalTypeLevelExtensions) signalGetter).getControlInputSignalByType(COBALT, blockPos.relative(direction2), direction2, bl), ((SignalTypeLevelExtensions) signalGetter).getControlInputSignalByType(COBALT, blockPos.relative(direction3), direction3, bl));
+        return Math.max(((SignalGetterByType) signalGetter).cobaltage$getControlInputSignalByType(COBALT, blockPos.relative(direction2), direction2, bl), ((SignalGetterByType) signalGetter).cobaltage$getControlInputSignalByType(COBALT, blockPos.relative(direction3), direction3, bl));
     }
 
     protected boolean isSignalSource(@NonNull BlockState blockState) {

@@ -18,12 +18,19 @@ import org.slf4j.LoggerFactory;
 
 public class CobaltAge implements ModInitializer {
 	public static final String MOD_ID = "cobaltage";
-
+	public static final String MOD_NAME = "Cobalt Age";
+	public static final String MOD_VERSION = "1.2.1";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+	public static final boolean DEBUG = false;
+	public static boolean ModernCobaltEngine = true;
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("Initialization of Cobalt Age...");
+		if (DEBUG) {
+			LOGGER.warn("You are running a DEBUG version of {}!", MOD_NAME);
+		}
+
+		LOGGER.info("Initialization of {} version {}...", MOD_NAME, MOD_VERSION);
 
 		// 1. Blocks and Block Entities
 		ModBlocks.registerModBlocks();

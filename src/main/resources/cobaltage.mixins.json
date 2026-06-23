@@ -3,9 +3,10 @@
   "package": "net.fernando.cobaltage.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "BlockStateMixin",
-    "ExampleMixin",
+    "BlockBehaviourBlockStateBaseMixin",
     "LevelMixin",
+    "MinecraftServerMixin",
+    "ServerLevelMixin",
     "gui.BeaconScreenMixin",
     "minecarts.AbstractMinecartMixin",
     "minecarts.MinecartBehaviorMixin",

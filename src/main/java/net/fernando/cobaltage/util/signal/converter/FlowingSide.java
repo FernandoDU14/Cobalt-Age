@@ -1,4 +1,4 @@
-package net.fernando.cobaltage.util.signal;
+package net.fernando.cobaltage.util.signal.converter;
 
 import net.minecraft.util.StringRepresentable;
 import org.jspecify.annotations.NonNull;

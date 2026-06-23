@@ -1,6 +1,8 @@
-package net.fernando.cobaltage.block.wire;
+package net.fernando.cobaltage.wire;
 
 import net.fernando.cobaltage.block.*;
+import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
+import net.fernando.cobaltage.util.signal.SignalHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -157,21 +159,24 @@ public class CobaltWireShape {
         // Special cases (Vanilla blocks)
         assert dir != null;
         if(dir.getAxis().isHorizontal()){
-            if(canRestrictedCobaltPowerSourceConnectTo(targetState, dir)){
+            if(SignalHelper.canRestrictedCobaltPowerSourceConnectTo(targetState, dir)){
                 return true;
             }
         }
 
-        return targetState.getBlock() instanceof CobaltSignalEmitter ||
+        return targetState.getBlock() instanceof CobaltEmitter ||
                 compatibleCobaltPowerSource(targetState);
     }
-
-    private static boolean canRestrictedCobaltPowerSourceConnectTo(BlockState state, Direction askingForLinkDirection) {
-        // The Observer emits only in its opposite facing
-        // The Calibrated Sculk Sensor does emit in its opposite facing, but it is always connected to it
-        return( (state.is(Blocks.OBSERVER) && state.getValue(ObserverBlock.FACING) == askingForLinkDirection) ||
-                (state.is(Blocks.CALIBRATED_SCULK_SENSOR))
-        );
+    /*
+    public static boolean isWirePointingTo(BlockState state, Direction dirToTarget) {
+        return switch (dirToTarget) {
+            case NORTH -> state.getValue(BlockStateProperties.NORTH_REDSTONE).isConnected();
+            case SOUTH -> state.getValue(BlockStateProperties.SOUTH_REDSTONE).isConnected();
+            case EAST -> state.getValue(BlockStateProperties.EAST_REDSTONE).isConnected();
+            case WEST -> state.getValue(BlockStateProperties.WEST_REDSTONE).isConnected();
+            case UP -> state.getValue(BlockStateProperties.UP);
+            case DOWN -> state.getValue(BlockStateProperties.DOWN);
+        };
     }
-
+     */
 }

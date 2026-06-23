@@ -1,8 +1,8 @@
 package net.fernando.cobaltage.mixin.signal.redstone;
 
 import net.fernando.cobaltage.block.ModBlocks;
-import net.fernando.cobaltage.block.wire.CobaltSignalEmitter;
-import net.fernando.cobaltage.util.signal.SignalTypeLevelExtensions;
+import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
+import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -21,7 +21,7 @@ public class RedStoneWireBlockMixin {
 
     @Inject(at = @At("HEAD"), method = "shouldConnectTo(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z", cancellable = true)
     private static void shouldConnectTo(BlockState state, Direction direction, CallbackInfoReturnable<Boolean> cir) {
-        if (state.getBlock() instanceof CobaltSignalEmitter && !state.is(ModBlocks.CONVERTER)) {
+        if (state.getBlock() instanceof CobaltEmitter && !state.is(ModBlocks.CONVERTER)) {
             cir.setReturnValue(false);
         }
 
@@ -35,7 +35,7 @@ public class RedStoneWireBlockMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getBestNeighborSignal(Lnet/minecraft/core/BlockPos;)I")
     )
     private int getBestNeighborSignalByType(Level level, BlockPos blockPos) {
-        return ((SignalTypeLevelExtensions) level).getBestNeighborSignalByType(REDSTONE, blockPos);
+        return ((SignalGetterByType) level).cobaltage$getBestNeighborSignalByType(REDSTONE, blockPos);
     }
 
 }
