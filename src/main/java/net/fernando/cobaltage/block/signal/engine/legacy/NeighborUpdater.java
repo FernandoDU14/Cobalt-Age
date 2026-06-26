@@ -7,7 +7,7 @@ package net.fernando.cobaltage.block.signal.engine.legacy;
 
 import java.util.Locale;
 
-import net.fernando.cobaltage.block.CobaltWireBlock;
+import net.fernando.cobaltage.block.abstracts.WireBlock;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
@@ -41,7 +41,7 @@ public interface NeighborUpdater {
 
     static void executeShapeUpdate(LevelAccessor levelAccessor, Direction direction, BlockPos blockPos, BlockPos blockPos2, BlockState blockState, @UpdateFlags int i, int j) {
         BlockState blockState2 = levelAccessor.getBlockState(blockPos);
-        if ((i & 128) == 0 || !(blockState2.getBlock() instanceof CobaltWireBlock)) {
+        if ((i & 128) == 0 || !(blockState2.getBlock() instanceof WireBlock)) {
             BlockState blockState3 = blockState2.updateShape(levelAccessor, levelAccessor, blockPos, direction, blockPos2, blockState, levelAccessor.getRandom());
             Block.updateOrDestroy(blockState2, blockState3, levelAccessor, blockPos, i, j);
         }
@@ -51,7 +51,7 @@ public interface NeighborUpdater {
         try {
             blockState.handleNeighborChanged(level, blockPos, block, orientation, bl);
         } catch (Throwable throwable) {
-            CrashReport crashReport = CrashReport.forThrowable(throwable, "Exception while updating neighbours");
+            CrashReport crashReport = CrashReport.forThrowable(throwable, "Exception while updating neighbours for WireBlock");
             CrashReportCategory crashReportCategory = crashReport.addCategory("Block being updated");
             crashReportCategory.setDetail("Source block type", () -> {
                 try {

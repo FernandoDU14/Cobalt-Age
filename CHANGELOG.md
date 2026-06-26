@@ -19,9 +19,10 @@ and Cobalt Age's versioning is based on [Semantic Versioning](https://semver.org
 ## [1.2.1] - WORKING ON
 
 ### TODO:
-- Redstone experimental features
+Fix the bug on redstone block for cobalt wires
 
 ### Added
+- **Cobalt Wires:** Added support to Experimental Redstone Features. When they are enabled and the engine is set to legacy, it will use experimental redstone features. When the engine is set to legacy, it will use the same redstone updates as vanilla without experimental features. In conclusion, when the engine is set to modern, modern engine can also support the experimental redstone features. To understand more, take a look in the **Config files** add.
 - **Converter:** Converter now has the same property of the other blocks of the same family: The `UPDATE_DELAY`, which has been set to 1 redstone tick (2 real ticks). It is the same delay of comparators, repeaters in default state, cobalt comparators and cobalt repeaters in the default state.
 - **Config file:** Possibility to change from the new Modern Signal Engine to Vanilla one (if ever needed) through a switch in configs. It is recommended to keep it on "Modern Signal Engine" because it keeps a difference between cobalt and redstone; which is also why cobalt was born, a reason which is second only to the independence of the two. If you really need to use the "Legacy" vanilla computations, you are free to use it by deactivating the switch.
 ### Changed

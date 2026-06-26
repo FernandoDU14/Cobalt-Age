@@ -1,7 +1,6 @@
 package net.fernando.cobaltage.block.signal.cobalt;
 
 import net.fernando.cobaltage.block.*;
-import net.fernando.cobaltage.block.signal.SignalNode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -30,7 +29,7 @@ public class CobaltWireShape {
         boolean hasWest = west.isConnected();
 
         if (!hasNorth && !hasSouth && !hasEast && !hasWest) {
-            if (isNotConnected(state)) {
+            if (isDot(state)) {
                 return state;
             }
             return state
@@ -52,7 +51,7 @@ public class CobaltWireShape {
             return state
                     .setValue(CobaltWireBlock.RETRACTED,
                             world.getBlockState(pos.below()).is(ModBlocks.COBALT_RELAY)
-                            || CobaltWireBlock.hasOneFreeConnectionInALineShape( (Level) world, pos))
+                            || CobaltWireBlock.isFreeLine( (Level) world, pos))
                     .setValue(CobaltWireBlock.NORTH, north)
                     .setValue(CobaltWireBlock.SOUTH, south)
                     .setValue(CobaltWireBlock.EAST, east)
@@ -67,7 +66,7 @@ public class CobaltWireShape {
     }
 
     // is . State?
-    private static boolean isNotConnected(BlockState state) {
+    private static boolean isDot(BlockState state) {
         return state.getValue(CobaltWireBlock.NORTH) == RedstoneSide.NONE &&
                 state.getValue(CobaltWireBlock.SOUTH) == RedstoneSide.NONE &&
                 state.getValue(CobaltWireBlock.EAST) == RedstoneSide.NONE &&

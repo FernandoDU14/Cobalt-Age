@@ -22,7 +22,7 @@ public class CobaltAge implements ModInitializer {
 	public static final String MOD_VERSION = "1.2.1";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static final boolean DEBUG = false;
-	public static boolean ModernSignalEngine = false;
+	public static boolean ModernSignalEngine = true;
 
 	@Override
 	public void onInitialize() {

@@ -4,12 +4,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.mojang.serialization.MapCodec;
 import net.fernando.cobaltage.CobaltAge;
+import net.fernando.cobaltage.block.abstracts.WireBlock;
+import net.fernando.cobaltage.block.signal.SignalType;
 import net.fernando.cobaltage.block.signal.cobalt.CobaltSource;
+import net.fernando.cobaltage.block.signal.engine.legacy.ExperimentalWireEvaluator;
 import net.fernando.cobaltage.util.interfaces.mixin.IServerLevel;
 import net.fernando.cobaltage.block.signal.cobalt.CobaltWireShape;
-import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
-import net.fernando.cobaltage.block.signal.engine.legacy.CobaltWireEvaluator;
-import net.fernando.cobaltage.block.signal.engine.legacy.DefaultCobaltWireEvaluator;
+import net.fernando.cobaltage.block.signal.engine.legacy.WireEvaluator;
+import net.fernando.cobaltage.block.signal.engine.legacy.DefaultWireEvaluator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -27,6 +29,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.redstone.ExperimentalRedstoneUtils;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -37,23 +40,16 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
 
-import static net.fernando.cobaltage.block.signal.SignalType.COBALT;
-
-public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltSource {
+public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock, CobaltSource {
     public static final MapCodec<CobaltWireBlock> CODEC = simpleCodec(CobaltWireBlock::new);
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-    public static final IntegerProperty POWER = BlockStateProperties.POWER;
-    public static final EnumProperty<RedstoneSide> NORTH = BlockStateProperties.NORTH_REDSTONE;
-    public static final EnumProperty<RedstoneSide> SOUTH = BlockStateProperties.SOUTH_REDSTONE;
-    public static final EnumProperty<RedstoneSide> EAST = BlockStateProperties.EAST_REDSTONE;
-    public static final EnumProperty<RedstoneSide> WEST = BlockStateProperties.WEST_REDSTONE;
     public static final BooleanProperty RETRACTED = BooleanProperty.create("retracted");
-    private final CobaltWireEvaluator evaluator = new DefaultCobaltWireEvaluator(this);
+    private final WireEvaluator evaluator = new DefaultWireEvaluator(this);
     protected boolean shouldSignal = true;
 
     public CobaltWireBlock(Properties settings) {
         super(settings);
-        registerDefaultState(getStateDefinition().any()
+        this.registerDefaultState(this.defaultBlockState()
                 .setValue(POWER, 0)
                 .setValue(NORTH, RedstoneSide.SIDE)
                 .setValue(SOUTH, RedstoneSide.SIDE)
@@ -232,13 +228,13 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         return RenderShape.MODEL;
     }
 
-    private void updatePowerStrength(Level level, BlockPos blockPos, BlockState blockState, @Nullable Orientation orientation) {
+    private void updatePowerStrengthByType(Level level, BlockPos blockPos, BlockState blockState, @Nullable Orientation orientation) {
         if (!CobaltAge.ModernSignalEngine) { // Skipping update power strength method when modern engine is enabled
-            //if (useExperimentalEvaluator(level)) {
-            // (new ExperimentalRedstoneWireEvaluator(this)).updatePowerStrength(level, blockPos, blockState, orientation, bl);
-            //} else {
-            this.evaluator.updatePowerStrength(level, blockPos, blockState, orientation, false);
-            //}
+            if (useExperimentalEvaluator(level)) {
+             (new ExperimentalWireEvaluator(this)).updatePowerStrengthByType(SignalType.COBALT, level, blockPos, blockState, orientation, false);
+            } else {
+            this.evaluator.updatePowerStrengthByType(SignalType.COBALT, level, blockPos, blockState, orientation, false);
+            }
         }
     }
 
@@ -251,7 +247,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
                     if (CobaltAge.ModernSignalEngine){
                         ((IServerLevel)world).cobaltage$getWireHandler().onWireUpdated(pos, state, orientation);
                     }else{
-                        this.updatePowerStrength(world, pos, state, orientation);
+                        this.updatePowerStrengthByType(world, pos, state, orientation);
                     }
                 } else {
                     dropResources(state, world, pos);
@@ -261,12 +257,6 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         }
     }
 
-    public int getBlockSignal(Level level, BlockPos blockPos) {
-        this.shouldSignal = false;
-        int i = ((SignalGetterByType)level).cobaltage$getBestNeighborSignalByType(COBALT, blockPos);
-        this.shouldSignal = true;
-        return i;
-    }
 
     protected void affectNeighborsAfterRemoval(@NonNull BlockState blockState, @NonNull ServerLevel serverLevel, @NonNull BlockPos blockPos, boolean bl) {
         if (!bl) {
@@ -277,7 +267,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
             if (CobaltAge.ModernSignalEngine){
                 ((IServerLevel)serverLevel).cobaltage$getWireHandler().onWireRemoved(blockPos, blockState);
             }else{
-                this.updatePowerStrength(serverLevel, blockPos, blockState, null);
+                this.updatePowerStrengthByType(serverLevel, blockPos, blockState, null);
             }
             this.updateAllNeighbors(serverLevel, blockPos);
             this.updateDiagonalShapes(serverLevel, blockPos);
@@ -363,7 +353,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
             if (CobaltAge.ModernSignalEngine){
                 ((IServerLevel)level).cobaltage$getWireHandler().onWireAdded(pos, state);
             }else{
-                this.updatePowerStrength(level, pos, state, null);
+                this.updatePowerStrengthByType(level, pos, state, null);
             }
             this.updateAllNeighbors(level,pos);
             this.updateDiagonalShapes(level, pos);
@@ -414,28 +404,38 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     protected @NonNull InteractionResult useWithoutItem(@NonNull BlockState state, @NonNull Level world, @NonNull BlockPos pos, Player player, @NonNull BlockHitResult hit) {
         if (!player.getAbilities().mayBuild) return InteractionResult.PASS;
         // + or .
-        if (isFullyConnected(state) || isNotConnected(state)) {
-            if(hasForcedConnection(world, pos)){
+        if (isCross(state) || isDot(state)) {
+            if(isConnected(world, pos)){
                 return InteractionResult.PASS;
             }
-            BlockState newState = isFullyConnected(state) ? setDotState(state) : setCrossState(state);
+            BlockState newState = isCross(state) ? setDot(state) : setCross(state);
             newState = newState.setValue(POWER, state.getValue(POWER));
             world.setBlock(pos, newState, Block.UPDATE_ALL);
-            this.updateAllNeighbors(world, pos);
+            this.updatesOnShapeChange(world, pos, state, newState);
             return InteractionResult.SUCCESS;
         }
         // - with 1 free side
-        if (hasOneFreeConnectionInALineShape(world, pos)) {
+        if (isFreeLine(world, pos)) {
             BlockState newState = state.cycle(RETRACTED);
             world.setBlock(pos, CobaltWireShape.getUpdatedState(world, pos, newState), Block.UPDATE_ALL);
-            this.updateAllNeighbors(world, pos);
+            this.updatesOnShapeChange(world, pos, state, newState);
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
     }
 
-    // has at least 1 connection?
-    private boolean hasForcedConnection(Level world, BlockPos pos) {
+    private void updatesOnShapeChange(Level level, BlockPos blockPos, BlockState blockState, BlockState blockState2) {
+        Orientation orientation = ExperimentalRedstoneUtils.initialOrientation(level, null, Direction.UP);
+        for(Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos blockPos2 = blockPos.relative(direction);
+            if ((blockState.getValue(PROPERTY_BY_DIRECTION.get(direction))).isConnected() != (blockState2.getValue(PROPERTY_BY_DIRECTION.get(direction))).isConnected() && (level.getBlockState(blockPos2).isRedstoneConductor(level, blockPos2) || level.getBlockState(blockPos2).getBlock() instanceof PoweredBlock)) {
+                level.updateNeighborsAtExceptFromFacing(blockPos2, blockState2.getBlock(), direction.getOpposite(), ExperimentalRedstoneUtils.withFront(orientation, direction));
+            }
+        }
+    }
+
+    // does it have at least 1 connection?
+    private boolean isConnected(Level world, BlockPos pos) {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             if (CobaltWireShape.getRenderConnection(world, pos, direction) != RedstoneSide.NONE) {
                 return true;
@@ -444,8 +444,8 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         return false;
     }
 
-    // is - state with only 1 free connection on the same axis?
-    public static boolean hasOneFreeConnectionInALineShape(Level world, BlockPos pos) {
+    // is a line state shape (-) with only 1 free connection on the same axis?
+    public static boolean isFreeLine(Level world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
         int i = 0;
         int j = 0;
@@ -470,7 +470,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     }
 
     // is . State?
-    private boolean isNotConnected(BlockState state) {
+    private boolean isDot(BlockState state) {
         return state.getValue(NORTH) == RedstoneSide.NONE &&
                 state.getValue(SOUTH) == RedstoneSide.NONE &&
                 state.getValue(EAST) == RedstoneSide.NONE &&
@@ -478,7 +478,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     }
 
     // is + State?
-    private boolean isFullyConnected(BlockState state) {
+    private boolean isCross(BlockState state) {
         return state.getValue(NORTH) == RedstoneSide.SIDE &&
                 state.getValue(SOUTH) == RedstoneSide.SIDE &&
                 state.getValue(EAST) == RedstoneSide.SIDE &&
@@ -486,7 +486,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     }
 
     // . State
-    private BlockState setDotState(BlockState state) {
+    private BlockState setDot(BlockState state) {
         return state.setValue(NORTH, RedstoneSide.NONE)
                 .setValue(SOUTH, RedstoneSide.NONE)
                 .setValue(EAST, RedstoneSide.NONE)
@@ -494,7 +494,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     }
 
     // + State
-    private BlockState setCrossState(BlockState state) {
+    private BlockState setCross(BlockState state) {
         return state.setValue(NORTH, RedstoneSide.SIDE)
                 .setValue(SOUTH, RedstoneSide.SIDE)
                 .setValue(EAST, RedstoneSide.SIDE)
