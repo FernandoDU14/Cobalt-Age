@@ -24,7 +24,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.NonNull;
 
-import static net.fernando.cobaltage.wire.CobaltWireShape.canSourceConnectToTarget;
+import static net.fernando.cobaltage.block.signal.cobalt.CobaltWireShape.canSourceConnectToTarget;
 
 public class CobaltRelayBlock extends CobaltWireBlock {
     public static final BooleanProperty UP = BlockStateProperties.UP;
@@ -112,7 +112,7 @@ public class CobaltRelayBlock extends CobaltWireBlock {
     @Override
     public @NonNull BlockState updateShape(BlockState state, @NonNull LevelReader world, net.minecraft.world.level.@NonNull ScheduledTickAccess tickView, @NonNull BlockPos pos, @NonNull Direction direction, @NonNull BlockPos neighborPos, @NonNull BlockState neighborState, @NonNull RandomSource random) {
         BlockState baseUpdate = super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
-        if (baseUpdate.is(Blocks.AIR)) return baseUpdate; // Eredita la logica dell'acqua/distruzione
+        if (baseUpdate.is(Blocks.AIR)) return baseUpdate;
 
         return this.getUpdatedState(world, pos, baseUpdate);
     }
@@ -160,7 +160,7 @@ public class CobaltRelayBlock extends CobaltWireBlock {
 
     @Override
     protected @NonNull InteractionResult useWithoutItem(@NonNull BlockState state, @NonNull Level world, @NonNull BlockPos pos, Player player, @NonNull BlockHitResult hit) {
-        // Nessun interruttore manuale (Cross/Dot) per il relè: è sempre automatico!
+        // More sophisticated logic in future?
         return InteractionResult.PASS;
     }
 
@@ -180,7 +180,6 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         int blue = Mth.clamp((int)(b * 255.0F), 0, 255);
         int colorInt = red << 16 | green << 8 | blue;
 
-        // Emette particelle dal centro esatto del blocco (dentro il vetro)
         if (random.nextFloat() < 0.5F) {
             double dX = pos.getX() + 0.5D + (random.nextDouble() - 0.5) * 0.4;
             double dY = pos.getY() + 0.5D + (random.nextDouble() - 0.5) * 0.4;

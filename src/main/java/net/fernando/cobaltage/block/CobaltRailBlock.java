@@ -1,6 +1,6 @@
 package net.fernando.cobaltage.block;
 
-import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
+import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.RailShape;
 import org.jspecify.annotations.NonNull;
 
-import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
+import static net.fernando.cobaltage.block.signal.SignalType.COBALT;
 
 public class CobaltRailBlock extends PoweredRailBlock {
 

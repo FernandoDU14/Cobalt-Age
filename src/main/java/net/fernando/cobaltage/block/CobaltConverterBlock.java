@@ -1,12 +1,13 @@
 package net.fernando.cobaltage.block;
 
 import com.mojang.serialization.MapCodec;
-import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
-import net.fernando.cobaltage.util.signal.converter.FlowingSide;
-import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltSource;
+import net.fernando.cobaltage.util.signal.FlowingSide;
+import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
@@ -30,9 +31,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
-import static net.fernando.cobaltage.util.signal.SignalType.*;
+import static net.fernando.cobaltage.block.signal.SignalType.*;
 
-public class CobaltConverterBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock, CobaltEmitter {
+public class CobaltConverterBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock, CobaltSource {
 
     public static final MapCodec<CobaltConverterBlock> CODEC = simpleCodec(CobaltConverterBlock::new);
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
@@ -42,6 +43,7 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
     public static final BooleanProperty COBALT_LIT = BooleanProperty.create("cobalt_lit");
     public static final BooleanProperty REDSTONE_LIT = BooleanProperty.create("redstone_lit");
     public static final EnumProperty<FlowingSide> FLOWING_SIDE = EnumProperty.create("flowing_side", FlowingSide.class);
+    private static final int UPDATE_DELAY = 2; // 1 rt (1 redstone tick = 0.1 seconds = 2 ticks)
 
     public CobaltConverterBlock(Properties settings) {
         super(settings);
@@ -116,12 +118,7 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
         return floorState.isFaceSturdy(world, floorPos, Direction.UP) || floorState.is(Blocks.HOPPER);
     }
 
-    @Override
-    public void onPlace(BlockState state, @NonNull Level world, @NonNull BlockPos pos, BlockState oldState, boolean notify) {
-        if (!oldState.is(state.getBlock()) && !world.isClientSide()) {
-            updateConverterState(state, world, pos);
-        }
-    }
+
 
     @Override
     public @NonNull BlockState updateShape(BlockState state, @NonNull LevelReader world, @NonNull ScheduledTickAccess tickView, @NonNull BlockPos pos, @NonNull Direction direction, @NonNull BlockPos neighborPos, @NonNull BlockState neighborState, @NonNull RandomSource random) {
@@ -133,6 +130,20 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
             return direction == Direction.DOWN && !(neighborState.isFaceSturdy(world, neighborPos, Direction.UP, SupportType.RIGID)) ? Blocks.AIR.defaultBlockState() : newState.setValue(WATERLOGGED, state.getValue(WATERLOGGED));
         }
         return newState;
+    }
+
+    @Override
+    protected void tick(@NonNull BlockState state, @NonNull ServerLevel world, @NonNull BlockPos pos, @NonNull RandomSource random) {
+        updateConverterState(state, world, pos);
+    }
+
+    @Override
+    public void onPlace(BlockState state, @NonNull Level world, @NonNull BlockPos pos, BlockState oldState, boolean notify) {
+        if (!oldState.is(state.getBlock()) && !world.isClientSide()) {
+            if (!world.getBlockTicks().hasScheduledTick(pos, this)) {
+                world.scheduleTick(pos, this, UPDATE_DELAY);
+            }
+        }
     }
 
     private void updateConverterState(BlockState state, Level world, BlockPos pos){
@@ -206,7 +217,9 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
             dropResources(state, world, pos);
             world.removeBlock(pos, false);
         }
-        updateConverterState(state, world, pos);
+        if (!world.getBlockTicks().hasScheduledTick(pos, this)) {
+            world.scheduleTick(pos, this, UPDATE_DELAY);
+        }
     }
 
     private void updateNeighbors(Level world, BlockPos pos, BlockState state) {

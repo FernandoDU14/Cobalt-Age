@@ -1,6 +1,6 @@
 package net.fernando.cobaltage.util.interfaces.mixin;
 
-import net.fernando.cobaltage.wire.modern.WireHandler;
+import net.fernando.cobaltage.block.signal.engine.modern.WireHandler;
 
 public interface IServerLevel {
 

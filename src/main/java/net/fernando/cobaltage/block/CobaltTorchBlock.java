@@ -2,8 +2,8 @@ package net.fernando.cobaltage.block;
 
 import com.google.common.collect.Lists;
 import com.mojang.serialization.MapCodec;
-import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
-import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltSource;
+import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -31,9 +31,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
 
-import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
+import static net.fernando.cobaltage.block.signal.SignalType.COBALT;
 
-public class CobaltTorchBlock extends BaseTorchBlock implements SimpleWaterloggedBlock, CobaltEmitter {
+public class CobaltTorchBlock extends BaseTorchBlock implements SimpleWaterloggedBlock, CobaltSource {
     public static final MapCodec<CobaltTorchBlock> CODEC = simpleCodec(CobaltTorchBlock::new);
     public static final BooleanProperty LIT;
     private static final Map<BlockGetter, List<CobaltTorchBlock.Toggle>> RECENT_TOGGLES;

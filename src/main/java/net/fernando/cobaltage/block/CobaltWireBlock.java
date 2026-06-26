@@ -4,12 +4,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.mojang.serialization.MapCodec;
 import net.fernando.cobaltage.CobaltAge;
-import net.fernando.cobaltage.util.interfaces.cobalt.CobaltEmitter;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltSource;
 import net.fernando.cobaltage.util.interfaces.mixin.IServerLevel;
-import net.fernando.cobaltage.wire.CobaltWireShape;
-import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
-import net.fernando.cobaltage.wire.CobaltWireEvaluator;
-import net.fernando.cobaltage.wire.DefaultCobaltWireEvaluator;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltWireShape;
+import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
+import net.fernando.cobaltage.block.signal.engine.legacy.CobaltWireEvaluator;
+import net.fernando.cobaltage.block.signal.engine.legacy.DefaultCobaltWireEvaluator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -37,9 +37,9 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
 
-import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
+import static net.fernando.cobaltage.block.signal.SignalType.COBALT;
 
-public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltEmitter {
+public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, CobaltSource {
     public static final MapCodec<CobaltWireBlock> CODEC = simpleCodec(CobaltWireBlock::new);
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
@@ -233,7 +233,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     }
 
     private void updatePowerStrength(Level level, BlockPos blockPos, BlockState blockState, @Nullable Orientation orientation) {
-        if (!CobaltAge.ModernCobaltEngine) {
+        if (!CobaltAge.ModernSignalEngine) { // Skipping update power strength method when modern engine is enabled
             //if (useExperimentalEvaluator(level)) {
             // (new ExperimentalRedstoneWireEvaluator(this)).updatePowerStrength(level, blockPos, blockState, orientation, bl);
             //} else {
@@ -247,8 +247,8 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
         if (!world.isClientSide()) {
             if (neighborBlock != this || !useExperimentalEvaluator(world)) {
                 if (state.canSurvive(world, pos)) {
-                    // Modern Engine Switch
-                    if (CobaltAge.ModernCobaltEngine){
+                    // Modern Signal Engine Switch
+                    if (CobaltAge.ModernSignalEngine){
                         ((IServerLevel)world).cobaltage$getWireHandler().onWireUpdated(pos, state, orientation);
                     }else{
                         this.updatePowerStrength(world, pos, state, orientation);
@@ -273,8 +273,8 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
             for(Direction direction : Direction.values()) {
                 serverLevel.updateNeighborsAt(blockPos.relative(direction), this);
             }
-            // Modern Engine Switch
-            if (CobaltAge.ModernCobaltEngine){
+            // Modern Signal Engine Switch
+            if (CobaltAge.ModernSignalEngine){
                 ((IServerLevel)serverLevel).cobaltage$getWireHandler().onWireRemoved(blockPos, blockState);
             }else{
                 this.updatePowerStrength(serverLevel, blockPos, blockState, null);
@@ -316,7 +316,7 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
 
     @Override
     public boolean isSignalSource(@NonNull BlockState state) {
-        return true;
+        return this.shouldSignal;
     }
 
     @Override
@@ -359,8 +359,8 @@ public class CobaltWireBlock extends Block  implements SimpleWaterloggedBlock, C
     @Override
     public void onPlace(@NonNull BlockState state, @NonNull Level level, @NonNull BlockPos pos, @NonNull BlockState oldState, boolean bl) {
         if (!oldState.is(state.getBlock()) && !level.isClientSide()) {
-            // Modern Engine Switch
-            if (CobaltAge.ModernCobaltEngine){
+            // Modern Signal Engine Switch
+            if (CobaltAge.ModernSignalEngine){
                 ((IServerLevel)level).cobaltage$getWireHandler().onWireAdded(pos, state);
             }else{
                 this.updatePowerStrength(level, pos, state, null);

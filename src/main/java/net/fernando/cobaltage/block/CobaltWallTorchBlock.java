@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.block;
 
 import com.mojang.serialization.MapCodec;
-import net.fernando.cobaltage.util.interfaces.signalgetters.SignalGetterByType;
+import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -26,7 +26,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import static net.fernando.cobaltage.util.signal.SignalType.COBALT;
+import static net.fernando.cobaltage.block.signal.SignalType.COBALT;
 
 public class CobaltWallTorchBlock extends CobaltTorchBlock {
 

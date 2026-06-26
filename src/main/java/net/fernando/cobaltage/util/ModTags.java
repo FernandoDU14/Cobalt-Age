@@ -12,8 +12,8 @@ public class ModTags {
         //public static final TagKey<Block> NEEDS_PINK_GARNET_TOOL = createTag("needs_pink_garnet_tool");
         //public static final TagKey<Block> INCORRECT_FOR_PINK_GARNET_TOOL = createTag("incorrect_for_pink_garnet_tool");
 
-        public static final TagKey<Block> CAN_EMIT_IN_COBALT_SIGNAL_CHANNEL = createTag("can_emit_in_cobalt_signal_channel");
-        public static final TagKey<Block> CANT_RECIVE_FROM_COBALT_SIGNAL_CHANNEL = createTag("cant_recive_from_cobalt_signal_channel");
+        public static final TagKey<Block> SHOULD_REDSTONE_SIGNAL_EMITTER_EMIT_ALSO_COBALT_SIGNAL = createTag("should_redstone_signal_emitter_emit_also_cobalt_signal");
+        public static final TagKey<Block> SHOULD_IGNORE_COBALT_SIGNALS = createTag("should_ignore_cobalt_signals");
 
         private static TagKey<Block> createTag(String name) {
             return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, name));

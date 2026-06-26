@@ -38,7 +38,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         valueLookupBuilder(BlockTags.BEACON_BASE_BLOCKS)
                 .add(ModBlocks.COBALT_BLOCK);
 
-        valueLookupBuilder(ModTags.Blocks.CAN_EMIT_IN_COBALT_SIGNAL_CHANNEL)
+        // Blocks that emit redstone signal but should emit also a cobalt signal
+        valueLookupBuilder(ModTags.Blocks.SHOULD_REDSTONE_SIGNAL_EMITTER_EMIT_ALSO_COBALT_SIGNAL)
                 .addOptionalTag(BlockTags.BUTTONS)
                 .addOptionalTag(BlockTags.PRESSURE_PLATES)
                 .addOptionalTag(BlockTags.LIGHTNING_RODS)
@@ -51,7 +52,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(Blocks.TRAPPED_CHEST)
                 .add(Blocks.LECTERN);
 
-        valueLookupBuilder(ModTags.Blocks.CANT_RECIVE_FROM_COBALT_SIGNAL_CHANNEL)
+        // Blocks that should ignore cobalt signals
+        valueLookupBuilder(ModTags.Blocks.SHOULD_IGNORE_COBALT_SIGNALS)
                 .add(Blocks.REDSTONE_WIRE)
                 .add(Blocks.REDSTONE_TORCH)
                 .add(Blocks.ACTIVATOR_RAIL)

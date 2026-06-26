@@ -1,120 +1,201 @@
-![Cobalt Age Title](./src/images/cobalt_age_title.png)
+![Cobalt Age Title](https://cdn.modrinth.com/data/pmieAiUD/images/338f64a95e6c1b6f64dfd4c59909b473dcbbe5f7.png)
+
+<div align="center">
+
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/txWQN8CtEV)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Cobalt--Age-blue?style=for-the-badge&logo=github)](https://github.com/FernandoDU14/Cobalt-Age)
+
+</div>
 
 # About
 
-This mod adds a new mineral to the game, the cobalt, which can be found in the overworld. The main feature of this mineral is to have, when merging a cobalt nugget with redstone, the cobalt dust. This dust works **the same way as redstone**, being **different on the aspect that it can be waterlogged and that it is an independent energy system from redstone**, making it possible to have parallel lines without them interfering each-other. Unlocking possibilities such as waterlogged item sorter, underwater circuits and hidden doors, and surface circuits that cannot be broken when an annoying water flow comes: this is valid for every cobalt-energy block: Cobalt Repeater / Cobalt Comparator / Cobalt wire / Converter / Relay.
-Plus, cobalt wires uses a modern system to optimize power computations and math, resulting up to 1000 times lagless than redstone, making this redstone type energy even more useful than redstone when making huge circuits.
-**This modern system to compute the power and the energy flow reflects perfectly the vanilla order of computations, in order to preserve vanilla bugs/features such as dupe machines**: this means this mod **resolves the lag of huge redstone circuits if you use Cobalt Energy Blocks (CEBs) instead of the redstone ones (REBs), preserving the vanilla orders for computations**.
+**Cobalt Age** adds a new Overworld mineral: **Cobalt**.
+
+The cobalt comes with its own set: Cobalt Ore (Stone and Deepslate), Raw Cobalt, Cobalt Ingot, Cobalt Nugget, Cobalt Block and Raw Cobalt Block.
+
+By that, you may combine a **Cobalt Nugget** with Redstone, obtaining the **Cobalt Dust**, the base of a new energy system that behaves similarly to Redstone while providing several unique advantages:
+
+* **Optimized Modern Signal Engine**, eventually toggable in configs, which does not cause even a minimum TPS or FPS change.
+* **Fully independent from Redstone** signals.
+* Can be **waterlogged**.
+* Underwater automation and circuitry (consequence of Waterloggability)
+* Prevents water flows from breaking dust networks (consequence of Waterloggability)
+* Other than the **Cross** and **Dot** states, which are already in Redstone, it has the **Retracted** state. Allowin the Cobalt Dust to be smarter than redstone (check the last image in "Cobalt Age Showcase" down here for clarifications)
+* Comes with a set of Cobalt Energy Blocks (CEBs):
+    * Cobalt Dust
+    * Cobalt Dust Block
+    * Cobalt Repeater
+    * Cobalt Comparator
+    * Cobalt Torch
+    * Cobalt Rail
+    * Cobalt Relay
+    * Converter
+* Comes with a set of Decorative Blocks:
+    * Cobalt Block
+    * Raw Cobalt Block
+
+As you may guess, the Converter will work as a bridge for the two systems.
+
+
+<details>
+  <summary><b>Spoiler: Cobalt Age Showcase</b></summary>
+
+Complete Cobalt Age Set:
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/8c62956fd665ebcbc4b5c1a2b9da64386651ef1e.png" width="600">
+
+Cobalt Block is compatible with the Beacon:
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/f286a6a10b49206eb21d6fa36380037aab3ec387.png" width="600">
+
+The new beacon GUI, the cobalt ingot has been added in the GUI.
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/f0f20e6f3c316db775db8575b887e1e39f6fc661.png" width="600">
+
+Water does not break the blocks:
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/9fbce9537f742639174d6f05761735af7569c610.png" width="600">
+
+A closer look into the retracted state:
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/c11253b7c3f55c2d53ce56a89d1909f16db8128d.gif" width="600">
+
+
+
+</details>
+
+## High-Performance Signal Engine
+
+Cobalt wires eventually use a **modern optimized signal propagation system** capable of reducing computation costs dramatically compared to vanilla Redstone, which scales in amplitude with the complexity of the system.
+
+Unlike alternative optimization approaches, cobalt wires and relays preserve vanilla update order and behaviour, including mechanics that rely on update timing and ordering, such as dupe machines.
+
+Benefits are:
+* **No computational cost**, all informations about states are just **listed** in a dynamic graph loaded in the server (RAM), using bit masks for each property (Near 0 RAM usage), instead of being calculated (CPU) for every change you do (vanilla).
+* **No TPS change** as the computational cost is infinitesimal (bit masks).
+* **No FPS change** as the cobalt wire updates do not call other updates and light updates and many others.
+* Maintains **compatibility with other mods** which may include more signal absorbers (Consumers) and more signal emitters (Emitters), or even signal modification mods like Alternate Current (which does optimisation to redstone in a similar way Cobalt Age does).
 
 <details>
   <summary><b>Performance Tests</b></summary>
+Scatter Test in a 100 x 100 wire linked web with 20 observer clocks. Cobalt dust does not cause not even a minimum server lag or client FPS drops (10 ms over 50 ms), while redstone dust cause a huge lag and a huge delay of 2.8 seconds from a tick to another one (130+ ms over 50ms). You can see the delay in the redstone update signals in the shown videos.
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/bf714ef2ceeb743557d05f8af0736569816c275c.gif" width="600">
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/684fb57e4a285c13bc14b1d532861ceab9c6c08e.gif" width="600">
+</details>
 
-<img src="./src/images/scatter_redstone.gif" width="600">
-<img src="./src/images/dynamic_scatter_cobalt.gif" width="600">
+## Independent Energy Systems
 
-- Scatter Test in a 100 x 100 wire linked web with 20 observer clocks. Cobalt dust does not cause not even a minimum server lag or client FPS drops (10 ms over 50 ms), while redstone dust cause a huge lag and a huge delay of 2.8 seconds from a tick to another one (130+ ms over 50ms). You can see the delay in the redstone update signals in the shown videos.
+Cobalt Energy Blocks (CEBs) and Redstone Energy Blocks (REBs) completely operate independently. They **emit signals on different channels**. You may think the system will break when you try to transfer the a signal through a block which is in the set of the other signal channel (example a redstone torch behind a cobalt dust block). Well, it will not break, as the **signal channels will not interfere with each other** (because of their independent signal channel).
+
+Two reciprocal examples may be:
+* Redstone Dust Blocks can receive a cobalt signal from a CEBs and because of that emit a cobalt signal to their neighbours
+* Cobalt Dust Blocks can receive a redstone signal from a REBs and because of that emit a redstone signal to their neighbours
+
+A pratical meaning of this may be:
+
+* A redstone repater poiting a Cobalt Dust Block, which then transfers the energy to a redstone torch, and viceversa at switched roles.
+
+<details>
+  <summary><b>Spoiler: Practical example of independence</b></summary>
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/c87c6887d0747a4aaa11492dfad20d88a5f03dc3.gif" width="600">
+
 </details>
 
 <details>
-  <summary><b>Independence between cobalt and redstone</b></summary>
+  <summary><b>Spoiler: Parallel Wires</b></summary>
 
-<img src="./src/images/Cobalt-redstone%20independence.png" width="600">
-<img src="./src/images/wire_showcase.png" width="600">
-<img src="./src/images/converter_showcase_on.png" width="600">
-<img src="./src/images/converter_showcase_off.png" width="600">
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/2ddbfd49a3af63083fbf0f61a4956351725d607f.png" width="600">
+
+</details>
+
+<details>
+  <summary><b>Spoiler: More independece examples</b></summary>
 
 
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/14ff842ece2cc859da4cfb8707bd1c551961c4aa.png" width="600">
 
 </details>
 
 
 <details>
-    <summary><b>Further Examples</b></summary>
-Showcase of CEBs and REBs independent behavior when mixed. 
-<img src="./src/images/wire_showcase_2.png" width="600">
+    <summary><b>Spoiler: Even more examples</b></summary>
 
 Showcase of the Glass Diode for Cobalt Wires. The logic has been inherited by Redstone Wires.
-<img src="./src/images/glass_diode.png" width="600">
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/efab130c1c7e28c4aa6512de7773c344a870f1ac.png" width="600">
 
 ON / OFF Showncase images for mixed blocks underwater and surface.
-<img src="./src/images/waterlog_showcase_on.png" width="600">
 
-<img src="./src/images/waterlog_showcase_off.png" width="600">
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/c21df3c9a33d592c43a742aca0e6347d3d95cee1.png" width="600">
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/336f536ad29d8e5541418083ab3373c8dcf5c433.png" width="600">
 
 </details>
-
-
-
-<details>
-  <summary><b>1.0.0</b></summary>
-
-<img src="./src/images/Cobalt%20set.png" width="600">
 
 ### Cobalt Rail
-This new rail works the same way as the powered rail, with the main difference between them being the speed of the cobalt rail, which is of 24BPS by default (but you can change it as you want), as it is meant for long distance travels.
 
-**IMPORTANT!**
-To make the cobalt rail reach the speed of 24BPS (or any custom speed), it is necessary to activate the experimental minecart improvements in your world / server.
+A faster alternative to Powered Rails, which has 24 blocks per second (BPS) as minecart speed by default (but you can change it as you want thorugh a gamerule), as it is meant for long distance travels. The vanilla minecart speed for Powered Rails is 8 BPS.
 
-The custom gamerule that has been added lets you modify the speed of both cobalt and powered rails:
-`gamerule cobaltAgeRailSpeed <value>`, where 'value' is the speed in BPS (blocks per second).
-Keep in mind that you want to set `max_minecart_speed` as the maximum possible - either you put a large unreal amount or you set that as Max(CobaltRailSpeed, PoweredRailSpeed). 
+**Note:** Supports experimental `minecart improvements` feature.
 
-Despite the speed of both type of rails can be modified, we recommend that at least one of the rails keeps the vanilla minecart speed (8 BPS).
+The custom gamerule that has been added lets you **change the speed of both cobalt and powered rails**, the format is the following:
+`gamerule cobaltage:max_minecart_speed_<type> <value>`, where 'type' is the type of rail and 'value' is the speed in BPS. Keep in mind that it is also **mandatory to change the gamerule `max_minecart_speed`** as this works as the maximum minecart speed theoretically reachable. The real maximum speed will be defined by the two gamerules though, so it is suggested to set the `max_minecart_speed` to a value which is greater or equals the maxium between the cobalt and powered rail minecart speed.
+
+Despite the fact that the speed of both types of rails can be modified, we recommend that at least one of the rails keeps the vanilla minecart speed (8 BPS).
 
 ### Converter
-The converter which works as a bridge between cobalt and redstone. It is a block that lets players transform the energy source from one type to the other. This also helps as ensure there is a way to connect cobalt to modded redstone machinery if you find any issue with cobalt.
-However, by default **all redstone consumer blocks can be powered by cobalt even if they are modded blocks**. A consumer is a block that can recive redstone power, for instance: piston, copper bulb, redstone lamp. While for modded emitters it is not guaranteed that they can power cobalt emergy blocks. As for properties, the converter has 0 ticks delay and powers the block which is facing to (like a repeater does, without its delay feature).
+The converter works as a bridge between cobalt and redstone signal worlds. It is a block that let the player transform the energy signal from one type to the other one. This also helps to ensure there is a way to inject moddded Emitters signals to cobalt wires if they are planned to be used.
+
+
+Further properties:
+* Reading: Similarly to Comparators and Repeaters, can read the signal behind him, but said signal must match the correct facing to work. It then will emit the same energy, that it reads from behind, towards the opposite facing changing the signal type.
+* Emitting: It will emit the energy like a comparator, so if there is a solid block in front of this block it will emit power towards that block. The emission is done with the amout of energy it is reciving as an input (reading 7 as input will produce 7 as output, just like a comparator). It works from both sides and the maxium input energy type will take the priority in the energy flow.
 
 <details>
-  <summary><b>Converter showcase</b></summary>
+  <summary><b>Spoiler: Converter</b></summary>
 
-<img src="./src/images/Converter.png" width="600">
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/142887088c12929925af6f69e5f4af197c9596fd.png" width="600">
 
-</details>
-</details>
 
-<details>
-  <summary><b>1.1.0</b></summary>
+Converter ON / OFF Lever behavior. You can also see the indipendence of wires.
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/e5ad8e5a5164abb6336d2efa44489db7dc562152.png" width="600">
 
-On this version of the mod, we have added a new block: the cobalt relay. We also retextured some blocks, added the cobalt as valid beacon material, and 2 new trim material designs and a new trim pattern: dust.
 
-<details>
-  <summary><b>1.1.0 Cobalt Age Showcase</b></summary>
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/28c7a05c7103672793fed6f248ab1b72a3f78b37.png" width="600">
 
-<img src="./src/images/Cobalt_set.png" width="600">
-
-<img src="./src/images/beacon.png" width="200">
-<img src="./src/images/beacon_gui.png" width="200">
 
 </details>
-
 
 ### Relay
 
-The relay is a block that can be used to do vertical signal transmission. It works as a dust, but only powers upwards and downwards, and it can be linked to cobalt dust only horizontally. As a CEB, it only powers other cobalt energy blocks (CEBs) or Consumers (Piston, Dropper...). This block is useful for parallel vertical transmissions. As for other properties, it is a glassy block. That means you can use the classical glass diode logic to make it work as a diode when using redstone wires (see Spoiler)
+The relay is a block that can be used to do vertical signal transmission. It works as a dust, but only powers upwards and downwards. It's properties are:
+
+* Transmitting only upward and downward.
+* Connecting horizontally only to Cobalt Dust.
+* It is a glassy block, allowing diode-style logic when you use it with redstone
+* You can attach without consequences Cobalt Torches to its faces, since the flow will be inside the block.
 
 <details>
-  <summary><b>Relay Showcase</b></summary>
+  <summary><b>Spoiler: Cobalt Relay</b></summary>
 ON / OFF Showcase for the Relay.
-<img src="./src/images/relay_on.png" width="600">
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/754094314bfc18d69d8fdd7549bd221bb2908a92.png" width="600">
 
 
-<img src="./src/images/relay_off.png" width="600">
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/76ffb32e037623e48b9ca25b7340f2fc3414f09d.png" width="600">
 </details>
 
-### A new look
+### A new look: Armor trims and material templates
 
-Now you can use both the cobalt ingot and the cobalt dust as new trim material designs, giving your armor two new blue tones to showcase.
-
-We also included a new trim pattern: the dust pattern, which can be obtained trading with the wandering trader (though this is something temporal).
+This mod also adds new looks for your armors. It adds Cobalt Ingot and Cobalt Dust items to be used as material template in the smithing table.
+Also a new armor trim template has been added: Dust Armor Trim. This new trim pattern can be obtained, as a **temporary feature**, by trading with the wandering trader.
 
 <details>
-  <summary><b>Trim materials and pattern showcase</b></summary>
-<img src="./src/images/armor_trim.png" width="200">
+    <summary><b>Spoiler: Dust Armor Trim & Cobalt Materials </b></summary>
 
-<img src="./src/images/dust_trim.png" width="200">
-</details>
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/f291de41b98ede4a7dbba74600b0a8433076c364.png" width="600">
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/19babec8816b4a4abde1a59abe590e59be0a8c5e.png" width="600">
 
 </details>
 
@@ -124,13 +205,16 @@ We also included a new trim pattern: the dust pattern, which can be obtained tra
 We have included 3 optional resource packs on this mod. One makes the cobalt rails have a 3D appearance. The second one lets the player see the power level the cobalt dust is emitting on a similar way to how the VanillaTweaks resource pack does. The last one puts the Beacon GUI in dark mode (Like Default Dark Mode does).
 
 <details>
-  <summary><b>Resourcepacks showcase</b></summary>
+  <summary><b>Spoiler</b></summary>
 
-<img src="./src/images/Cobalt%20power%20level.png" width="600">
-<img src="./src/images/Cobalt%20rails%203D.png" width="200">
-<img src="./src/images/beacon_gui_dark.png" width="200">
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/5368099fe8b96ddd4f9e60e7d95446930b68e7b7.png" width="600">
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/f291748632f28ec0c60dbd42e570d7ed3fe648c0.png" width="600">
+
+<img src="https://cdn.modrinth.com/data/pmieAiUD/images/13470ab2b32a65ebd8f2887f320ec6c841627717.png" width="600">
 
 </details>
+
 
 ---
 # Credits
@@ -138,16 +222,17 @@ We have included 3 optional resource packs on this mod. One makes the cobalt rai
 Thanks to:
 
 - [Vanilla Tweaks](https://vanillatweaks.net/picker/resource-packs/), for the models for both the 3d rails and the power level resourcepacks.
-- [Copper Rails](https://modrinth.com/mod/copperrail), as it was used as inspiration for the cobalt rails.
+- [Copper rails](https://modrinth.com/mod/copperrails), as it was used as inspiration for the cobalt rails.
+
 
 ---
+
 # From Authors
 
 You can use this mod freely in your modpacks, but please give credit to the original authors and link back to this page. If you want to make a video about this mod, please also give credit and link back to this page.
 
-If you want to suggest a feature or report a bug, please open an issue on the GitHub repository.
+If you want to suggest a feature or report a bug, please open an issue on the GitHub repository!
 
-[![GitHub Repo](https://img.shields.io/badge/GitHub-Cobalt--Age-blue?style=for-the-badge&logo=github)](https://github.com/FernandoDU14/Cobalt-Age)
 <a href="https://www.patreon.com/cobaltage">
     <img src="https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Support me on Patreon">
   </a>

@@ -4,7 +4,7 @@ import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.object.builder.v1.trade.TradeOfferHelper;
 import net.fernando.cobaltage.block.ModBlocks;
-import net.fernando.cobaltage.block.blockentities.ModBlockEntities;
+import net.fernando.cobaltage.block.entity.ModBlockEntities;
 import net.fernando.cobaltage.gamerules.CobaltRailsGameRules;
 import net.fernando.cobaltage.item.ModItems;
 import net.fernando.cobaltage.world.gen.ModWorldGeneration;
@@ -22,7 +22,7 @@ public class CobaltAge implements ModInitializer {
 	public static final String MOD_VERSION = "1.2.1";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static final boolean DEBUG = false;
-	public static boolean ModernCobaltEngine = true;
+	public static boolean ModernSignalEngine = false;
 
 	@Override
 	public void onInitialize() {
@@ -48,6 +48,6 @@ public class CobaltAge implements ModInitializer {
                     new ItemStack(ModItems.DUST_SMITHING_TEMPLATE, 1), 4, 7, 0.04f));
         });
 
-		LOGGER.info("Cobalt Age initialized successfully!");
+		LOGGER.info("{} version {} initialized successfully!", MOD_NAME, MOD_VERSION);
 	}
 }

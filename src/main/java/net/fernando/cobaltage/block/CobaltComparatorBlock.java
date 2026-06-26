@@ -2,7 +2,7 @@ package net.fernando.cobaltage.block;
 
 import net.fernando.cobaltage.block.abstracts.CobaltDiodeBlock;
 import com.mojang.serialization.MapCodec;
-import net.fernando.cobaltage.block.blockentities.CobaltComparatorBlockEntity;
+import net.fernando.cobaltage.block.entity.CobaltComparatorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
