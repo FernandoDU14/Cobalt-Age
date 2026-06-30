@@ -15,8 +15,6 @@ import net.minecraft.world.level.block.state.properties.RedstoneSide;
 
 import java.util.Map;
 
-import static net.fernando.cobaltage.block.signal.SignalType.COBALT;
-
 public abstract class WireBlock extends Block {
 
     public static final IntegerProperty POWER = BlockStateProperties.POWER;

@@ -18,9 +18,6 @@ and Cobalt Age's versioning is based on [Semantic Versioning](https://semver.org
 
 ## [1.2.1] - WORKING ON
 
-### TODO:
-Fix the bug on redstone block for cobalt wires
-
 ### Added
 - **Cobalt Wires:** Added support to Experimental Redstone Features. When they are enabled and the engine is set to legacy, it will use experimental redstone features. When the engine is set to legacy, it will use the same redstone updates as vanilla without experimental features. In conclusion, when the engine is set to modern, modern engine can also support the experimental redstone features. To understand more, take a look in the **Config files** add.
 - **Converter:** Converter now has the same property of the other blocks of the same family: The `UPDATE_DELAY`, which has been set to 1 redstone tick (2 real ticks). It is the same delay of comparators, repeaters in default state, cobalt comparators and cobalt repeaters in the default state.
@@ -33,6 +30,7 @@ Fix the bug on redstone block for cobalt wires
 
 ### Fixed
 - **Converter:** Fixed update loop crash when chain conversion happens.
+- **Cobalt Wires:** Fixed power loop when activated over a Redstone Block
 
 ## [1.2.0] - 2026-05-26
 

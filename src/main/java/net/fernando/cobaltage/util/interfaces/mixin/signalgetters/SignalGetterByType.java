@@ -8,7 +8,7 @@ public interface SignalGetterByType {
     int cobaltage$getDirectSignalByType(SignalType type, BlockPos pos, Direction dir);
 
 
-    int cobaltage$getDirectSignalToByType(SignalType type, BlockPos pos);
+    int cobaltage$getDirectSignalToByType(SignalType type, BlockPos pos, Direction ignoreDirection);
     int cobaltage$getBestNeighborSignalByType(SignalType type, BlockPos pos);
     int cobaltage$getControlInputSignalByType(SignalType type, BlockPos blockPos, Direction direction, boolean bl);
 

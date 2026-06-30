@@ -104,35 +104,25 @@ public abstract class LevelMixin implements SignalGetterByType {
     }
 
     @Override
-    public int cobaltage$getDirectSignalToByType(SignalType type, BlockPos pos) {
+    public int cobaltage$getDirectSignalToByType(SignalType type, BlockPos pos, Direction ignoreDirection) {
         BlockPos.MutableBlockPos mutable = STATIC_MUTABLE.get();
         int i = 0;
-        i = Math.max(i, this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.DOWN), Direction.DOWN));
-        if (i >= 15) {
-            return i;
-        } else {
-            i = Math.max(i, this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.UP), Direction.UP));
-            if (i >= 15) {
-                return i;
-            } else {
-                i = Math.max(i, this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.NORTH), Direction.NORTH));
-                if (i >= 15) {
-                    return i;
-                } else {
-                    i = Math.max(i, this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.SOUTH), Direction.SOUTH));
-                    if (i >= 15) {
-                        return i;
-                    } else {
-                        i = Math.max(i, this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.WEST), Direction.WEST));
-                        if (i >= 15) {
-                            return i;
-                        } else {
-                            i = Math.max(i, this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.EAST), Direction.EAST));
-                            return i >= 15 ? i : i;
+        i = Math.max(i, ignoreDirection==Direction.DOWN ? 0 : this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.DOWN), Direction.DOWN));
+        if (i < 15) {
+            i = Math.max(i, ignoreDirection==Direction.UP ? 0 : this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.UP), Direction.UP));
+            if (i < 15) {
+                i = Math.max(i, ignoreDirection==Direction.NORTH ? 0 : this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.NORTH), Direction.NORTH));
+                if (i < 15) {
+                    i = Math.max(i, ignoreDirection==Direction.SOUTH ? 0 : this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.SOUTH), Direction.SOUTH));
+                    if (i < 15) {
+                        i = Math.max(i, ignoreDirection==Direction.WEST ? 0 : this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.WEST), Direction.WEST));
+                        if (i < 15) {
+                            i = Math.max(i, ignoreDirection==Direction.EAST ? 0 : this.cobaltage$getDirectSignalByType(type, mutable.setWithOffset(pos, Direction.EAST), Direction.EAST));
                         }
                     }
                 }
             }
         }
+        return i;
     }
 }

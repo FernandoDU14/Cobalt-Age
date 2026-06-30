@@ -38,7 +38,7 @@ public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBas
                 int i = 0;
                 // Reading the Direct Power from Conductors
                 if (level instanceof Level world && (state.isRedstoneConductor(world, pos) || block instanceof CobaltDustBlock)) {
-                      i = ((SignalGetterByType) level).cobaltage$getDirectSignalToByType(type, pos);
+                      i = ((SignalGetterByType) level).cobaltage$getDirectSignalToByType(type, pos, dir.getOpposite());
                 }
                 // The rest if it can be read
                 if (!canListenRedstoneSignals && i==0) yield 0;
@@ -48,7 +48,7 @@ public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBas
                 int i = 0;
                 // Reading the Direct Power from Conductors
                 if (level instanceof Level world && (state.isRedstoneConductor(world, pos) || block instanceof PoweredBlock)) {
-                    i = Math.max(i, ((SignalGetterByType) level).cobaltage$getDirectSignalToByType(type, pos));
+                    i = Math.max(i, ((SignalGetterByType) level).cobaltage$getDirectSignalToByType(type, pos, dir.getOpposite()));
                 }
                 // The rest if it can be read
                 if (!canListenCobaltSignals && i==0) yield 0;

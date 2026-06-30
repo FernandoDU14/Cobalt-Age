@@ -93,13 +93,11 @@ public class CobaltWallTorchBlock extends CobaltTorchBlock {
 
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // To give you direct signal, i must be down respect to you
         return (direction == Direction.DOWN && state.getValue(LIT)) ? 15 : 0;
     }
 
     @Override
     public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        // [ (You) <---(facing of torch)--- Torch Attached (Attached Block) ]
         return (state.getValue(LIT) && direction != state.getValue(FACING)) ? 15 : 0;
     }
 
