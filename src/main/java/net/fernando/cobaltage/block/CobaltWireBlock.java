@@ -81,7 +81,7 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
                     for (RedstoneSide west : RedstoneSide.values()) {
                         VoxelShape shape = DOT_SHAPE;
 
-                        // Composizione NORTH
+                        // NORTH
                         if (north == RedstoneSide.SIDE) {
                             shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.NORTH));
                         } else if (north == RedstoneSide.UP) {
@@ -89,7 +89,7 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
                             shape = Shapes.or(shape, UP_NORTH_STUB);
                         }
 
-                        // Composizione SOUTH
+                        // SOUTH
                         if (south == RedstoneSide.SIDE) {
                             shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.SOUTH));
                         } else if (south == RedstoneSide.UP) {
@@ -97,7 +97,7 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
                             shape = Shapes.or(shape, UP_SOUTH_STUB);
                         }
 
-                        // Composizione EAST
+                        // EAST
                         if (east == RedstoneSide.SIDE) {
                             shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.EAST));
                         } else if (east == RedstoneSide.UP) {
@@ -105,7 +105,7 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
                             shape = Shapes.or(shape, UP_EAST_STUB);
                         }
 
-                        // Composizione WEST
+                        // WEST
                         if (west == RedstoneSide.SIDE) {
                             shape = Shapes.or(shape, SHAPES_BY_DIRECTION.get(Direction.WEST));
                         } else if (west == RedstoneSide.UP) {
@@ -113,13 +113,12 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
                             shape = Shapes.or(shape, UP_WEST_STUB);
                         }
 
-                        // Calcolo matematico dell'indice (0 - 80)
+                        // Index computation (0 - 80)
                         int index = north.ordinal() +
                                 south.ordinal() * 3 +
                                 east.ordinal() * 9 +
                                 west.ordinal() * 27;
 
-                        // .optimize() unisce le intersezioni interne riducendo i poligoni da renderizzare
                         SHAPE_CACHE[index] = shape.optimize();
                     }
                 }

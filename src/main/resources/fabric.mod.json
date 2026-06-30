@@ -10,7 +10,16 @@
   ],
   "contact": {
     "homepage": "https://modrinth.com/mod/cobaltage",
-    "sources": "https://github.com/FernandoDU14/Cobalt-Age"
+    "sources": "https://github.com/FernandoDU14/Cobalt-Age",
+    "issues": "https://github.com/FernandoDU14/Cobalt-Age/issues"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/txWQN8CtEV"
+      },
+      "update_checker": false
+    }
   },
   "license": "GPL-3.0",
   "icon": "assets/cobaltage/cobalt_age.png",
