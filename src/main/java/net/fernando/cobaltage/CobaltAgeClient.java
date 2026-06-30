@@ -9,10 +9,10 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fernando.cobaltage.block.CobaltWireBlock;
 import net.fernando.cobaltage.block.ModBlocks;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltColorUtil;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 
 public class CobaltAgeClient implements ClientModInitializer {
 
@@ -31,7 +31,7 @@ public class CobaltAgeClient implements ClientModInitializer {
         // Dynamic Color for the Cobalt Dust
         ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
             int power = state.getValue(CobaltWireBlock.POWER);
-            return getCobaltColor(power);
+            return CobaltColorUtil.getCobaltColor(power);
         }, ModBlocks.COBALT_DUST);
 
         // Registrazione per il Cobalt Relay
@@ -39,7 +39,7 @@ public class CobaltAgeClient implements ClientModInitializer {
             // Se il tintIndex è 0 (quello che abbiamo messo nel JSON della dust), calcola il colore
             if (tintIndex == 0) {
                 int power = state.getValue(CobaltWireBlock.POWER);
-                return getCobaltColor(power);
+                return CobaltColorUtil.getCobaltColor(power);
             }
             // Altrimenti, restituisci -1 per non applicare alcuna tinta (mantiene i colori originali delle texture)
             return -1;
@@ -48,25 +48,6 @@ public class CobaltAgeClient implements ClientModInitializer {
         initialize3dCobaltRailsResourcePack();
         initializeCobaltWirePowerLevelResourcePack();
         initializeCobaltAgeDDMResourcePack();
-    }
-
-    // Function to compute the color gradient of the Cobalt Dust
-    private static int getCobaltColor(int power) {
-        float f = (float)power / 15.0F;
-        float r = f * 0.1f + 0.1f;
-        float g = f * 0.5f + 0.3f;
-        float b = f * 1.1f + 0.4f;
-
-        if(f!=0){
-            b = b + 0.1f;
-            g = g + 0.1f;
-        }
-
-        int red = Mth.clamp((int)(r * 255.0F), 0, 255);
-        int green = Mth.clamp((int)(g * 255.0F), 0, 255);
-        int blue = Mth.clamp((int)(b * 255.0F), 0, 255);
-
-        return red << 16 | green << 8 | blue;
     }
 
     private static void initialize3dCobaltRailsResourcePack() {

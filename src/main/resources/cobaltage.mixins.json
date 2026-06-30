@@ -3,22 +3,23 @@
   "package": "net.fernando.cobaltage.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "world.level.block.state.BlockBehaviourBlockStateBaseMixin",
-    "world.level.LevelMixin",
+    "CommandMixin",
+    "client.gui.screens.inventory.BeaconScreenMixin",
     "server.MinecraftServerMixin",
     "server.level.ServerLevelMixin",
-    "client.gui.screens.inventory.BeaconScreenMixin",
     "world.entity.minecart.AbstractMinecartMixin",
     "world.entity.minecart.MinecartBehaviorMixin",
     "world.entity.minecart.NewMinecartBehaviorMixin",
     "world.entity.minecart.OldMinecartBehaviorMixin",
-    "world.level.block.entity.CalibratedSculkSensorBlockEntityMixin",
+    "world.level.LevelMixin",
     "world.level.block.LeverBlockMixin",
+    "world.level.block.entity.CalibratedSculkSensorBlockEntityMixin",
     "world.level.block.redstone.DiodeBlockMixin",
     "world.level.block.redstone.PoweredRailBlockMixin",
     "world.level.block.redstone.RedstoneTorchBlockMixin",
     "world.level.block.redstone.RedstoneWallTorchBlockMixin",
-    "world.level.block.redstone.RedStoneWireBlockMixin"
+    "world.level.block.redstone.RedStoneWireBlockMixin",
+    "world.level.block.state.BlockBehaviourBlockStateBaseMixin"
   ],
   "injectors": {
     "defaultRequire": 1

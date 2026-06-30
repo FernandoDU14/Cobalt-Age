@@ -3,10 +3,13 @@ package net.fernando.cobaltage;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.object.builder.v1.trade.TradeOfferHelper;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fernando.cobaltage.block.ModBlocks;
 import net.fernando.cobaltage.block.entity.ModBlockEntities;
 import net.fernando.cobaltage.gamerules.CobaltRailsGameRules;
 import net.fernando.cobaltage.item.ModItems;
+import net.fernando.cobaltage.util.signal.profiler.CAProfiler;
+import net.fernando.cobaltage.util.signal.profiler.Profiler;
 import net.fernando.cobaltage.world.gen.ModWorldGeneration;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -19,10 +22,17 @@ import org.slf4j.LoggerFactory;
 public class CobaltAge implements ModInitializer {
 	public static final String MOD_ID = "cobaltage";
 	public static final String MOD_NAME = "Cobalt Age";
-	public static final String MOD_VERSION = "1.2.1";
+	public static final String MOD_VERSION = getModVersion();
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static final boolean DEBUG = false;
 	public static boolean ModernSignalEngine = true;
+
+	private static String getModVersion() {
+		return FabricLoader.getInstance()
+				.getModContainer(MOD_ID)
+				.map(container -> container.getMetadata().getVersion().getFriendlyString())
+				.orElse("unknown");
+	}
 
 	@Override
 	public void onInitialize() {
@@ -49,5 +59,9 @@ public class CobaltAge implements ModInitializer {
         });
 
 		LOGGER.info("{} version {} initialized successfully!", MOD_NAME, MOD_VERSION);
+	}
+
+	public static Profiler createProfiler() {
+		return DEBUG ? new CAProfiler() : Profiler.DUMMY;
 	}
 }

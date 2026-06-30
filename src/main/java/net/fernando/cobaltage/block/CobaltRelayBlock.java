@@ -3,7 +3,7 @@ package net.fernando.cobaltage.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.util.Mth;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltColorUtil;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -169,16 +169,7 @@ public class CobaltRelayBlock extends CobaltWireBlock {
         int power = state.getValue(POWER);
         if (power == 0) return;
 
-        float f = (float)power / 15.0F;
-        float r = f * 0.1f + 0.1f;
-        float g = f * 0.5f + 0.3f;
-        float b = f * 1.1f + 0.4f;
-        if(f != 0){ b += 0.1f; g += 0.1f; }
-
-        int red = Mth.clamp((int)(r * 255.0F), 0, 255);
-        int green = Mth.clamp((int)(g * 255.0F), 0, 255);
-        int blue = Mth.clamp((int)(b * 255.0F), 0, 255);
-        int colorInt = red << 16 | green << 8 | blue;
+        int colorInt = CobaltColorUtil.getCobaltColor(power);
 
         if (random.nextFloat() < 0.5F) {
             double dX = pos.getX() + 0.5D + (random.nextDouble() - 0.5) * 0.4;

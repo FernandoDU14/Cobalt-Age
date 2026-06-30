@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.block;
 
 import com.mojang.serialization.MapCodec;
-import net.fernando.cobaltage.block.signal.cobalt.CobaltSource;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltSignalSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.NonNull;
 
-public class CobaltDustBlock extends Block implements CobaltSource {
+public class CobaltDustBlock extends Block implements CobaltSignalSource {
     public static final MapCodec<CobaltDustBlock> CODEC = simpleCodec(CobaltDustBlock::new);
 
     @Override

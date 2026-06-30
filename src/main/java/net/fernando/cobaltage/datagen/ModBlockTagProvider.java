@@ -39,7 +39,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.COBALT_BLOCK);
 
         // Blocks that emit redstone signal but should emit also a cobalt signal
-        valueLookupBuilder(ModTags.Blocks.SHOULD_REDSTONE_SIGNAL_EMITTER_EMIT_ALSO_COBALT_SIGNAL)
+        valueLookupBuilder(ModTags.Blocks.SHOULD_REDSTONE_SOURCE_EMIT_COBALT)
                 .addOptionalTag(BlockTags.BUTTONS)
                 .addOptionalTag(BlockTags.PRESSURE_PLATES)
                 .addOptionalTag(BlockTags.LIGHTNING_RODS)

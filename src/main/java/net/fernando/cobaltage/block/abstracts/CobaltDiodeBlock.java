@@ -1,9 +1,10 @@
 package net.fernando.cobaltage.block.abstracts;
 
 import com.mojang.serialization.MapCodec;
+import net.fernando.cobaltage.CobaltAge;
 import net.fernando.cobaltage.block.CobaltWireBlock;
 import net.fernando.cobaltage.block.ModBlocks;
-import net.fernando.cobaltage.block.signal.cobalt.CobaltSource;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltSignalSource;
 import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,7 +34,7 @@ import org.jspecify.annotations.Nullable;
 
 import static net.fernando.cobaltage.block.signal.SignalType.COBALT;
 
-public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implements CobaltSource {
+public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implements CobaltSignalSource {
     public static final BooleanProperty POWERED;
     private static final VoxelShape SHAPE;
 

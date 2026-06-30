@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.mixin.world.level.block.redstone;
 
 import net.fernando.cobaltage.block.ModBlocks;
-import net.fernando.cobaltage.block.signal.cobalt.CobaltSource;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltSignalSource;
 import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,7 +21,7 @@ public class RedStoneWireBlockMixin {
 
     @Inject(at = @At("HEAD"), method = "shouldConnectTo(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z", cancellable = true)
     private static void shouldConnectTo(BlockState state, Direction direction, CallbackInfoReturnable<Boolean> cir) {
-        if (state.getBlock() instanceof CobaltSource && !state.is(ModBlocks.CONVERTER)) {
+        if (state.getBlock() instanceof CobaltSignalSource && !state.is(ModBlocks.CONVERTER)) {
             cir.setReturnValue(false);
         }
 

@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.block;
 
 import com.mojang.serialization.MapCodec;
-import net.fernando.cobaltage.block.signal.cobalt.CobaltSource;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltSignalSource;
 import net.fernando.cobaltage.util.signal.FlowingSide;
 import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
@@ -33,7 +33,7 @@ import org.jspecify.annotations.NonNull;
 
 import static net.fernando.cobaltage.block.signal.SignalType.*;
 
-public class CobaltConverterBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock, CobaltSource {
+public class CobaltConverterBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock, CobaltSignalSource {
 
     public static final MapCodec<CobaltConverterBlock> CODEC = simpleCodec(CobaltConverterBlock::new);
     public static final IntegerProperty POWER = BlockStateProperties.POWER;

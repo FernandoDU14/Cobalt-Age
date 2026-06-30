@@ -10,8 +10,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.RedstoneSide;
 import org.jetbrains.annotations.Nullable;
-import static net.fernando.cobaltage.block.signal.SignalUtils.isRedstoneEmitterToCobaltSignalNode;
-import static net.fernando.cobaltage.block.signal.SignalUtils.shouldCobaltWireConnectToRedstoneDirectionalEmitter;
+import static net.fernando.cobaltage.util.signal.SignalUtils.shouldRedstoneSourceEmitCobalt;
+import static net.fernando.cobaltage.util.signal.SignalUtils.shouldCobaltWireLinkToDirectionalRedstoneSource;
 
 public class CobaltWireShape {
 
@@ -158,13 +158,13 @@ public class CobaltWireShape {
         // Special cases (Vanilla blocks)
         assert dir != null;
         if(dir.getAxis().isHorizontal()){
-            if(shouldCobaltWireConnectToRedstoneDirectionalEmitter(targetState, dir)){
+            if(shouldCobaltWireLinkToDirectionalRedstoneSource(targetState, dir)){
                 return true;
             }
         }
 
-        return targetState.getBlock() instanceof CobaltSource ||
-                isRedstoneEmitterToCobaltSignalNode(targetState);
+        return targetState.getBlock() instanceof CobaltSignalSource ||
+                shouldRedstoneSourceEmitCobalt(targetState);
     }
 
 }

@@ -12,7 +12,7 @@ public class ModTags {
         //public static final TagKey<Block> NEEDS_PINK_GARNET_TOOL = createTag("needs_pink_garnet_tool");
         //public static final TagKey<Block> INCORRECT_FOR_PINK_GARNET_TOOL = createTag("incorrect_for_pink_garnet_tool");
 
-        public static final TagKey<Block> SHOULD_REDSTONE_SIGNAL_EMITTER_EMIT_ALSO_COBALT_SIGNAL = createTag("should_redstone_signal_emitter_emit_also_cobalt_signal");
+        public static final TagKey<Block> SHOULD_REDSTONE_SOURCE_EMIT_COBALT = createTag("should_redstone_signal_emitter_emit_also_cobalt_signal");
         public static final TagKey<Block> SHOULD_IGNORE_COBALT_SIGNALS = createTag("should_ignore_cobalt_signals");
 
         private static TagKey<Block> createTag(String name) {

@@ -6,17 +6,17 @@ import com.mojang.serialization.MapCodec;
 import net.fernando.cobaltage.CobaltAge;
 import net.fernando.cobaltage.block.abstracts.WireBlock;
 import net.fernando.cobaltage.block.signal.SignalType;
-import net.fernando.cobaltage.block.signal.cobalt.CobaltSource;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltSignalSource;
 import net.fernando.cobaltage.block.signal.engine.legacy.ExperimentalWireEvaluator;
 import net.fernando.cobaltage.util.interfaces.mixin.IServerLevel;
 import net.fernando.cobaltage.block.signal.cobalt.CobaltWireShape;
 import net.fernando.cobaltage.block.signal.engine.legacy.WireEvaluator;
 import net.fernando.cobaltage.block.signal.engine.legacy.DefaultWireEvaluator;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltColorUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -40,12 +40,11 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
 
-public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock, CobaltSource {
+public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock, CobaltSignalSource {
     public static final MapCodec<CobaltWireBlock> CODEC = simpleCodec(CobaltWireBlock::new);
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final BooleanProperty RETRACTED = BooleanProperty.create("retracted");
     private final WireEvaluator evaluator = new DefaultWireEvaluator(this);
-    protected boolean shouldSignal = true;
 
     public CobaltWireBlock(Properties settings) {
         super(settings);
@@ -154,23 +153,6 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
         return CobaltWireShape.getUpdatedState(world, pos, state);
     }
 
-    // Function to compute the colour of the Cobalt Dust
-    private static int getCobaltColor(int power) {
-        float f = (float)power / 15.0F;
-        float r = f * 0.1f + 0.1f;
-        float g = f * 0.5f + 0.3f;
-        float b = f * 1.1f + 0.4f;
-        if(f!=0){
-            b = b + 0.1f;
-            g = g + 0.1f;
-        }
-        int red = Mth.clamp((int)(r * 255.0F), 0, 255);
-        int green = Mth.clamp((int)(g * 255.0F), 0, 255);
-        int blue = Mth.clamp((int)(b * 255.0F), 0, 255);
-
-        return red << 16 | green << 8 | blue;
-    }
-
     private void addPoweredParticles(Level world, RandomSource random, BlockPos pos, int colorInt, Direction direction, Direction direction2, float f, float g) {
         float h = g - f;
         if (!(random.nextFloat() > 0.2F * h)) {
@@ -187,7 +169,7 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
     public void animateTick(BlockState state, @NonNull Level world, @NonNull BlockPos pos, @NonNull RandomSource random) {
         int power = state.getValue(POWER);
         if (power == 0) return;
-        int colorInt = getCobaltColor(power);
+        int colorInt = CobaltColorUtil.getCobaltColor(power);
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             EnumProperty<RedstoneSide> property = getProperty(direction);
             switch (state.getValue(property)) {

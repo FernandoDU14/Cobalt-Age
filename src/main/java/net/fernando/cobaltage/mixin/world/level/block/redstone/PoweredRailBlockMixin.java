@@ -16,13 +16,13 @@ public class PoweredRailBlockMixin {
     @Redirect(method = "isSameRailWithPower", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;hasNeighborSignal(Lnet/minecraft/core/BlockPos;)Z"))
 
     public boolean hasNeighbourSignalByType_isSameRailWithPower(Level level, BlockPos blockPos) {
-        return ((SignalGetterByType) level).cobaltage$hasNeighbourSignalByType(SignalType.REDSTONE, blockPos);
+        return ((SignalGetterByType) level).cobaltage$hasNeighborSignalByType(SignalType.REDSTONE, blockPos);
     }
 
     @Redirect(method = "updateState", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;hasNeighborSignal(Lnet/minecraft/core/BlockPos;)Z"))
 
     public boolean hasNeighbourSignalByType_updateState(Level level, BlockPos blockPos) {
-        return ((SignalGetterByType) level).cobaltage$hasNeighbourSignalByType(SignalType.REDSTONE, blockPos);
+        return ((SignalGetterByType) level).cobaltage$hasNeighborSignalByType(SignalType.REDSTONE, blockPos);
     }
 
 }

@@ -1,7 +1,7 @@
 package net.fernando.cobaltage.mixin.world.level.block.state;
 
 import net.fernando.cobaltage.block.CobaltDustBlock;
-import net.fernando.cobaltage.block.signal.cobalt.CobaltSource;
+import net.fernando.cobaltage.block.signal.cobalt.CobaltSignalSource;
 import net.fernando.cobaltage.block.signal.SignalType;
 import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.BlockStateBaseSignalGetterByType;
 import net.fernando.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import static net.fernando.cobaltage.block.signal.SignalUtils.*;
+import static net.fernando.cobaltage.util.signal.SignalUtils.*;
 
 @Mixin(BlockBehaviour.BlockStateBase.class)
 public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBaseSignalGetterByType {
@@ -30,8 +30,8 @@ public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBas
         BlockState state = (BlockState) (Object) this;
         Block block = this.getBlock();
 
-        boolean canListenCobaltSignals = canListenCobalt(state);
-        boolean canListenRedstoneSignals = canListenRedstone(state);
+        boolean canListenCobaltSignals = isCobaltListener(state);
+        boolean canListenRedstoneSignals = isRedstoneListener(state);
 
         return switch (type) {
             case REDSTONE -> {
@@ -52,11 +52,11 @@ public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBas
                 }
                 // The rest if it can be read
                 if (!canListenCobaltSignals && i==0) yield 0;
-                if (isRedstoneEmitterToCobaltSignalNode(state) || isRedstoneDirectionalEmitterToCobaltSignalNode(state)) {
+                if (shouldRedstoneSourceEmitCobalt(state) || shouldDirectionalRedstoneSourceEmitCobalt(state)) {
                     i = Math.max(i, this.getSignal(level, pos, dir));
                 }
-                if (block instanceof CobaltSource cobaltSource && level instanceof Level world) {
-                    i = Math.max(i, cobaltSource.getCobaltSignal(state, world, pos, dir));
+                if (block instanceof CobaltSignalSource cobaltSignalSource && level instanceof Level world) {
+                    i = Math.max(i, cobaltSignalSource.getCobaltSignal(state, world, pos, dir));
                 }
                 yield i;
             }
@@ -68,16 +68,16 @@ public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBas
         BlockState state = (BlockState) (Object) this;
         Block block = this.getBlock();
 
-        boolean isCobaltish = canListenCobalt(state);
-        boolean isRedstonish = canListenRedstone(state);
+        boolean isCobaltish = isCobaltListener(state);
+        boolean isRedstonish = isRedstoneListener(state);
 
         return switch (type) {
             case REDSTONE -> isRedstonish ? this.getDirectSignal(level, pos, dir) : 0;
             case COBALT -> {
                 if (!isCobaltish) yield 0;
                 // Direct Cobalt Signal by Cobalt Power Sources
-                if (block instanceof CobaltSource cobaltSource && level instanceof Level world) {
-                    yield cobaltSource.getDirectCobaltSignal(state, world, pos, dir);
+                if (block instanceof CobaltSignalSource cobaltSignalSource && level instanceof Level world) {
+                    yield cobaltSignalSource.getDirectCobaltSignal(state, world, pos, dir);
                 }
                 // Direct Redstone Signal
                 yield this.getDirectSignal(level, pos, dir);

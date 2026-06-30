@@ -13,5 +13,5 @@ public interface SignalGetterByType {
     int cobaltage$getControlInputSignalByType(SignalType type, BlockPos blockPos, Direction direction, boolean bl);
 
     boolean cobaltage$hasSignalByType(SignalType type, BlockPos pos, Direction dir);
-    boolean cobaltage$hasNeighbourSignalByType(SignalType type, BlockPos pos);
+    boolean cobaltage$hasNeighborSignalByType(SignalType type, BlockPos pos);
 }

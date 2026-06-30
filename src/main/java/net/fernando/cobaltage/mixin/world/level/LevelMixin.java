@@ -45,7 +45,7 @@ public abstract class LevelMixin implements SignalGetterByType {
     }
 
     @Override
-    public boolean cobaltage$hasNeighbourSignalByType(SignalType type, BlockPos pos) {
+    public boolean cobaltage$hasNeighborSignalByType(SignalType type, BlockPos pos) {
         BlockPos.MutableBlockPos mutable = STATIC_MUTABLE.get();
         if (this.cobaltage$getSignalByType(type, mutable.setWithOffset(pos, Direction.DOWN), Direction.DOWN) > 0) {
             return true;
