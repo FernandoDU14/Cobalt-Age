@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import static net.fernando.cobaltage.block.signal.SignalNode.*;
+import static net.fernando.cobaltage.block.signal.SignalUtils.*;
 
 @Mixin(BlockBehaviour.BlockStateBase.class)
 public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBaseSignalGetterByType {
@@ -30,8 +30,8 @@ public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBas
         BlockState state = (BlockState) (Object) this;
         Block block = this.getBlock();
 
-        boolean isCobaltish = isCobaltSignalNode(state);
-        boolean isRedstonish = isRedstoneSignalNode(state);
+        boolean canListenCobaltSignals = canListenCobalt(state);
+        boolean canListenRedstoneSignals = canListenRedstone(state);
 
         return switch (type) {
             case REDSTONE -> {
@@ -41,7 +41,7 @@ public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBas
                       i = ((SignalGetterByType) level).cobaltage$getDirectSignalToByType(type, pos);
                 }
                 // The rest if it can be read
-                if (!isRedstonish && i==0) yield 0;
+                if (!canListenRedstoneSignals && i==0) yield 0;
                 yield Math.max(i, this.getSignal(level, pos, dir));
             }
             case COBALT -> {
@@ -51,7 +51,7 @@ public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBas
                     i = Math.max(i, ((SignalGetterByType) level).cobaltage$getDirectSignalToByType(type, pos));
                 }
                 // The rest if it can be read
-                if (!isCobaltish && i==0) yield 0;
+                if (!canListenCobaltSignals && i==0) yield 0;
                 if (isRedstoneEmitterToCobaltSignalNode(state) || isRedstoneDirectionalEmitterToCobaltSignalNode(state)) {
                     i = Math.max(i, this.getSignal(level, pos, dir));
                 }
@@ -68,8 +68,8 @@ public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBas
         BlockState state = (BlockState) (Object) this;
         Block block = this.getBlock();
 
-        boolean isCobaltish = isCobaltSignalNode(state);
-        boolean isRedstonish = isRedstoneSignalNode(state);
+        boolean isCobaltish = canListenCobalt(state);
+        boolean isRedstonish = canListenRedstone(state);
 
         return switch (type) {
             case REDSTONE -> isRedstonish ? this.getDirectSignal(level, pos, dir) : 0;

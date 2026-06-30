@@ -10,8 +10,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.RedstoneSide;
 import org.jetbrains.annotations.Nullable;
-import static net.fernando.cobaltage.block.signal.SignalNode.isRedstoneEmitterToCobaltSignalNode;
-import static net.fernando.cobaltage.block.signal.SignalNode.shouldCobaltWireConnectToRedstoneDirectionalEmitter;
+import static net.fernando.cobaltage.block.signal.SignalUtils.isRedstoneEmitterToCobaltSignalNode;
+import static net.fernando.cobaltage.block.signal.SignalUtils.shouldCobaltWireConnectToRedstoneDirectionalEmitter;
 
 public class CobaltWireShape {
 

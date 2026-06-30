@@ -8,20 +8,20 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ObserverBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class SignalNode {
+public class SignalUtils {
 
-    // By "isRedstoneSignalNode" is meant every block state that should be part of Redstone Signal Channel
+    // By "canListenRedstone" is meant every block state that should be part of Redstone Signal Channel
     // Currently is true when the state not a cobalt emitter (exception for the converter which is the bridge)
-    public static boolean isRedstoneSignalNode(BlockState state) {
+    public static boolean canListenRedstone(BlockState state) {
         if (state.getBlock() instanceof CobaltConverterBlock) {
             return true;
         }
         return !(state.getBlock() instanceof CobaltSource);
     }
 
-    // By "isCobaltSignalNode" is meant every block state that should be part of Cobalt Signal Channel
+    // By "canListenCobalt" is meant every block state that should be part of Cobalt Signal Channel
     // Currently is true when the state is classified as ""
-    public static boolean isCobaltSignalNode(BlockState state) {
+    public static boolean canListenCobalt(BlockState state) {
         return !state.is(ModTags.Blocks.SHOULD_IGNORE_COBALT_SIGNALS);
     }
 
