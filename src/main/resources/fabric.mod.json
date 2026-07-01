@@ -26,13 +26,13 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fernando.cobaltage.CobaltAge"
+      "net.cobaltmc.cobaltage.CobaltAge"
     ],
     "fabric-datagen": [
-      "net.fernando.cobaltage.CobaltAgeDataGenerator"
+      "net.cobaltmc.cobaltage.CobaltAgeDataGenerator"
     ],
     "client": [
-      "net.fernando.cobaltage.CobaltAgeClient"
+      "net.cobaltmc.cobaltage.CobaltAgeClient"
     ]
   },
   "mixins": [
