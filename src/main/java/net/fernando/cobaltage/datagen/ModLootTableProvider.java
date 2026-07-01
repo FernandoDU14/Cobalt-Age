@@ -18,6 +18,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         dropSelf(ModBlocks.COBALT_BLOCK);
         dropSelf(ModBlocks.RAW_COBALT_BLOCK);
         dropSelf(ModBlocks.COBALT_DUST_BLOCK);
+        dropSelf(ModBlocks.COBALT_LAMP);
 
         add(ModBlocks.DEEPSLATE_COBALT_ORE, createOreDrop(ModBlocks.DEEPSLATE_COBALT_ORE, ModItems.RAW_COBALT));
         add(ModBlocks.COBALT_ORE, createOreDrop(ModBlocks.COBALT_ORE, ModItems.RAW_COBALT));

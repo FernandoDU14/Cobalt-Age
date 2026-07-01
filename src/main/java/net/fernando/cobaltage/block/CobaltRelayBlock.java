@@ -127,7 +127,7 @@ public class CobaltRelayBlock extends CobaltWireBlock {
             else if(direction == Direction.UP && state.getValue(UP) || direction == Direction.DOWN && state.getValue(DOWN)){
                 return i;
             } else {
-                return !(state.getValue(getProperty(direction.getOpposite())).isConnected()) ? 0 : i;
+                return !(state.getValue(PROPERTY_BY_DIRECTION.get(direction.getOpposite())).isConnected()) ? 0 : i;
             }
         } else {
             return 0;
@@ -143,7 +143,7 @@ public class CobaltRelayBlock extends CobaltWireBlock {
             else if(direction == Direction.UP && state.getValue(UP) || direction == Direction.DOWN && state.getValue(DOWN)){
                 return i;
             } else {
-                return !(state.getValue(getProperty(direction.getOpposite())).isConnected()) ? 0 : i;
+                return !(state.getValue(PROPERTY_BY_DIRECTION.get(direction.getOpposite())).isConnected()) ? 0 : i;
             }
         } else {
             return 0;

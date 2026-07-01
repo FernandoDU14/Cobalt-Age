@@ -138,16 +138,6 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
         return SHAPE_CACHE[getShapeIndex(state)]; // O(1)
     }
 
-    public static EnumProperty<RedstoneSide> getProperty(Direction direction) {
-        return switch (direction) {
-            case NORTH -> NORTH;
-            case SOUTH -> SOUTH;
-            case EAST -> EAST;
-            case WEST -> WEST;
-            default -> throw new IllegalArgumentException("Invalid direction when calling getProperty in CobaltWireBlock: found %s but only NESW allowed".formatted(direction));
-        };
-    }
-
     public BlockState getWireShapeState(BlockGetter world, BlockPos pos, BlockState state) {
         return CobaltWireShape.getUpdatedState(world, pos, state);
     }
@@ -170,7 +160,7 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
         if (power == 0) return;
         int colorInt = CobaltColorUtil.getCobaltColor(power);
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            EnumProperty<RedstoneSide> property = getProperty(direction);
+            EnumProperty<RedstoneSide> property = PROPERTY_BY_DIRECTION.get(direction);
             switch (state.getValue(property)) {
                 case UP:
                     addPoweredParticles(world, random, pos, colorInt, direction, Direction.UP, -0.5F, 0.5F);
@@ -301,7 +291,7 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
             if (i == 0) {
                 return 0;
             } else {
-                return direction != Direction.UP && !(blockState.getValue(getProperty(direction.getOpposite())).isConnected()) ? 0 : i;
+                return direction != Direction.UP && !(blockState.getValue(PROPERTY_BY_DIRECTION.get(direction.getOpposite())).isConnected()) ? 0 : i;
             }
         } else {
             return 0;
@@ -320,7 +310,7 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
             if (i == 0) {
                 return 0;
             } else {
-                return direction != Direction.UP && !(blockState.getValue(getProperty(direction.getOpposite())).isConnected()) ? 0 : i;
+                return direction != Direction.UP && !(blockState.getValue(PROPERTY_BY_DIRECTION.get(direction.getOpposite())).isConnected()) ? 0 : i;
             }
         } else {
             return 0;

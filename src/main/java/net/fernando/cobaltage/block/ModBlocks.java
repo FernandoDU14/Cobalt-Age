@@ -12,10 +12,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.DropExperienceBlock;
-import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
@@ -45,22 +42,42 @@ public class ModBlocks {
                     .instrument(NoteBlockInstrument.IRON_XYLOPHONE).requiresCorrectToolForDrops()
                     .strength(4.0F, 6.0F).sound(SoundType.METAL)));
 
-    // Redstone Blocks
+    // Redstone & Functional Blocks
     public static final Block COBALT_RAIL = registerBlock("cobalt_rail",
-            settings -> new CobaltRailBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.POWERED_RAIL)
-                    .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_rail")))));
+            settings -> new CobaltRailBlock(BlockBehaviour.Properties.of()
+                    .noCollision()
+                    .strength(0.7F)
+                    .sound(SoundType.METAL)
+                    .setId(ResourceKey.create(
+                            Registries.BLOCK,
+                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_rail")))));
 
     public static final Block COBALT_REPEATER = registerBlock("cobalt_repeater",
-            settings -> new CobaltRepeaterBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.REPEATER)
-                    .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_repeater")))));
+            settings -> new CobaltRepeaterBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .sound(SoundType.STONE)
+                    .pushReaction(PushReaction.DESTROY)
+                    .setId(ResourceKey.create(
+                            Registries.BLOCK,
+                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_repeater")))));
 
     public static final Block COBALT_COMPARATOR = registerBlock("cobalt_comparator",
-            settings -> new CobaltComparatorBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.COMPARATOR)
-                    .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_comparator")))));
+            settings -> new CobaltComparatorBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .sound(SoundType.STONE)
+                    .pushReaction(PushReaction.DESTROY)
+                    .setId(ResourceKey.create(
+                            Registries.BLOCK,
+                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_comparator")))));
 
     public static final Block CONVERTER = registerBlock("converter",
-            settings -> new CobaltConverterBlock(settings.mapColor(MapColor.STONE).instabreak()
-                    .sound(SoundType.STONE).pushReaction(PushReaction.DESTROY)));
+            settings -> new CobaltConverterBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .sound(SoundType.STONE)
+                    .pushReaction(PushReaction.DESTROY)
+                    .setId(ResourceKey.create(
+                            Registries.BLOCK,
+                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "converter")))));
 
     public static final Block COBALT_DUST = registerBlockWithoutItem("cobalt_dust",
             new CobaltWireBlock(BlockBehaviour.Properties.of()
@@ -86,25 +103,55 @@ public class ModBlocks {
                     .isSuffocating(Blocks::never)
                     .isViewBlocking(Blocks::never)
                     .mapColor(MapColor.WARPED_STEM)
-                    .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_relay")))));
+                    .setId(ResourceKey.create(
+                            Registries.BLOCK,
+                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_relay")))));
 
     public static final Block COBALT_DUST_BLOCK = registerBlock("cobalt_dust_block",
-            settings -> new CobaltDustBlock(settings.mapColor(MapColor.WARPED_STEM)
-                    .requiresCorrectToolForDrops().strength(5.0F, 6.0F)
-                    .sound(SoundType.METAL)));
+            settings -> new CobaltDustBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WARPED_STEM)
+                    .requiresCorrectToolForDrops()
+                    .strength(5.0F, 6.0F)
+                    .sound(SoundType.METAL)
+                    .setId(ResourceKey.create(
+                            Registries.BLOCK,
+                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_dust_block")))));
+
+    public static final Block COBALT_LAMP = registerBlock(
+            "cobalt_lamp",
+            settings -> new CobaltLampBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WARPED_STEM)
+                    .lightLevel(state -> state.hasProperty(BlockStateProperties.LIT)
+                            && state.hasProperty(BlockStateProperties.POWER)
+                            && state.getValue(BlockStateProperties.LIT) ? state.getValue(BlockStateProperties.POWER) : 0)
+                    .strength(0.3F)
+                    .sound(SoundType.COPPER_BULB)
+                    .isValidSpawn(Blocks::always)
+                    .setId(ResourceKey.create(
+                            Registries.BLOCK,
+                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_lamp")))));
 
     public static final Block COBALT_TORCH = registerBlockWithoutItem("cobalt_torch",
-            new CobaltTorchBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.REDSTONE_TORCH)
-                    .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_torch")))));
-
-    public static final Block COBALT_WALL_TORCH = registerBlockWithoutItem("cobalt_wall_torch",
-            new CobaltWallTorchBlock(BlockBehaviour.Properties.of()
-                    .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_wall_torch")))
+            new CobaltTorchBlock(BlockBehaviour.Properties.of()
                     .noCollision()
                     .instabreak()
                     .lightLevel(state -> state.hasProperty(BlockStateProperties.LIT) && state.getValue(BlockStateProperties.LIT) ? 7 : 0)
                     .sound(SoundType.WOOD)
-                    .pushReaction(PushReaction.DESTROY)));
+                    .pushReaction(PushReaction.DESTROY)
+                    .setId(ResourceKey.create(
+                            Registries.BLOCK,
+                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_torch")))));
+
+    public static final Block COBALT_WALL_TORCH = registerBlockWithoutItem("cobalt_wall_torch",
+            new CobaltWallTorchBlock(BlockBehaviour.Properties.of()
+                    .noCollision()
+                    .instabreak()
+                    .lightLevel(state -> state.hasProperty(BlockStateProperties.LIT) && state.getValue(BlockStateProperties.LIT) ? 7 : 0)
+                    .sound(SoundType.WOOD)
+                    .pushReaction(PushReaction.DESTROY)
+                    .setId(ResourceKey.create(
+                            Registries.BLOCK,
+                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_wall_torch")))));
 
     public static void registerModBlocks() {
         CobaltAge.LOGGER.info("Registering mod blocks for " + CobaltAge.MOD_ID);
@@ -122,6 +169,7 @@ public class ModBlocks {
             entries.addAfter(Items.COMPARATOR, COBALT_COMPARATOR);
             entries.addAfter(Blocks.REDSTONE_BLOCK, COBALT_DUST_BLOCK);
             entries.addAfter(ModBlocks.COBALT_DUST_BLOCK, COBALT_RELAY);
+            entries.addAfter(Blocks.REDSTONE_LAMP, COBALT_LAMP);
         });
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.BUILDING_BLOCKS).register(entries -> {

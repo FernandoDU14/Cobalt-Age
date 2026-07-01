@@ -68,6 +68,7 @@ public class ModItems {
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(entries -> {
             entries.addAfter(Items.REDSTONE_TORCH, ModItems.COBALT_TORCH);
+            entries.addAfter(Items.REDSTONE_LAMP, ModBlocks.COBALT_LAMP);
         });
     }
 }

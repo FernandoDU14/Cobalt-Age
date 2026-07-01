@@ -856,7 +856,7 @@ public class WireHandler {
 	private void update() {
 		// The profiler keeps track of how long various parts of the algorithm take.
 		// It is only here for debugging purposes, and is commented out in production.
-//		Profiler profiler = AlternateCurrentMod.createProfiler();
+//		Profiler profiler = CobaltAge.createProfiler();
 //		profiler.start();
 
 		// Search through the network for wires that need power changes. This includes

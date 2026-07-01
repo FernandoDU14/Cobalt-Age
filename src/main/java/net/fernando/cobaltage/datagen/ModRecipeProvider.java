@@ -15,6 +15,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
 import org.jspecify.annotations.NonNull;
 
 import java.util.List;
@@ -70,6 +71,17 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .define('C', ModItems.COBALT_NUGGET)
                         .unlockedBy(getHasName(ModItems.COBALT_INGOT), has(ModItems.COBALT_INGOT))
                         .save(output, ResourceKey.create(Registries.RECIPE,Identifier.parse("cobalt_ingot_from_cobalt_nugget")));
+
+                shaped(RecipeCategory.REDSTONE, ModBlocks.COBALT_LAMP, 4)
+                        .pattern(" Q ")
+                        .pattern("BGB")
+                        .pattern(" C ")
+                        .define('G', Blocks.GLOWSTONE)
+                        .define('C', ModBlocks.COBALT_DUST)
+                        .define('Q', Items.QUARTZ)
+                        .define('B', ModBlocks.COBALT_BLOCK)
+                        .unlockedBy(getHasName(ModBlocks.COBALT_DUST), has(ModBlocks.COBALT_DUST))
+                        .save(output);
 
                 shapeless(RecipeCategory.REDSTONE, ModBlocks.COBALT_DUST, 1)
                         .requires(ModItems.COBALT_NUGGET)
