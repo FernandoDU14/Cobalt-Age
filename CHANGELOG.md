@@ -20,18 +20,18 @@ and Cobalt Age's versioning is based on [Semantic Versioning](https://semver.org
 //TODO: FIX Experimental Redstone orientation null pointer exception 
 
 ### Added
-- **Cobalt Lamp:** Added new block. Cobalt lamp will emit the same signal as it receives from cobalt input.
+- **NEW BLOCK → Cobalt Lamp:** Cobalt lamp will emit the same signal as it receives from cobalt input.
 - **Cobalt Wires:** Added support to Experimental Redstone Features for both Modern and Legacy signal engines.
 - **Signal Engines:** Possibility to switch signal engine algorithms: optimized engine (aka Modern Signal Engine) and the neighbor updater one (aka Legacy / Vanilla). Use `/cobaltage on` or `/cobaltage off` command to toggle.
 ### Changed
 - **Modern Signal Engine:** It has been revisited. It is now dynamic and uses bit masks all over `ServerLevel.class`, making it RAM and CPU friendly. *This has increased dramatically the performance*.
-- **Converter:** Converter now inherits an `UPDATE_DELAY`, which has been set to 1 redstone tick (2 real ticks): the same of Comparators, Redstone Torches, Repeaters in their default state.
+- **Converter:** Converter now inherits an `UPDATE_DELAY`, which has been set to 1 redstone tick (2 real ticks).
 
 ### Removed
 - **Internal Garbage:** Some old textures that were no longer used have been removed.
 
 ### Fixed
-- **Converter:** Fixed update loop crash when chain conversion happens.
+- **Converter:** Fixed update loop crash when chain conversion happens. Fixed a bug when the converter couldn't take the best external energy to set its flow direction priority
 - **Cobalt Wires:** Fixed power loop when activated over a Redstone Block
 
 ## [1.2.0] - 2026-05-26
