@@ -20,6 +20,7 @@ and Cobalt Age's versioning is based on [Semantic Versioning](https://semver.org
 //TODO: FIX Experimental Redstone orientation null pointer exception 
 
 ### Added
+- **Cobalt Lamp:** Added new block. Cobalt lamp will emit the same signal as it receives from cobalt input.
 - **Cobalt Wires:** Added support to Experimental Redstone Features for both Modern and Legacy signal engines.
 - **Signal Engines:** Possibility to switch signal engine algorithms: optimized engine (aka Modern Signal Engine) and the neighbor updater one (aka Legacy / Vanilla). Use `/cobaltage on` or `/cobaltage off` command to toggle.
 ### Changed

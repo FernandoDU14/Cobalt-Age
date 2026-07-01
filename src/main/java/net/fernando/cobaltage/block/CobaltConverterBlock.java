@@ -44,6 +44,7 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
     public static final BooleanProperty REDSTONE_LIT = BooleanProperty.create("redstone_lit");
     public static final EnumProperty<FlowingSide> FLOWING_SIDE = EnumProperty.create("flowing_side", FlowingSide.class);
     private static final int UPDATE_DELAY = 2; // 1 rt (1 redstone tick = 0.1 seconds = 2 ticks)
+    protected boolean shouldSignal = true;
 
     public CobaltConverterBlock(Properties settings) {
         super(settings);
@@ -157,41 +158,48 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
         BlockState cobaltSideState = world.getBlockState(cobaltSidePos);
 
         // Reading methods inherited by diode blocks
-        int newRed;
+        this.shouldSignal = false;
+        int newExternalRed;
         int i = ((SignalGetterByType) world).cobaltage$getSignalByType(REDSTONE, RedstoneSidePos, redstoneDirection);
         if (i >= 15) {
-            newRed = i;
+            newExternalRed = i;
         } else {
-            newRed = Math.max(i, redstoneSideState.is(Blocks.REDSTONE_WIRE) ? redstoneSideState.getValue(RedStoneWireBlock.POWER) : 0);
+            newExternalRed = Math.max(i, redstoneSideState.is(Blocks.REDSTONE_WIRE) ? redstoneSideState.getValue(RedStoneWireBlock.POWER) : 0);
         }
-        int newCob;
+        int newExternalCob;
         i = ((SignalGetterByType) world).cobaltage$getSignalByType(COBALT, cobaltSidePos, cobaltDirection);
         if (i >= 15) {
-            newCob = i;
+            newExternalCob = i;
         } else {
-            newCob = Math.max(i, cobaltSideState.is(ModBlocks.COBALT_DUST) ? cobaltSideState.getValue(CobaltWireBlock.POWER) : 0);
+            newExternalCob = Math.max(i, cobaltSideState.is(ModBlocks.COBALT_DUST) ? cobaltSideState.getValue(CobaltWireBlock.POWER) : 0);
         }
+        this.shouldSignal = true;
 
         FlowingSide currentFlow = state.getValue(FLOWING_SIDE);
         int currentPower = state.getValue(POWER);
+        int effectiveRed = newExternalRed;
+        int effectiveCob = newExternalCob;
+
+        if (currentFlow == FlowingSide.TOWARDS_COBALT && newExternalCob <= currentPower) {
+            effectiveCob = 0;
+        } else if (currentFlow == FlowingSide.TOWARDS_REDSTONE && newExternalRed <= currentPower) {
+            effectiveRed = 0;
+        }
+
         int nextPower = 0;
-        FlowingSide nextFlow = currentFlow;
+        FlowingSide nextFlow;
 
-        if (currentFlow == FlowingSide.TOWARDS_COBALT) {
-            nextPower = newRed;
-            if (nextPower == 0) nextFlow = FlowingSide.NONE;
-
-        } else if (currentFlow == FlowingSide.TOWARDS_REDSTONE) {
-            nextPower = newCob;
-            if (nextPower == 0) nextFlow = FlowingSide.NONE;
-        }else {
-            if (newRed > 0 && newRed > newCob) {
-                nextPower = newRed;
-                nextFlow = FlowingSide.TOWARDS_COBALT;
-            } else if (newCob > 0) {
-                nextPower = newCob;
-                nextFlow = FlowingSide.TOWARDS_REDSTONE;
-            }
+        if (effectiveRed > effectiveCob) {
+            nextPower = effectiveRed;
+            nextFlow = FlowingSide.TOWARDS_COBALT;
+        } else if (effectiveCob > effectiveRed) {
+            nextPower = effectiveCob;
+            nextFlow = FlowingSide.TOWARDS_REDSTONE;
+        } else if (effectiveRed > 0) {
+            nextPower = effectiveRed;
+            nextFlow = currentFlow == FlowingSide.NONE ? FlowingSide.TOWARDS_REDSTONE : currentFlow;
+        } else {
+            nextFlow = FlowingSide.NONE;
         }
         if (currentPower != nextPower || currentFlow != nextFlow) {
 
@@ -233,22 +241,22 @@ public class CobaltConverterBlock extends HorizontalDirectionalBlock implements 
 
     @Override
     public boolean isSignalSource(@NonNull BlockState state) {
-        return true;
+        return this.shouldSignal;
     }
     @Override
     protected int getDirectSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        return this.getSignal(state, world, pos, direction);
+        return  this.shouldSignal ? this.getSignal(state, world, pos, direction) : 0;
     }
     @Override
-    protected int getSignal(BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
-        return (state.getValue(FLOWING_SIDE) == FlowingSide.TOWARDS_REDSTONE && direction == state.getValue(FACING)) ? state.getValue(POWER) : 0;
+    protected int getSignal(@NonNull BlockState state, @NonNull BlockGetter world, @NonNull BlockPos pos, @NonNull Direction direction) {
+        return (this.shouldSignal && (state.getValue(FLOWING_SIDE) == FlowingSide.TOWARDS_REDSTONE && direction == state.getValue(FACING))) ? state.getValue(POWER) : 0;
     }
     @Override
     public int getCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        return (state.getValue(FLOWING_SIDE).equals(FlowingSide.TOWARDS_COBALT) && direction == state.getValue(FACING).getOpposite()) ? state.getValue(POWER) : 0;
+        return (this.shouldSignal && (state.getValue(FLOWING_SIDE).equals(FlowingSide.TOWARDS_COBALT) && direction == state.getValue(FACING).getOpposite())) ? state.getValue(POWER) : 0;
     }
     @Override
     public int getDirectCobaltSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
-        return this.getCobaltSignal(state, world, pos, direction);
+        return this.shouldSignal ? this.getCobaltSignal(state, world, pos, direction) : 0;
     }
 }
