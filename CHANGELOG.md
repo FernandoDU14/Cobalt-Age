@@ -24,9 +24,9 @@ and Cobalt Age's versioning is based on [Semantic Versioning](https://semver.org
 - **Cobalt Wires:** Added support to Experimental Redstone Features for both Modern and Legacy signal engines.
 - **Signal Engines:** Possibility to switch signal engine algorithms: optimized engine (aka Modern Signal Engine) and the neighbor updater one (aka Legacy / Vanilla). Use `/cobaltage on` or `/cobaltage off` command to toggle.
 ### Changed
-- **Modern Signal Engine:** It has been revisited. It is now dynamic and uses bit masks all over `ServerLevel.class`, making it RAM and CPU friendly. *This has increased dramatically the performance*.
-- **Converter:** Converter now inherits an `UPDATE_DELAY`, which has been set to 1 redstone tick (2 real ticks).
-
+- **Modern Signal Engine** has been revisited. It is now dynamic and uses bit masks all over `ServerLevel.class`, making it RAM and CPU friendly. *This has increased dramatically the performance*.
+- **Converter** now inherits an `UPDATE_DELAY`, which has been set to 1 redstone tick (2 real ticks).
+- **Redstone Lamp** will not take cobalt energy anymore.
 ### Removed
 - **Internal Garbage:** Some old textures that were no longer used have been removed.
 

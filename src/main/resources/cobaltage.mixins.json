@@ -16,6 +16,7 @@
     "world.level.block.entity.CalibratedSculkSensorBlockEntityMixin",
     "world.level.block.redstone.DiodeBlockMixin",
     "world.level.block.redstone.PoweredRailBlockMixin",
+    "world.level.block.redstone.RedstoneLampBlockMixin",
     "world.level.block.redstone.RedstoneTorchBlockMixin",
     "world.level.block.redstone.RedstoneWallTorchBlockMixin",
     "world.level.block.redstone.RedStoneWireBlockMixin",
