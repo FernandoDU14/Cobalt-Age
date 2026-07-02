@@ -248,5 +248,5 @@ You can use this mod freely in your modpacks, but please give credit to the orig
 If you want to suggest a feature or report a bug, please open an issue on the GitHub repository!
 
 <a href="https://ko-fi.com/cobaltage">
-    <img src="https://img.shields.io/badge/Ko--fi-Donate-0775a8?style=for-the-badge&logo=kofi&logoColor=blue" alt="Support us on Ko-fi">
+    <img src="https://storage.ko-fi.com/cdn/generated/fhfuc7slzawvi/2026-07-01_rest-1e2447d07137febdde1c3d66c47cd90e-jreqnzsp.jpg" alt="Support us on Ko-fi">
   </a>
