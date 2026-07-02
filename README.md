@@ -4,6 +4,7 @@
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Server-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/txWQN8CtEV)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Cobalt--Age-blue?style=for-the-badge&logo=github)](https://github.com/FernandoDU14/Cobalt-Age)
+[![Support us on Ko-fi](https://img.shields.io/badge/Ko--fi-Donate-0775a8?style=for-the-badge&logo=kofi&logoColor=blue)](https://ko-fi.com/cobaltage)
 
 </div>
 
@@ -22,17 +23,18 @@ By that, you may combine a **Cobalt Nugget** with Redstone, obtaining the **Coba
 * Prevents water flows from breaking dust networks (consequence of Waterloggability)
 * Other than the **Cross** and **Dot** states, which are already in Redstone, it has the **Retracted** state. Allowin the Cobalt Dust to be smarter than redstone (check the last image in "Cobalt Age Showcase" down here for clarifications)
 * Comes with a set of Cobalt Energy Blocks (CEBs):
-    * Cobalt Dust
-    * Cobalt Dust Block
-    * Cobalt Repeater
-    * Cobalt Comparator
-    * Cobalt Torch
-    * Cobalt Rail
-    * Cobalt Relay
-    * Converter
+  * Cobalt Dust
+  * Cobalt Dust Block
+  * Cobalt Repeater
+  * Cobalt Comparator
+  * Cobalt Torch
+  * Cobalt Rail
+  * Cobalt Relay
+  * Cobalt Lamp
+  * Converter
 * Comes with a set of Decorative Blocks:
-    * Cobalt Block
-    * Raw Cobalt Block
+  * Cobalt Block
+  * Raw Cobalt Block
 
 As you may guess, the Converter will work as a bridge for the two systems.
 
@@ -66,15 +68,25 @@ A closer look into the retracted state:
 
 ## High-Performance Signal Engine
 
-Cobalt wires eventually use a **modern optimized signal propagation system** capable of reducing computation costs dramatically compared to vanilla Redstone, which scales in amplitude with the complexity of the system.
+Cobalt wires eventually use a **modern optimized signal propagation system** (toggable with `/cobaltage on` and `/cobaltage off`) capable of dammatically reduce computation costs compared to vanilla Redstone. The reason are mainly because the new engine:
 
-Unlike alternative optimization approaches, cobalt wires and relays preserve vanilla update order and behaviour, including mechanics that rely on update timing and ordering, such as dupe machines.
+1. Minimizes the number of times a cobalt wire checks its surroundings to determine its power level.
+
+2. Minimizes the the number of block and shape updates emitted.
+
+3. Minimizes memory allocation using bit masks instead of calling the world states
+
+4. Minimizes cpu calculations saving each network in a virtual ram
+
+5. Skips rendering block updates when signal changes
+
+Unlike alternative optimization approaches, cobalt wires and relays eventually preserve vanilla update order and behaviour, including mechanics that rely on update timing and ordering, such as dupe machines.
 
 Benefits are:
-* **No computational cost**, all informations about states are just **listed** in a dynamic graph loaded in the server (RAM), using bit masks for each property (Near 0 RAM usage), instead of being calculated (CPU) for every change you do (vanilla).
-* **No TPS change** as the computational cost is infinitesimal (bit masks).
-* **No FPS change** as the cobalt wire updates do not call other updates and light updates and many others.
-* Maintains **compatibility with other mods** which may include more signal absorbers (Consumers) and more signal emitters (Emitters), or even signal modification mods like Alternate Current (which does optimisation to redstone in a similar way Cobalt Age does).
+* **No computational cost**
+* **No TPS change**
+* **No FPS change**
+* Maintains **compatibility with all mods** which may include more signal absorbers (Consumers) and more signal emitters (Emitters), or even signal modification mods like Alternate Current (which does optimisation to redstone in a similar way Cobalt Age does).
 
 <details>
   <summary><b>Performance Tests</b></summary>
@@ -148,8 +160,7 @@ The converter works as a bridge between cobalt and redstone signal worlds. It is
 
 
 Further properties:
-* Reading: Similarly to Comparators and Repeaters, can read the signal behind him, but said signal must match the correct facing to work. It then will emit the same energy, that it reads from behind, towards the opposite facing changing the signal type.
-* Emitting: It will emit the energy like a comparator, so if there is a solid block in front of this block it will emit power towards that block. The emission is done with the amout of energy it is reciving as an input (reading 7 as input will produce 7 as output, just like a comparator). It works from both sides and the maxium input energy type will take the priority in the energy flow.
+* Reads energy the same way as comparators / repeaters. It will emit the same energy as it takes in input as a converted output, and it will do it the same way as comparators / repeaters.
 
 <details>
   <summary><b>Spoiler: Converter</b></summary>
@@ -165,6 +176,9 @@ Converter ON / OFF Lever behavior. You can also see the indipendence of wires.
 
 
 </details>
+
+### Cobalt Lamp
+The Cobalt Lamp will emit the same signal as it receives from input, and it can only read Cobalt Energy.
 
 ### Relay
 
@@ -233,6 +247,6 @@ You can use this mod freely in your modpacks, but please give credit to the orig
 
 If you want to suggest a feature or report a bug, please open an issue on the GitHub repository!
 
-<a href="https://www.patreon.com/cobaltage">
-    <img src="https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Support me on Patreon">
+<a href="https://ko-fi.com/cobaltage">
+    <img src="https://img.shields.io/badge/Ko--fi-Donate-0775a8?style=for-the-badge&logo=kofi&logoColor=blue" alt="Support us on Ko-fi">
   </a>
