@@ -2,6 +2,7 @@ package net.cobaltmc.cobaltage.block;
 
 import com.google.common.collect.Lists;
 import com.mojang.serialization.MapCodec;
+import net.cobaltmc.cobaltage.CobaltAge;
 import net.cobaltmc.cobaltage.block.signal.cobalt.CobaltSignalSource;
 import net.cobaltmc.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
 import net.minecraft.core.BlockPos;
@@ -128,7 +129,8 @@ public class CobaltTorchBlock extends BaseTorchBlock implements SimpleWaterlogge
     }
 
     protected @Nullable Orientation randomOrientation(Level level, BlockState blockState) {
-        return ExperimentalRedstoneUtils.initialOrientation(level, null, Direction.UP);
+        Direction front = CobaltAge.ModernSignalEngine ? Direction.WEST : null;
+        return ExperimentalRedstoneUtils.initialOrientation(level, front, Direction.UP);
     }
 
     protected boolean isSignalSource(@NonNull BlockState blockState) {

@@ -17,7 +17,7 @@ and Cobalt Age's versioning is based on [Semantic Versioning](https://semver.org
 
 
 ## [1.2.1] - WORKING ON
-//TODO: FIX Experimental Redstone orientation null pointer exception 
+//TODO: FIX relay depower and power updates on legacy engine
 
 ### Added
 - **NEW BLOCK → Cobalt Lamp:** Cobalt lamp will emit the same signal as it receives from cobalt input.

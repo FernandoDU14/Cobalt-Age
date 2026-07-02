@@ -35,7 +35,7 @@ public class ProfilerResults {
 
     public static void log() {
         LOGGER.info("------------------------------------------------------");
-        LOGGER.info("..... Cobalt Age Profiler Session Results .....");
+        LOGGER.info("..... Cobalt Age Modern Engine Profiler Session Results .....");
 
         LOGGER.info("total: " + totalTime);
 

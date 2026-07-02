@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.Queue;
 
 //import net.cobaltmc.cobaltage.CobaltAge;
-//import net.fernando.cobaltage.util.profiler.Profiler;
+//import net.cobaltmc.cobaltage.util.profiler.Profiler;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
@@ -154,7 +154,6 @@ public class WireHandler {
 	public static class Directions {
 
 		public static final Direction[] ALL        = { Direction.WEST, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.DOWN, Direction.UP };
-		public static final Direction[] HORIZONTAL = { Direction.WEST, Direction.NORTH, Direction.EAST, Direction.SOUTH };
 
 		// Indices for the arrays above.
 		// The cardinal directions are ordered clockwise. This allows

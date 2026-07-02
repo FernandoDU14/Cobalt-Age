@@ -5,6 +5,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import net.cobaltmc.cobaltage.CobaltAge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.flag.FeatureFlags;
@@ -149,7 +151,8 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
             Orientation orientation = null;
             if (level.enabledFeatures().contains(FeatureFlags.REDSTONE_EXPERIMENTS)) {
                 if (this.orientation == null) {
-                    this.orientation = ExperimentalRedstoneUtils.initialOrientation(level, this.skipDirection == null ? null : this.skipDirection.getOpposite(), (Direction)null);
+                    Direction front = CobaltAge.ModernSignalEngine ? Direction.WEST : null;
+                    this.orientation = ExperimentalRedstoneUtils.initialOrientation(level, this.skipDirection == null ? front : this.skipDirection.getOpposite(), null);
                 }
 
                 assert this.orientation != null;

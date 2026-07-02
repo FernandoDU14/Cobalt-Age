@@ -47,6 +47,12 @@ public abstract class WireEvaluator {
             }
         }
 
+        for(Direction direction : Plane.VERTICAL){
+            BlockPos neighborPos = blockPos.relative(direction);
+            BlockState blockState = level.getBlockState(neighborPos);
+            i = Math.max(i, this.getWireSignal(neighborPos, blockState));
+        }
+
         return Math.max(0, i - 1);
     }
 }

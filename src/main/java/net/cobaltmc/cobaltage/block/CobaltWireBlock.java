@@ -396,7 +396,8 @@ public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock
     }
 
     private void updatesOnShapeChange(Level level, BlockPos blockPos, BlockState blockState, BlockState blockState2) {
-        Orientation orientation = ExperimentalRedstoneUtils.initialOrientation(level, null, Direction.UP);
+        Direction front = CobaltAge.ModernSignalEngine ? Direction.WEST : null;
+        Orientation orientation = ExperimentalRedstoneUtils.initialOrientation(level, front, Direction.UP);
         for(Direction direction : Direction.Plane.HORIZONTAL) {
             BlockPos blockPos2 = blockPos.relative(direction);
             if ((blockState.getValue(PROPERTY_BY_DIRECTION.get(direction))).isConnected() != (blockState2.getValue(PROPERTY_BY_DIRECTION.get(direction))).isConnected() && (level.getBlockState(blockPos2).isRedstoneConductor(level, blockPos2) || level.getBlockState(blockPos2).getBlock() instanceof PoweredBlock)) {
