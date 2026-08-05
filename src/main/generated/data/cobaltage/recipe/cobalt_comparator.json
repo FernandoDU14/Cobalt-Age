@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "cobaltage:cobalt_torch",
+    "Q": "minecraft:quartz",
+    "S": "minecraft:stone"
+  },
+  "pattern": [
+    " C ",
+    "CQC",
+    "SSS"
+  ],
+  "result": {
+    "id": "cobaltage:cobalt_comparator"
+  }
+}

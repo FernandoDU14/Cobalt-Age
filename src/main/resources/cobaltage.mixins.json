@@ -1,0 +1,35 @@
+{
+  "required": true,
+  "package": "net.cobaltmc.cobaltage.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "BlockBehaviourBlockStateBaseMixin",
+    "CommandMixin",
+    "ExampleMixin",
+    "LevelMixin",
+    "block.LeverBlockMixin",
+    "block.RedStoneWireBlockMixin",
+    "block.entity.CalibratedSculkSensorBlockEntityMixin",
+    "block.redstone.DiodeBlockMixin",
+    "block.redstone.PoweredRailBlockMixin",
+    "block.redstone.RedstoneLampBlockMixin",
+    "block.redstone.RedstoneTorchBlockMixin",
+    "block.redstone.RedstoneWallTorchBlockMixin",
+    "server.MinecraftServerMixin",
+    "server.ServerLevelMixin",
+    "world.entity.minecart.AbstractMinecartMixin",
+    "world.entity.minecart.MinecartBehaviorMixin",
+    "world.entity.minecart.NewMinecartBehaviorMixin",
+    "world.entity.minecart.OldMinecartBehaviorMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  },
+  "client": [
+    "MixinTitleScreen",
+    "client.gui.screens.inventory.BeaconScreenMixin"
+  ]
+}

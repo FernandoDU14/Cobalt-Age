@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "cobaltage:cobalt_ingot",
+    "D": "cobaltage:cobalt_dust",
+    "G": "minecraft:glass_pane"
+  },
+  "pattern": [
+    "GCG",
+    "GDG",
+    "GCG"
+  ],
+  "result": {
+    "id": "cobaltage:cobalt_relay"
+  }
+}

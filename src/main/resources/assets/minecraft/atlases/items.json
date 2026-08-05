@@ -1,0 +1,19 @@
+{
+  "replace": false,
+  "sources": [
+    {
+      "type": "paletted_permutations",
+      "palette_key": "trims/color_palettes/trim_palette",
+      "permutations": {
+        "cobalt_ingot": "cobaltage:trims/color_palettes/cobalt_ingot",
+        "cobalt_dust": "cobaltage:trims/color_palettes/cobalt_dust"
+      },
+      "textures": [
+        "trims/items/helmet_trim",
+        "trims/items/chestplate_trim",
+        "trims/items/leggings_trim",
+        "trims/items/boots_trim"
+      ]
+    }
+  ]
+}
