@@ -16,41 +16,35 @@ class LevelHelper {
 	 * states, lighting checks, height map updates, and block entity updates are
 	 * omitted.
 	 */
-	static boolean setWireState(ServerLevel level, BlockPos pos, BlockState state, boolean updateNeighborShapes) {
-		int y = pos.getY();
+    static boolean setWireState(ServerLevel level, BlockPos pos, BlockState state, boolean updateNeighborShapes) {
+        int y = pos.getY();
+        if (y >= level.getMinY() && y <= level.getMaxY()) {
+            int x = pos.getX();
+            int z = pos.getZ();
+            int index = level.getSectionIndex(y);
 
-		if (y < level.getMinY() || y > level.getMaxY()) {
-			return false;
-		}
+            ChunkAccess chunk = level.getChunk(x >> 4, z >> 4, ChunkStatus.FULL, true);
+            LevelChunkSection section = chunk.getSections()[index];
+            if (section == null) {
+                return false;
+            } else {
+                BlockState prevState = section.setBlockState(x & 15, y & 15, z & 15, state);
+                if (state == prevState) {
+                    return false;}
+                else {
+                    level.getChunkSource().blockChanged(pos);
+                    chunk.markUnsaved();
+                    if (updateNeighborShapes) {
+                        prevState.updateIndirectNeighbourShapes(level, pos, 2);
+                        state.updateNeighbourShapes(level, pos, 2);
+                        state.updateIndirectNeighbourShapes(level, pos, 2);
+                    }
 
-		int x = pos.getX();
-		int z = pos.getZ();
-		int index = level.getSectionIndex(y);
-
-		ChunkAccess chunk = level.getChunk(x >> 4, z >> 4, ChunkStatus.FULL, true);
-		LevelChunkSection section = chunk.getSections()[index];
-
-		if (section == null) {
-			return false; // we should never get here
-		}
-
-		BlockState prevState = section.setBlockState(x & 15, y & 15, z & 15, state);
-
-		if (state == prevState) {
-			return false;
-		}
-
-		// notify clients of the BlockState change
-		level.getChunkSource().blockChanged(pos);
-		// mark the chunk for saving
-		chunk.markUnsaved();
-
-		if (updateNeighborShapes) {
-			prevState.updateIndirectNeighbourShapes(level, pos, Block.UPDATE_CLIENTS);
-			state.updateNeighbourShapes(level, pos, Block.UPDATE_CLIENTS);
-			state.updateIndirectNeighbourShapes(level, pos, Block.UPDATE_CLIENTS);
-		}
-
-		return true;
-	}
+                    return true;
+                }
+            }
+        } else {
+            return false;
+        }
+    }
 }

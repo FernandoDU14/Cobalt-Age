@@ -1,7 +1,8 @@
 package net.cobaltmc.cobaltage.block;
 
+import net.cobaltmc.cobaltage.CobaltAgeConstants;
+import net.cobaltmc.cobaltage.block.cobalt.*;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.cobaltmc.cobaltage.CobaltAge;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -50,7 +51,7 @@ public class ModBlocks {
                     .sound(SoundType.METAL)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
-                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_rail")))));
+                            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_rail")))));
 
     public static final Block COBALT_REPEATER = registerBlock("cobalt_repeater",
             settings -> new CobaltRepeaterBlock(BlockBehaviour.Properties.of()
@@ -59,7 +60,7 @@ public class ModBlocks {
                     .pushReaction(PushReaction.DESTROY)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
-                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_repeater")))));
+                            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_repeater")))));
 
     public static final Block COBALT_COMPARATOR = registerBlock("cobalt_comparator",
             settings -> new CobaltComparatorBlock(BlockBehaviour.Properties.of()
@@ -68,7 +69,7 @@ public class ModBlocks {
                     .pushReaction(PushReaction.DESTROY)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
-                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_comparator")))));
+                            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_comparator")))));
 
     public static final Block CONVERTER = registerBlock("converter",
             settings -> new CobaltConverterBlock(BlockBehaviour.Properties.of()
@@ -77,7 +78,7 @@ public class ModBlocks {
                     .pushReaction(PushReaction.DESTROY)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
-                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "converter")))));
+                            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "converter")))));
 
     public static final Block COBALT_DUST = registerBlockWithoutItem("cobalt_dust",
             new CobaltWireBlock(BlockBehaviour.Properties.of()
@@ -88,7 +89,7 @@ public class ModBlocks {
                     .sound(SoundType.STONE)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
-                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_dust")
+                            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_dust")
                     ))
             ));
 
@@ -105,7 +106,7 @@ public class ModBlocks {
                     .mapColor(MapColor.WARPED_STEM)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
-                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_relay")))));
+                            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_relay")))));
 
     public static final Block COBALT_DUST_BLOCK = registerBlock("cobalt_dust_block",
             settings -> new CobaltDustBlock(BlockBehaviour.Properties.of()
@@ -115,7 +116,7 @@ public class ModBlocks {
                     .sound(SoundType.METAL)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
-                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_dust_block")))));
+                            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_dust_block")))));
 
     public static final Block COBALT_LAMP = registerBlock(
             "cobalt_lamp",
@@ -129,7 +130,7 @@ public class ModBlocks {
                     .isValidSpawn(Blocks::always)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
-                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_lamp")))));
+                            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_lamp")))));
 
     public static final Block COBALT_TORCH = registerBlockWithoutItem("cobalt_torch",
             new CobaltTorchBlock(BlockBehaviour.Properties.of()
@@ -140,7 +141,7 @@ public class ModBlocks {
                     .pushReaction(PushReaction.DESTROY)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
-                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_torch")))));
+                            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_torch")))));
 
     public static final Block COBALT_WALL_TORCH = registerBlockWithoutItem("cobalt_wall_torch",
             new CobaltWallTorchBlock(BlockBehaviour.Properties.of()
@@ -151,10 +152,10 @@ public class ModBlocks {
                     .pushReaction(PushReaction.DESTROY)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
-                            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_wall_torch")))));
+                            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_wall_torch")))));
 
     public static void registerModBlocks() {
-        CobaltAge.LOGGER.info("Registering mod blocks for " + CobaltAge.MOD_ID);
+        CobaltAgeConstants.LOGGER.info("Registering mod blocks for " + CobaltAgeConstants.MOD_ID);
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.NATURAL_BLOCKS).register(entries -> {
             entries.addBefore(Blocks.COPPER_ORE, COBALT_ORE);
@@ -177,16 +178,16 @@ public class ModBlocks {
             entries.addAfter(Blocks.REDSTONE_BLOCK, COBALT_DUST_BLOCK);
         });
 
-        CobaltAge.LOGGER.info("Successfully registered mod blocks for " + CobaltAge.MOD_ID);
+        CobaltAgeConstants.LOGGER.info("Successfully registered mod blocks for " + CobaltAgeConstants.MOD_ID);
     }
 
-    // Method to register blocks which "don't have an item"
     private static Block registerBlockWithoutItem(String name, Block block) {
-        return Registry.register(BuiltInRegistries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, name), block);
+        return Registry.register(BuiltInRegistries.BLOCK,
+                Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, name), block);
     }
 
     private static Block registerBlock(String name, Function<BlockBehaviour.Properties, Block> function) {
-        Identifier id = Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, name);
+        Identifier id = Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, name);
         ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, id);
         BlockBehaviour.Properties settings = BlockBehaviour.Properties.of().setId(blockKey);
         Block block = function.apply(settings);
@@ -197,7 +198,7 @@ public class ModBlocks {
 
 
     private static void registerBlockItem(String name, Block block) {
-        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, name));
+        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, name));
 
         Registry.register(BuiltInRegistries.ITEM, itemKey,
                 new BlockItem(block, new Item.Properties().setId(itemKey)));

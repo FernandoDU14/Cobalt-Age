@@ -5,8 +5,7 @@
   "name": "Cobalt Age",
   "description": "The first redstone alternative, finally waterloggable and optimized, comes with a new mineral",
   "authors": [
-    "JaviDP14",
-    "KanieOutis"
+    "JaviDP14"
   ],
   "contact": {
     "homepage": "https://modrinth.com/mod/cobaltage",
@@ -21,7 +20,7 @@
       "update_checker": false
     }
   },
-  "license": "GPL-3.0",
+  "license": "LGPL-3.0",
   "icon": "assets/cobaltage/cobalt_age.png",
   "environment": "*",
   "entrypoints": {

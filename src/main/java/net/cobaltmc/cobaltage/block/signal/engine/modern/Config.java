@@ -4,176 +4,174 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Objects;
 
+import net.cobaltmc.cobaltage.CobaltAgeConstants;
 import net.cobaltmc.cobaltage.util.interfaces.mixin.IServerLevel;
-import net.cobaltmc.cobaltage.CobaltAge;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.storage.LevelResource;
-import net.minecraft.world.level.storage.LevelStorageSource.LevelStorageAccess;
+import net.minecraft.world.level.storage.LevelStorageSource;
 
 public interface Config {
+    static Config forLevel(ServerLevel level, LevelStorageSource.LevelStorageAccess storage) {
+        return (Config)(level.dimension() == Level.OVERWORLD ? new Primary(storage) : new Derived(((IServerLevel)level.getServer().overworld()).cobaltage$getWireHandler().getConfig()));
+    }
 
-	static Config forLevel(ServerLevel level, LevelStorageAccess storage) {
-		if (level.dimension() == Level.OVERWORLD) {
-			return new Primary(storage);
-		} else {
-			return new Derived(((IServerLevel) level.getServer().overworld()).cobaltage$getWireHandler().getConfig());
-		}
-	}
+    boolean getEnabled();
 
-	boolean getEnabled();
+    void setEnabled(boolean var1);
 
-	void setEnabled(boolean enabled);
+    UpdateOrder getUpdateOrder();
 
-	UpdateOrder getUpdateOrder();
+    void setUpdateOrder(UpdateOrder var1);
 
-	void setUpdateOrder(UpdateOrder updateOrder);
+    void load();
 
-	void load();
+    void save(boolean var1);
 
-	void save(boolean silent);
+    public static class Primary implements Config {
+        private final Path path;
+        private boolean enabled = true;
+        private UpdateOrder updateOrder;
+        private boolean modified;
 
-	class Primary implements Config {
+        public Primary(LevelStorageSource.LevelStorageAccess storage) {
+            this.updateOrder = UpdateOrder.HORIZONTAL_FIRST_OUTWARD;
+            this.path = storage.getDimensionPath(Level.OVERWORLD).resolve("cobaltage.conf");
+        }
 
-		private final Path path;
+        public boolean getEnabled() {
+            return this.enabled;
+        }
 
-		private boolean enabled = true;
-		private UpdateOrder updateOrder = UpdateOrder.HORIZONTAL_FIRST_OUTWARD;
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+            CobaltAgeConstants.MODERN_SIGNAL_ENGINE = enabled;
+            this.modified = true;
+        }
 
-		private boolean modified;
+        public UpdateOrder getUpdateOrder() {
+            return this.updateOrder;
+        }
 
-		public Primary(LevelStorageAccess storage) {
-			this.path = storage.getLevelPath(LevelResource.ROOT).resolve("cobaltage.conf");
-		}
+        public void setUpdateOrder(UpdateOrder updateOrder) {
+            this.updateOrder = (UpdateOrder)Objects.requireNonNull(updateOrder);
+            this.modified = true;
+        }
 
-		@Override
-		public boolean getEnabled() {
-			return enabled;
-		}
+        public void load() {
+            if (Files.exists(this.path, new LinkOption[0])) {
+                try (BufferedReader br = Files.newBufferedReader(this.path)) {
+                    String line;
+                    while((line = br.readLine()) != null) {
+                        if (!line.startsWith("#")) {
+                            String[] parts = line.split("[=]");
+                            if (parts.length == 2) {
+                                String key = parts[0];
+                                String value = parts[1];
 
-		@Override
-		public void setEnabled(boolean enabled) {
-			this.enabled = enabled;
-			CobaltAge.ModernSignalEngine = enabled;
-			this.modified = true;
-		}
+                                try {
+                                    switch (key) {
+                                        case "enabled":
+                                            this.setEnabled(Boolean.parseBoolean(value));
+                                            break;
+                                        case "update-order":
+                                            this.setUpdateOrder(UpdateOrder.byId(value));
+                                            break;
+                                        default:
+                                            CobaltAgeConstants.LOGGER.info("skipping unknown option '{}' in Cobalt Age config", key);
+                                    }
+                                } catch (Exception e) {
+                                    CobaltAgeConstants.LOGGER.info("skipping bad value '{}' for option '{}' in Cobalt Age config!", new Object[]{value, key, e});
+                                }
+                            }
+                        }
+                    }
 
-		@Override
-		public UpdateOrder getUpdateOrder() {
-			return updateOrder;
-		}
+                    this.modified = false;
+                } catch (IOException e) {
+                    CobaltAgeConstants.LOGGER.info("unable to load Cobalt Age config!", e);
+                    this.modified = true;
+                }
+            } else {
+                this.modified = true;
+            }
 
-		@Override
-		public void setUpdateOrder(UpdateOrder updateOrder) {
-			this.updateOrder = Objects.requireNonNull(updateOrder);
-			this.modified = true;
-		}
+        }
 
-		@Override
-		public void load() {
-			if (Files.exists(path)) {
-				try (BufferedReader br = Files.newBufferedReader(path)) {
-					String line;
+        public void save(boolean silent) {
+            if (this.modified) {
+                if (!silent) {
+                    CobaltAgeConstants.LOGGER.info("saving Cobalt Age config");
+                }
 
-					while ((line = br.readLine()) != null) {
-						if (!line.startsWith("#")) {
-							String[] parts = line.split("[=]");
+                try {
+                    BufferedWriter bw = Files.newBufferedWriter(this.path);
 
-							if (parts.length == 2) {
-								String key = parts[0];
-								String value = parts[1];
+                    try {
+                        bw.write("enabled");
+                        bw.write(61);
+                        bw.write(Boolean.toString(this.enabled));
+                        bw.newLine();
+                        bw.write("update-order");
+                        bw.write(61);
+                        bw.write(this.updateOrder.id());
+                        bw.newLine();
+                    } catch (Throwable var11) {
+                        if (bw != null) {
+                            try {
+                                bw.close();
+                            } catch (Throwable var10) {
+                                var11.addSuppressed(var10);
+                            }
+                        }
 
-								try {
-									switch (key) {
-									case "enabled":
-										setEnabled(Boolean.parseBoolean(value));
-										break;
-									case "update-order":
-										setUpdateOrder(UpdateOrder.byId(value));
-										break;
-									default:
-                                        CobaltAge.LOGGER.info("skipping unknown option '{}' in Cobalt Age config", key);
-									}
-								} catch (Exception e) {
-                                    CobaltAge.LOGGER.info("skipping bad value '{}' for option '{}' in Cobalt Age config!", value, key, e);
-								}
-							}
-						}
-					}
+                        throw var11;
+                    }
 
-					modified = false;
-				} catch (IOException e) {
-					CobaltAge.LOGGER.info("unable to load Cobalt Age config!", e);
-					modified = true;
-				}
-			} else {
-				modified = true;
-			}
-		}
+                    if (bw != null) {
+                        bw.close();
+                    }
+                } catch (IOException e) {
+                    CobaltAgeConstants.LOGGER.info("unable to save Cobalt Age config!", e);
+                } finally {
+                    this.modified = false;
+                }
+            }
 
-		@Override
-		public void save(boolean silent) {
-			if (modified) {
-				if (!silent) {
-					CobaltAge.LOGGER.info("saving Cobalt Age config");
-				}
+        }
+    }
 
-				try (BufferedWriter bw = Files.newBufferedWriter(path)) {
-					bw.write("enabled");
-					bw.write('=');
-					bw.write(Boolean.toString(enabled));
-					bw.newLine();
+    public static class Derived implements Config {
+        private final Config delegate;
 
-					bw.write("update-order");
-					bw.write('=');
-					bw.write(updateOrder.id());
-					bw.newLine();
-				} catch (IOException e) {
-					CobaltAge.LOGGER.info("unable to save Cobalt Age config!", e);
-				} finally {
-					modified = false;
-				}
-			}
-		}
-	}
+        public Derived(Config delegate) {
+            this.delegate = delegate;
+        }
 
-	class Derived implements Config {
+        public boolean getEnabled() {
+            return this.delegate.getEnabled();
+        }
 
-		private final Config delegate;
+        public void setEnabled(boolean enabled) {
+            this.delegate.setEnabled(enabled);
+        }
 
-		public Derived(Config delegate) {
-			this.delegate = delegate;
-		}
+        public UpdateOrder getUpdateOrder() {
+            return this.delegate.getUpdateOrder();
+        }
 
-		@Override
-		public boolean getEnabled() {
-			return delegate.getEnabled();
-		}
+        public void setUpdateOrder(UpdateOrder updateOrder) {
+            this.delegate.setUpdateOrder(updateOrder);
+        }
 
-		@Override
-		public void setEnabled(boolean enabled) {
-			delegate.setEnabled(enabled);
-		}
+        public void load() {
+        }
 
-		@Override
-		public UpdateOrder getUpdateOrder() {
-			return delegate.getUpdateOrder();
-		}
-
-		@Override
-		public void setUpdateOrder(UpdateOrder updateOrder) {
-			delegate.setUpdateOrder(updateOrder);
-		}
-
-		@Override
-		public void load() {
-		}
-
-		@Override
-		public void save(boolean silent) {
-		}
-	}
+        public void save(boolean silent) {
+        }
+    }
 }
+

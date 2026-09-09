@@ -1,6 +1,7 @@
 package net.cobaltmc.cobaltage.trim;
 
 import net.cobaltmc.cobaltage.CobaltAge;
+import net.cobaltmc.cobaltage.CobaltAgeConstants;
 import net.cobaltmc.cobaltage.item.ModItems;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -19,10 +20,10 @@ import net.minecraft.world.item.equipment.trim.TrimMaterial;
 public class ModTrimMaterials {
 
     public static final ResourceKey<TrimMaterial> COBALT_INGOT = ResourceKey.create(Registries.TRIM_MATERIAL,
-            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_ingot"));
+            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_ingot"));
 
     public static final ResourceKey<TrimMaterial> COBALT_DUST = ResourceKey.create(Registries.TRIM_MATERIAL,
-            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_dust"));
+            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "cobalt_dust"));
 
     public static void bootstrap(BootstrapContext<TrimMaterial> registerable) {
         register(registerable, COBALT_INGOT, BuiltInRegistries.ITEM.wrapAsHolder(ModItems.COBALT_INGOT),

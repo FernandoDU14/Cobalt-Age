@@ -11,14 +11,13 @@ import net.cobaltmc.cobaltage.block.signal.SignalType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.debug.DebugSubscriptions;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.PoweredBlock;
+import net.minecraft.world.level.block.DiodeBlock;
+import net.minecraft.world.level.block.RepeaterBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.RedstoneSide;
 import net.minecraft.world.level.redstone.Orientation;
-import net.minecraft.world.level.redstone.Orientation.SideBias;
 import org.jspecify.annotations.Nullable;
 
 public class ExperimentalWireEvaluator extends WireEvaluator {
@@ -37,17 +36,17 @@ public class ExperimentalWireEvaluator extends WireEvaluator {
 
         for(boolean bl2 = true; objectIterator.hasNext(); bl2 = false) {
             Object2IntMap.Entry<BlockPos> entry = objectIterator.next();
-            BlockPos blockPos2 = entry.getKey();
+            BlockPos blockPos2 = (BlockPos)entry.getKey();
             int i = entry.getIntValue();
             int j = unpackPower(i);
             BlockState blockState2 = level.getBlockState(blockPos2);
-            if (blockState2.is(this.wireBlock) && !(blockState2.getValue(WireBlock.POWER)).equals(j)) {
+            if (blockState2.is(this.wireBlock) && !((Integer)blockState2.getValue(WireBlock.POWER)).equals(j)) {
                 int k = 2;
                 if (!bl || !bl2) {
                     k |= 128;
                 }
 
-                level.setBlock(blockPos2, blockState2.setValue(WireBlock.POWER, j), k);
+                level.setBlock(blockPos2, (BlockState)blockState2.setValue(WireBlock.POWER, j), k);
             } else {
                 objectIterator.remove();
             }
@@ -67,7 +66,7 @@ public class ExperimentalWireEvaluator extends WireEvaluator {
                     BlockState blockState2 = level.getBlockState(blockPos2);
                     Orientation orientation2 = orientation.withFrontPreserveUp(direction);
                     level.neighborChanged(blockState2, blockPos2, this.wireBlock, orientation2, false);
-                    if (blockState2.isRedstoneConductor(level, blockPos2) || blockState2.getBlock() instanceof PoweredBlock) {
+                    if (blockState2.isSignalSource() || blockState2.getBlock() instanceof RepeaterBlock) {
                         for(Direction direction2 : orientation2.getDirections()) {
                             if (direction2 != direction.getOpposite()) {
                                 level.neighborChanged(blockPos2.relative(direction2), this.wireBlock, orientation2.withFrontPreserveUp(direction2));
@@ -79,19 +78,20 @@ public class ExperimentalWireEvaluator extends WireEvaluator {
 
         });
         if (level instanceof ServerLevel serverLevel) {
-            if (serverLevel.debugSynchronizers().hasAnySubscriberFor(DebugSubscriptions.REDSTONE_WIRE_ORIENTATIONS)) {
-                this.updatedWires.forEach((blockPos, i) -> serverLevel.debugSynchronizers().sendBlockValue(blockPos, DebugSubscriptions.REDSTONE_WIRE_ORIENTATIONS, unpackOrientation(i)));
+            if (serverLevel.isDebug()) {
+                this.updatedWires.forEach((blockPos, i) -> {});
             }
         }
 
     }
 
     private static boolean isConnected(BlockState blockState, Direction direction) {
-        EnumProperty<RedstoneSide> enumProperty = WireBlock.PROPERTY_BY_DIRECTION.get(direction);
-        if (enumProperty == null) {
+        EnumProperty<RedstoneSide> property = WireBlock.PROPERTY_BY_DIRECTION.get(direction);
+        if (property == null) {
             return direction == Direction.DOWN;
         } else {
-            return (blockState.getValue(enumProperty)).isConnected();
+            RedstoneSide side = blockState.getValue(property);
+            return side.isConnected();
         }
     }
 
@@ -103,27 +103,31 @@ public class ExperimentalWireEvaluator extends WireEvaluator {
             orientation2 = Orientation.random(level.random);
         }
 
-        return orientation2.withUp(Direction.UP).withSideBias(SideBias.LEFT);
+        return orientation2.withUp(Direction.UP).withSideBias(Orientation.SideBias.LEFT);
     }
 
     private void calculateCurrentChangesByType(SignalType signalType, Level level, BlockPos blockPos, Orientation orientation) {
         BlockState blockState = level.getBlockState(blockPos);
         if (blockState.is(this.wireBlock)) {
-            this.setPower(blockPos, blockState.getValue(WireBlock.POWER), orientation);
+            this.setPower(blockPos, (Integer)blockState.getValue(WireBlock.POWER), orientation);
             this.wiresToTurnOff.add(blockPos);
         } else {
             this.propagateChangeToNeighbors(level, blockPos, 0, orientation, true);
         }
 
-        while (!this.wiresToTurnOff.isEmpty()) {
-            BlockPos blockPos2 = this.wiresToTurnOff.removeFirst();
+        BlockPos blockPos2;
+        Orientation orientation2;
+        int j;
+        int m;
+        int n;
+        for(; !this.wiresToTurnOff.isEmpty(); this.propagateChangeToNeighbors(level, blockPos2, n, orientation2, j > m)) {
+            blockPos2 = (BlockPos)this.wiresToTurnOff.removeFirst();
             int i = this.updatedWires.getInt(blockPos2);
-            Orientation orientation2 = unpackOrientation(i);
-            int j = unpackPower(i);
+            orientation2 = unpackOrientation(i);
+            j = unpackPower(i);
             int k = this.getBlockSignalByType(signalType, level, blockPos2);
             int l = this.getIncomingWireSignal(level, blockPos2);
-            int m = Math.max(k, l);
-            int n;
+            m = Math.max(k, l);
             if (m < j) {
                 if (k > 0 && !this.wiresToTurnOn.contains(blockPos2)) {
                     this.wiresToTurnOn.add(blockPos2);
@@ -137,25 +141,23 @@ public class ExperimentalWireEvaluator extends WireEvaluator {
             if (n != j) {
                 this.setPower(blockPos2, n, orientation2);
             }
-
-            this.propagateChangeToNeighbors(level, blockPos2, n, orientation2, j > m);
         }
 
-        while (!this.wiresToTurnOn.isEmpty()) {
-            BlockPos blockPos2x = this.wiresToTurnOn.removeFirst();
-            int ix = this.updatedWires.getInt(blockPos2x);
+        int lx;
+        Orientation orientation3;
+        for(; !this.wiresToTurnOn.isEmpty(); this.propagateChangeToNeighbors(level, blockPos2, lx, orientation3, false)) {
+            blockPos2 = (BlockPos)this.wiresToTurnOn.removeFirst();
+            int ix = this.updatedWires.getInt(blockPos2);
             int o = unpackPower(ix);
-            int jx = this.getBlockSignalByType(signalType, level, blockPos2x);
-            int kx = this.getIncomingWireSignal(level, blockPos2x);
-            int lx = Math.max(jx, kx);
-            Orientation orientation3 = unpackOrientation(ix);
+            j = this.getBlockSignalByType(signalType, level, blockPos2);
+            int kx = this.getIncomingWireSignal(level, blockPos2);
+            lx = Math.max(j, kx);
+            orientation3 = unpackOrientation(ix);
             if (lx > o) {
-                this.setPower(blockPos2x, lx, orientation3);
+                this.setPower(blockPos2, lx, orientation3);
             } else if (lx < o) {
                 throw new IllegalStateException("Turning off wire while trying to turn it on. Should not happen.");
             }
-
-            this.propagateChangeToNeighbors(level, blockPos2x, lx, orientation3, false);
         }
     }
 
@@ -183,20 +185,19 @@ public class ExperimentalWireEvaluator extends WireEvaluator {
 
         for(Direction direction : orientation.getVerticalDirections()) {
             BlockPos blockPos2 = blockPos.relative(direction);
-            boolean bl2 = level.getBlockState(blockPos2).isRedstoneConductor(level, blockPos2) ||  level.getBlockState(blockPos2).getBlock() instanceof PoweredBlock;
+            boolean bl2 = level.getBlockState(blockPos2).isSignalSource() || level.getBlockState(blockPos2).getBlock() instanceof DiodeBlock;
 
             for(Direction direction2 : orientation.getHorizontalDirections()) {
                 BlockPos blockPos3 = blockPos.relative(direction2);
                 if (direction == Direction.UP && !bl2) {
                     BlockPos blockPos4 = blockPos2.relative(direction2);
                     this.enqueueNeighborWire(level, blockPos4, i, orientation.withFront(direction2), bl);
-                } else if (direction == Direction.DOWN && !(level.getBlockState(blockPos3).isRedstoneConductor(level, blockPos3) || (level.getBlockState(blockPos3).getBlock() instanceof PoweredBlock))) {
+                } else if (direction == Direction.DOWN && !level.getBlockState(blockPos3).isSignalSource() && !(level.getBlockState(blockPos3).getBlock() instanceof DiodeBlock)) {
                     BlockPos blockPos4 = blockPos2.relative(direction2);
                     this.enqueueNeighborWire(level, blockPos4, i, orientation.withFront(direction2), bl);
                 }
             }
         }
-
     }
 
     private void enqueueNeighborWire(Level level, BlockPos blockPos, int i, Orientation orientation, boolean bl) {

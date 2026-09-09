@@ -1,7 +1,7 @@
 package net.cobaltmc.cobaltage.block.abstracts;
 
 import com.mojang.serialization.MapCodec;
-import net.cobaltmc.cobaltage.block.CobaltWireBlock;
+import net.cobaltmc.cobaltage.block.cobalt.CobaltWireBlock;
 import net.cobaltmc.cobaltage.block.ModBlocks;
 import net.cobaltmc.cobaltage.block.signal.cobalt.CobaltSignalSource;
 import net.cobaltmc.cobaltage.util.interfaces.mixin.signalgetters.SignalGetterByType;
@@ -73,7 +73,6 @@ public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implem
                     serverLevel.scheduleTick(blockPos, this, this.getDelay(blockState), TickPriority.VERY_HIGH);
                 }
             }
-
         }
     }
 
@@ -89,7 +88,6 @@ public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implem
         }
     }
 
-
     protected void neighborChanged(BlockState blockState, @NonNull Level level, @NonNull BlockPos blockPos, @NonNull Block block, @Nullable Orientation orientation, boolean bl) {
         if (blockState.canSurvive(level, blockPos)) {
             this.checkTickOnNeighbor(level, blockPos, blockState);
@@ -101,7 +99,6 @@ public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implem
             for(Direction direction : Direction.values()) {
                 level.updateNeighborsAt(blockPos.relative(direction), this);
             }
-
         }
     }
 
@@ -119,7 +116,6 @@ public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implem
 
                 level.scheduleTick(blockPos, this, this.getDelay(blockState), tickPriority);
             }
-
         }
     }
 
@@ -135,6 +131,7 @@ public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implem
     public int getDirectCobaltSignal(BlockState blockState, Level world, BlockPos blockPos, Direction direction) {
         return this.getCobaltSignal(blockState, world, blockPos, direction);
     }
+
     @Override
     public int getCobaltSignal(BlockState blockState, Level world, BlockPos blockPos, Direction direction) {
         if (!blockState.getValue(POWERED)) {
@@ -176,7 +173,6 @@ public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implem
         if (this.shouldTurnOn(level, blockPos, blockState)) {
             level.scheduleTick(blockPos, this, 1);
         }
-
     }
 
     protected void onPlace(@NonNull BlockState blockState, @NonNull Level level, @NonNull BlockPos blockPos, @NonNull BlockState blockState2, boolean bl) {
@@ -216,5 +212,4 @@ public abstract class CobaltDiodeBlock extends HorizontalDirectionalBlock implem
     }
 
     protected abstract int getDelay(BlockState blockState);
-
 }

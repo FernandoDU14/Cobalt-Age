@@ -1,114 +1,95 @@
 package net.cobaltmc.cobaltage.block.signal.engine.modern;
 
-import org.jspecify.annotations.NonNull;
-
 import java.util.AbstractQueue;
 import java.util.Iterator;
+import org.jspecify.annotations.NonNull;
 
 public class SimpleQueue extends AbstractQueue<WireNode> {
+    private WireNode head;
+    private WireNode tail;
+    private int size;
 
-	private WireNode head;
-	private WireNode tail;
+    SimpleQueue() {
+    }
 
-	private int size;
+    public boolean offer(WireNode node) {
+        if (node == null) {
+            throw new NullPointerException();
+        } else {
+            if (this.tail == null) {
+                this.head = this.tail = node;
+            } else {
+                this.tail.next_wire = node;
+                this.tail = node;
+            }
 
-	SimpleQueue() {
+            ++this.size;
+            return true;
+        }
+    }
 
-	}
+    public WireNode poll() {
+        if (this.head == null) {
+            return null;
+        } else {
+            WireNode node = this.head;
+            WireNode next = node.next_wire;
+            if (next == null) {
+                this.head = this.tail = null;
+            } else {
+                node.next_wire = null;
+                this.head = next;
+            }
 
-	@Override
-	public boolean offer(WireNode node) {
-		if (node == null) {
-			throw new NullPointerException();
-		}
+            --this.size;
+            return node;
+        }
+    }
 
-		if (tail == null) {
-			head = tail = node;
-		} else {
-			tail.next_wire = node;
-			tail = node;
-		}
+    public WireNode peek() {
+        return this.head;
+    }
 
-		size++;
+    public void clear() {
+        WireNode n;
+        for(WireNode node = this.head; node != null; n.next_wire = null) {
+            n = node;
+            node = node.next_wire;
+        }
 
-		return true;
-	}
+        this.head = null;
+        this.tail = null;
+        this.size = 0;
+    }
 
-	@Override
-	public WireNode poll() {
-		if (head == null) {
-			return null;
-		}
+    public @NonNull Iterator<WireNode> iterator() {
+        return new SimpleIterator();
+    }
 
-		WireNode node = head;
-		WireNode next = node.next_wire;
+    public int size() {
+        return this.size;
+    }
 
-		if (next == null) {
-			head = tail = null;
-		} else {
-			node.next_wire = null;
-			head = next;
-		}
+    private class SimpleIterator implements Iterator<WireNode> {
+        private WireNode curr;
+        private WireNode next;
 
-		size--;
+        private SimpleIterator() {
+            this.next = SimpleQueue.this.head;
+        }
 
-		return node;
-	}
+        public boolean hasNext() {
+            if (this.next == null && this.curr != null) {
+                this.next = this.curr.next_wire;
+            }
 
-	@Override
-	public WireNode peek() {
-		return head;
-	}
+            return this.next != null;
+        }
 
-	@Override
-	public void clear() {
-		for (WireNode node = head; node != null; ) {
-			WireNode n = node;
-			node = node.next_wire;
-
-			n.next_wire = null;
-		}
-
-		head = null;
-		tail = null;
-
-		size = 0;
-	}
-
-	@Override
-	public @NonNull Iterator<WireNode> iterator() {
-		return new SimpleIterator();
-	}
-
-	@Override
-	public int size() {
-		return size;
-	}
-
-	private class SimpleIterator implements Iterator<WireNode> {
-
-		private WireNode curr;
-		private WireNode next;
-
-		private SimpleIterator() {
-			next = head;
-		}
-
-		@Override
-		public boolean hasNext() {
-			if (next == null && curr != null) {
-				next = curr.next_wire;
-			}
-
-			return next != null;
-		}
-
-		@Override
-		public WireNode next() {
-			curr = next;
-			next = curr.next_wire;
-
-			return curr;
-		}
-	}
+        public WireNode next() {
+            this.curr = this.next;
+            this.next = this.curr.next_wire;
+            return this.curr;
+        }
+    }
 }

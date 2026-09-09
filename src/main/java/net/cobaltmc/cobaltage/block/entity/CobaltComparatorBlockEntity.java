@@ -12,7 +12,7 @@ public class CobaltComparatorBlockEntity extends BlockEntity {
     private int output = 0;
 
     public CobaltComparatorBlockEntity(BlockPos blockPos, BlockState blockState) {
-        super(ModBlockEntities.COBALT_COMPARATOR_ENTITY, blockPos, blockState);
+        super(ModBlockEntities.COBALT_COMPARATOR, blockPos, blockState);
     }
 
     protected void saveAdditional(@NonNull ValueOutput valueOutput) {

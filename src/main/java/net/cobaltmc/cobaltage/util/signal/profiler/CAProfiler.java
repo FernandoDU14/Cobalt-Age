@@ -3,13 +3,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import net.cobaltmc.cobaltage.CobaltAgeConstants;
 import org.slf4j.Logger;
 
 import net.cobaltmc.cobaltage.CobaltAge;
 
 public class CAProfiler implements Profiler {
 
-    private static final Logger LOGGER = CobaltAge.LOGGER;
+    private static final Logger LOGGER = CobaltAgeConstants.LOGGER;
 
     private final Stack<Integer> indexStack;
     private final List<String> locations;

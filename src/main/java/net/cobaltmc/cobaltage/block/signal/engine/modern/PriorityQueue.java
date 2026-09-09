@@ -1,212 +1,179 @@
+//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by FernFlower decompiler)
+//
+
 package net.cobaltmc.cobaltage.block.signal.engine.modern;
 
 import java.util.AbstractQueue;
 import java.util.Arrays;
 import java.util.Iterator;
-
-import net.cobaltmc.cobaltage.block.signal.cobalt.Cobalt;
 import org.jspecify.annotations.NonNull;
 
 public class PriorityQueue extends AbstractQueue<Node> {
+    private static final int OFFSET = 0;
+    private final Node[] tails = new Node[16];
+    private Node head;
+    private Node tail;
+    private int size;
 
-	private static final int OFFSET = -Cobalt.SIGNAL_MIN;
+    PriorityQueue() {
+    }
 
-	/** The last node for each priority value. */
-	private final Node[] tails;
+    public boolean offer(Node node) {
+        if (node == null) {
+            throw new NullPointerException();
+        } else {
+            int priority = node.priority();
+            if (this.contains(node)) {
+                if (node.priority == priority) {
+                    return false;
+                }
 
-	private Node head;
-	private Node tail;
+                this.move(node, priority);
+            } else {
+                this.insert(node, priority);
+            }
 
-	private int size;
+            return true;
+        }
+    }
 
-	PriorityQueue() {
-		this.tails = new Node[(Cobalt.SIGNAL_MAX + OFFSET) + 1];
-	}
+    public Node poll() {
+        if (this.head == null) {
+            return null;
+        } else {
+            Node node = this.head;
+            Node next = node.next_node;
+            if (next == null) {
+                this.clear();
+            } else {
+                if (node.priority != next.priority) {
+                    this.tails[node.priority + 0] = null;
+                }
 
-	@Override
-	public boolean offer(Node node) {
-		if (node == null) {
-			throw new NullPointerException();
-		}
+                node.next_node = null;
+                next.prev_node = null;
+                this.head = next;
+                --this.size;
+            }
 
-		int priority = node.priority();
+            return node;
+        }
+    }
 
-		if (contains(node)) {
-			if (node.priority == priority) {
-				// already queued with this priority; exit
-				return false;
-			} else {
-				// already queued with different priority; move it
-				move(node, priority);
-			}
-		} else {
-			insert(node, priority);
-		}
+    public Node peek() {
+        return this.head;
+    }
 
-		return true;
-	}
+    public void clear() {
+        Node n;
+        for(Node node = this.head; node != null; n.next_node = null) {
+            n = node;
+            node = node.next_node;
+            n.prev_node = null;
+        }
 
-	@Override
-	public Node poll() {
-		if (head == null) {
-			return null;
-		}
+        Arrays.fill(this.tails, (Object)null);
+        this.head = null;
+        this.tail = null;
+        this.size = 0;
+    }
 
-		Node node = head;
-		Node next = node.next_node;
+    public @NonNull Iterator<Node> iterator() {
+        throw new UnsupportedOperationException();
+    }
 
-		if (next == null) {
-			clear(); // reset the tails array
-		} else {
-			if (node.priority != next.priority) {
-				// If the head is also a tail, its entry in the array
-				// can be cleared; there is no previous node with the
-				// same priority to take its place.
-				tails[node.priority + OFFSET] = null;
-			}
+    public int size() {
+        return this.size;
+    }
 
-			node.next_node = null;
-			next.prev_node = null;
-			head = next;
+    public boolean contains(Node node) {
+        return node == this.head || node.prev_node != null;
+    }
 
-			size--;
-		}
+    private void move(Node node, int priority) {
+        this.remove(node);
+        this.insert(node, priority);
+    }
 
-		return node;
-	}
+    private void remove(Node node) {
+        Node prev = node.prev_node;
+        Node next = node.next_node;
+        if (node == this.tail || node.priority != next.priority) {
+            if (node != this.head && node.priority == prev.priority) {
+                this.tails[node.priority + 0] = prev;
+            } else {
+                this.tails[node.priority + 0] = null;
+            }
+        }
 
-	@Override
-	public Node peek() {
-		return head;
-	}
+        if (node == this.head) {
+            this.head = next;
+        } else {
+            prev.next_node = next;
+        }
 
-	@Override
-	public void clear() {
-		for (Node node = head; node != null; ) {
-			Node n = node;
-			node = node.next_node;
+        if (node == this.tail) {
+            this.tail = prev;
+        } else {
+            next.prev_node = prev;
+        }
 
-			n.prev_node = null;
-			n.next_node = null;
-		}
+        node.prev_node = null;
+        node.next_node = null;
+        --this.size;
+    }
 
-		Arrays.fill(tails, null);
+    private void insert(Node node, int priority) {
+        node.priority = priority;
+        if (this.head == null) {
+            this.head = this.tail = node;
+        } else if (priority > this.head.priority) {
+            this.linkHead(node);
+        } else if (priority <= this.tail.priority) {
+            this.linkTail(node);
+        } else {
+            this.linkAfter(this.findPrev(node), node);
+        }
 
-		head = null;
-		tail = null;
+        this.tails[priority + 0] = node;
+        ++this.size;
+    }
 
-		size = 0;
-	}
+    private void linkHead(Node node) {
+        node.next_node = this.head;
+        this.head.prev_node = node;
+        this.head = node;
+    }
 
-	@Override
-	public @NonNull Iterator<Node> iterator() {
-		throw new UnsupportedOperationException();
-	}
+    private void linkTail(Node node) {
+        this.tail.next_node = node;
+        node.prev_node = this.tail;
+        this.tail = node;
+    }
 
-	@Override
-	public int size() {
-		return size;
-	}
+    private void linkAfter(Node prev, Node node) {
+        this.linkBetween(prev, node, prev.next_node);
+    }
 
-	public boolean contains(Node node) {
-		return node == head || node.prev_node != null;
-	}
+    private void linkBetween(Node prev, Node node, Node next) {
+        prev.next_node = node;
+        node.prev_node = prev;
+        node.next_node = next;
+        next.prev_node = node;
+    }
 
-	private void move(Node node, int priority) {
-		remove(node);
-		insert(node, priority);
-	}
+    private Node findPrev(Node node) {
+        Node prev = null;
 
-	private void remove(Node node) {
-		Node prev = node.prev_node;
-		Node next = node.next_node;
+        for(int i = node.priority + 0; i < this.tails.length; ++i) {
+            prev = this.tails[i];
+            if (prev != null) {
+                break;
+            }
+        }
 
-		if (node == tail || node.priority != next.priority) {
-			// assign a new tail for this node's priority
-			if (node == head || node.priority != prev.priority) {
-				// there is no other node with the same priority; clear
-				tails[node.priority + OFFSET] = null;
-			} else {
-				// the previous node in the queue becomes the tail
-				tails[node.priority + OFFSET] = prev;
-			}
-		}
-
-		if (node == head) {
-			head = next;
-		} else {
-			prev.next_node = next;
-		}
-		if (node == tail) {
-			tail = prev;
-		} else {
-			next.prev_node = prev;
-		}
-
-		node.prev_node = null;
-		node.next_node = null;
-
-		size--;
-	}
-
-	private void insert(Node node, int priority) {
-		node.priority = priority;
-
-		// nodes are sorted by priority (highest to lowest)
-		// nodes with the same priority are ordered FIFO
-		if (head == null) {
-			// first element in this queue \o/
-			head = tail = node;
-		} else if (priority > head.priority) {
-			linkHead(node);
-		} else if (priority <= tail.priority) {
-			linkTail(node);
-		} else {
-			// since the node is neither the head nor the tail
-			// findPrev is guaranteed to find a non-null element
-			linkAfter(findPrev(node), node);
-		}
-
-		tails[priority + OFFSET] = node;
-
-		size++;
-	}
-
-	private void linkHead(Node node) {
-		node.next_node = head;
-		head.prev_node = node;
-		head = node;
-	}
-
-	private void linkTail(Node node) {
-		tail.next_node = node;
-		node.prev_node = tail;
-		tail = node;
-	}
-
-	private void linkAfter(Node prev, Node node) {
-		linkBetween(prev, node, prev.next_node);
-	}
-
-	private void linkBetween(Node prev, Node node, Node next) {
-		prev.next_node = node;
-		node.prev_node = prev;
-
-		node.next_node = next;
-		next.prev_node = node;
-	}
-
-	private Node findPrev(Node node) {
-		Node prev = null;
-
-		for (int i = node.priority + OFFSET; i < tails.length; i++) {
-			prev = tails[i];
-
-			if (prev != null) {
-				break;
-			}
-		}
-
-		return prev;
-	}
+        return prev;
+    }
 }

@@ -3,29 +3,31 @@
   "package": "net.cobaltmc.cobaltage.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BlockBehaviourBlockStateBaseMixin",
     "CommandMixin",
+    "LevelMixin",
+    "block.LeverBlockMixin",
+    "block.entity.CalibratedSculkSensorBlockEntityMixin",
+    "block.redstone.DiodeBlockMixin",
+    "block.redstone.RedstoneLampBlockMixin",
+    "block.redstone.RedstoneTorchBlockMixin",
+    "block.redstone.RedstoneWallTorchBlockMixin",
     "client.gui.screens.inventory.BeaconScreenMixin",
     "server.MinecraftServerMixin",
-    "server.level.ServerLevelMixin",
+    "server.ServerLevelMixin",
     "world.entity.minecart.AbstractMinecartMixin",
     "world.entity.minecart.MinecartBehaviorMixin",
+    "world.entity.minecart.MinecartBoatPushMixin",
     "world.entity.minecart.NewMinecartBehaviorMixin",
-    "world.entity.minecart.OldMinecartBehaviorMixin",
-    "world.level.LevelMixin",
-    "world.level.block.LeverBlockMixin",
-    "world.level.block.entity.CalibratedSculkSensorBlockEntityMixin",
-    "world.level.block.redstone.DiodeBlockMixin",
-    "world.level.block.redstone.PoweredRailBlockMixin",
-    "world.level.block.redstone.RedstoneLampBlockMixin",
-    "world.level.block.redstone.RedstoneTorchBlockMixin",
-    "world.level.block.redstone.RedstoneWallTorchBlockMixin",
-    "world.level.block.redstone.RedStoneWireBlockMixin",
-    "world.level.block.state.BlockBehaviourBlockStateBaseMixin"
+    "world.entity.minecart.OldMinecartBehaviorMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
-	}
+  },
+  "client": [
+    "MixinTitleScreen"
+  ]
 }

@@ -6,13 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import net.cobaltmc.cobaltage.CobaltAge;
+import net.cobaltmc.cobaltage.CobaltAgeConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Block.UpdateFlags;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.redstone.ExperimentalRedstoneUtils;
 import net.minecraft.world.level.redstone.Orientation;
@@ -20,11 +19,12 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 public class CollectingNeighborUpdater implements NeighborUpdater {
+
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Level level;
     private final int maxChainedNeighborUpdates;
-    private final ArrayDeque<NeighborUpdates> stack = new ArrayDeque<>();
-    private final List<NeighborUpdates> addedThisLayer = new ArrayList<>();
+    private final ArrayDeque<NeighborUpdates> stack = new ArrayDeque();
+    private final List<NeighborUpdates> addedThisLayer = new ArrayList();
     private int count = 0;
     private @Nullable Consumer<BlockPos> debugListener;
 
@@ -37,7 +37,7 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
         this.debugListener = consumer;
     }
 
-    public void shapeUpdate(Direction direction, BlockState blockState, BlockPos blockPos, BlockPos blockPos2, @UpdateFlags int i, int j) {
+    public void shapeUpdate(Direction direction, BlockState blockState, BlockPos blockPos, BlockPos blockPos2, int i, int j) {
         this.addAndRun(blockPos, new ShapeUpdate(direction, blockState, blockPos.immutable(), blockPos2.immutable(), i, j));
     }
 
@@ -77,18 +77,20 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
         try {
             while(!this.stack.isEmpty() || !this.addedThisLayer.isEmpty()) {
                 for(int i = this.addedThisLayer.size() - 1; i >= 0; --i) {
-                    this.stack.push(this.addedThisLayer.get(i));
+                    this.stack.push((NeighborUpdates)this.addedThisLayer.get(i));
                 }
 
                 this.addedThisLayer.clear();
-                NeighborUpdates neighborUpdates = this.stack.peek();
+                NeighborUpdates neighborUpdates = (NeighborUpdates)this.stack.peek();
                 if (this.debugListener != null) {
                     assert neighborUpdates != null;
+
                     neighborUpdates.forEachUpdatedPos(this.debugListener);
                 }
 
                 while(this.addedThisLayer.isEmpty()) {
                     assert neighborUpdates != null;
+
                     if (!neighborUpdates.runNext(this.level)) {
                         this.stack.pop();
                         break;
@@ -100,7 +102,6 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
             this.addedThisLayer.clear();
             this.count = 0;
         }
-
     }
 
     static record SimpleNeighborUpdate(BlockPos pos, Block block, @Nullable Orientation orientation) implements NeighborUpdates {
@@ -143,7 +144,6 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
             }
 
         }
-
         public boolean runNext(Level level) {
             Direction direction = NeighborUpdater.UPDATE_ORDER[this.idx++];
             BlockPos blockPos = this.sourcePos.relative(direction);
@@ -151,11 +151,12 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
             Orientation orientation = null;
             if (level.enabledFeatures().contains(FeatureFlags.REDSTONE_EXPERIMENTS)) {
                 if (this.orientation == null) {
-                    Direction front = CobaltAge.ModernSignalEngine ? Direction.WEST : null;
-                    this.orientation = ExperimentalRedstoneUtils.initialOrientation(level, this.skipDirection == null ? front : this.skipDirection.getOpposite(), null);
+                    Direction front = CobaltAgeConstants.MODERN_SIGNAL_ENGINE ? Direction.WEST : null;
+                    this.orientation = ExperimentalRedstoneUtils.initialOrientation(level, this.skipDirection == null ? front : this.skipDirection.getOpposite(), (Direction)null);
                 }
 
                 assert this.orientation != null;
+
                 orientation = this.orientation.withFront(direction);
             }
 
@@ -177,8 +178,7 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
 
         }
     }
-
-    static record ShapeUpdate(Direction direction, BlockState neighborState, BlockPos pos, BlockPos neighborPos, @UpdateFlags int updateFlags, int updateLimit) implements NeighborUpdates {
+    static record ShapeUpdate(Direction direction, BlockState neighborState, BlockPos pos, BlockPos neighborPos, int updateFlags, int updateLimit) implements NeighborUpdates {
         public boolean runNext(Level level) {
             NeighborUpdater.executeShapeUpdate(level, this.direction, this.pos, this.neighborPos, this.neighborState, this.updateFlags, this.updateLimit);
             return false;
@@ -190,8 +190,8 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
     }
 
     interface NeighborUpdates {
-        boolean runNext(Level level);
+        boolean runNext(Level var1);
 
-        void forEachUpdatedPos(Consumer<BlockPos> consumer);
+        void forEachUpdatedPos(Consumer<BlockPos> var1);
     }
 }

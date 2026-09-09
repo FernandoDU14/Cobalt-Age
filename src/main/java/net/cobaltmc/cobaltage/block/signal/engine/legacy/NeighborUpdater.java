@@ -1,7 +1,6 @@
 package net.cobaltmc.cobaltage.block.signal.engine.legacy;
 
 import java.util.Locale;
-
 import net.cobaltmc.cobaltage.block.abstracts.WireBlock;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
@@ -12,34 +11,35 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Block.UpdateFlags;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.redstone.Orientation;
 import org.jspecify.annotations.Nullable;
 
 public interface NeighborUpdater {
-    Direction[] UPDATE_ORDER = new Direction[]{Direction.WEST, Direction.EAST, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH};
+    Direction[] UPDATE_ORDER = new Direction[]{Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.DOWN};
 
-    void shapeUpdate(Direction direction, BlockState blockState, BlockPos blockPos, BlockPos blockPos2, @UpdateFlags int i, int j);
+    void shapeUpdate(Direction var1, BlockState var2, BlockPos var3, BlockPos var4, int var5, int var6);
 
-    void neighborChanged(BlockPos blockPos, Block block, @Nullable Orientation orientation);
+    void neighborChanged(BlockPos var1, Block var2, @Nullable Orientation var3);
 
-    void neighborChanged(BlockState blockState, BlockPos blockPos, Block block, @Nullable Orientation orientation, boolean bl);
+    void neighborChanged(BlockState var1, BlockPos var2, Block var3, @Nullable Orientation var4, boolean var5);
 
     default void updateNeighborsAtExceptFromFacing(BlockPos blockPos, Block block, @Nullable Direction direction, @Nullable Orientation orientation) {
         for(Direction direction2 : UPDATE_ORDER) {
             if (direction2 != direction) {
-                this.neighborChanged(blockPos.relative(direction2), block, null);
+                this.neighborChanged(blockPos.relative(direction2), block, (Orientation)null);
             }
         }
+
     }
 
-    static void executeShapeUpdate(LevelAccessor levelAccessor, Direction direction, BlockPos blockPos, BlockPos blockPos2, BlockState blockState, @UpdateFlags int i, int j) {
+    static void executeShapeUpdate(LevelAccessor levelAccessor, Direction direction, BlockPos blockPos, BlockPos blockPos2, BlockState blockState, int i, int j) {
         BlockState blockState2 = levelAccessor.getBlockState(blockPos);
         if ((i & 128) == 0 || !(blockState2.getBlock() instanceof WireBlock)) {
             BlockState blockState3 = blockState2.updateShape(levelAccessor, levelAccessor, blockPos, direction, blockPos2, blockState, levelAccessor.getRandom());
             Block.updateOrDestroy(blockState2, blockState3, levelAccessor, blockPos, i, j);
         }
+
     }
 
     static void executeUpdate(Level level, BlockState blockState, BlockPos blockPos, Block block, @Nullable Orientation orientation, boolean bl) {
@@ -52,7 +52,7 @@ public interface NeighborUpdater {
                 try {
                     return String.format(Locale.ROOT, "ID #%s (%s // %s)", BuiltInRegistries.BLOCK.getKey(block), block.getDescriptionId(), block.getClass().getCanonicalName());
                 } catch (Throwable var2) {
-                    return "ID #" + BuiltInRegistries.BLOCK.getKey(block);
+                    return "ID #" + String.valueOf(BuiltInRegistries.BLOCK.getKey(block));
                 }
             });
             CrashReportCategory.populateBlockDetails(crashReportCategory, level, blockPos, blockState);

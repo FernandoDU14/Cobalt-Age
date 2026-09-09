@@ -2,137 +2,112 @@ package net.cobaltmc.cobaltage.block.signal.engine.modern;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
-
 import net.cobaltmc.cobaltage.block.signal.engine.modern.WireHandler.Directions;
-import net.cobaltmc.cobaltage.block.signal.engine.modern.WireHandler.NodeProvider;
 
 public class WireConnectionManager {
+    final WireNode owner;
+    private final WireConnection[] heads;
+    private WireConnection head;
+    private WireConnection tail;
+    int total;
+    private int flowTotal;
+    int iFlowDir;
 
-	/** The owner of these connections. */
-	final WireNode owner;
+    WireConnectionManager(WireNode owner) {
+        this.owner = owner;
+        this.heads = new WireConnection[Directions.ALL.length];
+        this.total = 0;
+        this.flowTotal = 0;
+        this.iFlowDir = -1;
+    }
 
-	/** The first connection for each cardinal direction. */
-	private final WireConnection[] heads;
+    void set(WireHandler.NodeProvider nodes, WireHandler wireHandler) {
+        if (this.total > 0) {
+            this.clear();
+        }
 
-	private WireConnection head;
-	private WireConnection tail;
+        boolean belowIsConductor = nodes.getNeighbor(this.owner, 4).isConductor() ||
+                nodes.getNeighbor(this.owner, 4).state.isRedstoneConductor(this.owner.level, nodes.getNeighbor(this.owner, 4).pos);
+        boolean aboveIsConductor = nodes.getNeighbor(this.owner, 5).isConductor() ||
+                nodes.getNeighbor(this.owner, 5).state.isRedstoneConductor(this.owner.level, nodes.getNeighbor(this.owner, 5).pos);
 
-	/** The total number of connections. */
-	int total;
+        for (int iDir = 0; iDir < Directions.ALL.length; ++iDir) {
+            Node neighbor = nodes.getNeighbor(this.owner, iDir);
+            if (neighbor.isWire()) {
+                if (wireHandler.shouldCobaltWireNodesLink(this.owner, neighbor.asWire())) {
+                    this.add(neighbor.asWire(), iDir, true, true);
+                }
+            } else if (iDir < 4) {
+                boolean sideIsConductor = neighbor.isConductor() ||
+                        neighbor.state.isRedstoneConductor(this.owner.level, neighbor.pos);
 
-	/**
-	 * A 4 bit number that encodes which in direction(s) the owner has connections
-	 * to other wires.
-	 */
-	private int flowTotal;
-	/** The direction of flow based connections to other wires. */
-	int iFlowDir;
+                // Step Down (neighbor + DOWN)
+                if (!sideIsConductor) {
+                    Node node = nodes.getNeighbor(neighbor, 4);
+                    if (node.isWire() && wireHandler.shouldCobaltWireNodesLink(this.owner, node.asWire())) {
+                        this.add(node.asWire(), iDir, true, true); // Fixed: offer = true, accept = true
+                    }
+                }
 
-	WireConnectionManager(WireNode owner) {
-		this.owner = owner;
+                // Step Up (neighbor + UP)
+                if (!aboveIsConductor) {
+                    Node node = nodes.getNeighbor(neighbor, 5);
+                    if (node.isWire() && wireHandler.shouldCobaltWireNodesLink(this.owner, node.asWire())) {
+                        this.add(node.asWire(), iDir, true, true); // Fixed: offer = true, accept = true
+                    }
+                }
+            }
+        }
 
-		this.heads = new WireConnection[Directions.ALL.length];
+        if (this.total > 0) {
+            this.iFlowDir = WireHandler.FLOW_IN_TO_FLOW_OUT[this.flowTotal];
+        }
 
-		this.total = 0;
+    }
 
-		this.flowTotal = 0;
-		this.iFlowDir = -1;
-	}
+    private void clear() {
+        Arrays.fill(this.heads, (Object)null);
+        this.head = null;
+        this.tail = null;
+        this.total = 0;
+        this.flowTotal = 0;
+        this.iFlowDir = -1;
+    }
 
-	void set(NodeProvider nodes, WireHandler wireHandler) {
-		if (total > 0) {
-			clear();
-		}
+    private void add(WireNode wire, int iDir, boolean offer, boolean accept) {
+        this.add(new WireConnection(wire, iDir, offer, accept));
+    }
 
-		boolean belowIsConductor = nodes.getNeighbor(owner, Directions.DOWN).isConductor();
-		boolean aboveIsConductor = nodes.getNeighbor(owner, Directions.UP).isConductor();
+    private void add(WireConnection connection) {
+        if (this.head == null) {
+            this.head = connection;
+            this.tail = connection;
+        } else {
+            this.tail.next = connection;
+            this.tail = connection;
+        }
 
-		for (int iDir = 0; iDir < Directions.ALL.length; iDir++) {
-			Node neighbor = nodes.getNeighbor(owner, iDir);
+        ++this.total;
+        if (this.heads[connection.iDir] == null) {
+            this.heads[connection.iDir] = connection;
+            this.flowTotal |= 1 << connection.iDir;
+        }
 
-			if (neighbor.isWire()) {
-				if (wireHandler.shouldCobaltWireNodesLink(owner, neighbor.asWire())) {
-					add(neighbor.asWire(), iDir, true, true);
-				}
-			} else if (iDir < 4) {
-				boolean sideIsConductor = neighbor.isConductor();
+    }
 
-				if (!sideIsConductor) {
-					Node node = nodes.getNeighbor(neighbor, Directions.DOWN);
-					if (node.isWire()) {
-						if (wireHandler.shouldCobaltWireNodesLink(owner, node.asWire())) {
-							add(node.asWire(), iDir, belowIsConductor, true);
-						}
-					}
-				}
-				if (!aboveIsConductor) {
-					Node node = nodes.getNeighbor(neighbor, Directions.UP);
-					if (node.isWire()) {
-						if (wireHandler.shouldCobaltWireNodesLink(owner, node.asWire())) {
-							add(node.asWire(), iDir, true, sideIsConductor);
-						}
-					}
-				}
-			}
-		}
+    void forEach(Consumer<WireConnection> consumer) {
+        for(WireConnection c = this.head; c != null; c = c.next) {
+            consumer.accept(c);
+        }
 
-		if (total > 0) {
-			iFlowDir = WireHandler.FLOW_IN_TO_FLOW_OUT[flowTotal];
-		}
-	}
+    }
 
-	private void clear() {
-		Arrays.fill(heads, null);
+    void forEach(Consumer<WireConnection> consumer, UpdateOrder updateOrder, int iFlowDir) {
+        for(int iDir : updateOrder.cardinalNeighbors(iFlowDir)) {
+            for(WireConnection c = this.heads[iDir]; c != null && c.iDir == iDir; c = c.next) {
+                consumer.accept(c);
+            }
+        }
 
-		head = null;
-		tail = null;
-
-		total = 0;
-
-		flowTotal = 0;
-		iFlowDir = -1;
-	}
-
-	private void add(WireNode wire, int iDir, boolean offer, boolean accept) {
-		add(new WireConnection(wire, iDir, offer, accept));
-	}
-
-	private void add(WireConnection connection) {
-		if (head == null) {
-			head = connection;
-			tail = connection;
-		} else {
-			tail.next = connection;
-			tail = connection;
-		}
-
-		total++;
-
-		if (heads[connection.iDir] == null) {
-			heads[connection.iDir] = connection;
-			flowTotal |= (1 << connection.iDir);
-		}
-	}
-
-	/**
-	 * Iterate over all connections. Use this method if the iteration order is not
-	 * important.
-	 */
-	void forEach(Consumer<WireConnection> consumer) {
-		for (WireConnection c = head; c != null; c = c.next) {
-			consumer.accept(c);
-		}
-	}
-
-	/**
-	 * Iterate over all connections. Use this method if the iteration order is
-	 * important.
-	 */
-	void forEach(Consumer<WireConnection> consumer, UpdateOrder updateOrder, int iFlowDir) {
-		for (int iDir : updateOrder.cardinalNeighbors(iFlowDir)) {
-			for (WireConnection c = heads[iDir]; c != null && c.iDir == iDir; c = c.next) {
-				consumer.accept(c);
-			}
-		}
-	}
+    }
 }

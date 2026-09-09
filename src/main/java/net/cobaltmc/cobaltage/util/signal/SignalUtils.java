@@ -1,6 +1,6 @@
 package net.cobaltmc.cobaltage.util.signal;
 
-import net.cobaltmc.cobaltage.block.CobaltConverterBlock;
+import net.cobaltmc.cobaltage.block.cobalt.CobaltConverterBlock;
 import net.cobaltmc.cobaltage.util.ModTags;
 import net.cobaltmc.cobaltage.block.signal.cobalt.CobaltSignalSource;
 import net.minecraft.core.Direction;

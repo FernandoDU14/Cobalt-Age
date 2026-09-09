@@ -1,6 +1,7 @@
 package net.cobaltmc.cobaltage.util;
 
 import net.cobaltmc.cobaltage.CobaltAge;
+import net.cobaltmc.cobaltage.CobaltAgeConstants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
@@ -16,7 +17,7 @@ public class ModTags {
         public static final TagKey<Block> SHOULD_IGNORE_COBALT_SIGNALS = createTag("should_ignore_cobalt_signals");
 
         private static TagKey<Block> createTag(String name) {
-            return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, name));
+            return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, name));
         }
     }
 
@@ -24,7 +25,7 @@ public class ModTags {
         // public static final TagKey<Item> TRANSFORMABLE_ITEMS = createTag("transformable_items");
 
         private static TagKey<Item> createTag(String name) {
-            return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, name));
+            return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, name));
         }
     }
 }

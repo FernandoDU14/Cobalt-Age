@@ -5,13 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.cobaltmc.cobaltage.CobaltAgeConstants;
 import org.slf4j.Logger;
 
 import net.cobaltmc.cobaltage.CobaltAge;
 
 public class ProfilerResults {
 
-    private static final Logger LOGGER = CobaltAge.LOGGER;
+    private static final Logger LOGGER = CobaltAgeConstants.LOGGER;
 
     private static final Map<String, Long> RESULTS = new LinkedHashMap<>();
     private static long totalTime;

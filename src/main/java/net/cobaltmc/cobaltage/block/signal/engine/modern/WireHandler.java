@@ -1,1160 +1,638 @@
 package net.cobaltmc.cobaltage.block.signal.engine.modern;
 
-import java.util.Iterator;
-import java.util.Queue;
-
-//import net.cobaltmc.cobaltage.CobaltAge;
-//import net.cobaltmc.cobaltage.util.profiler.Profiler;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-
-import net.cobaltmc.cobaltage.block.CobaltRelayBlock;
-import net.cobaltmc.cobaltage.block.CobaltWireBlock;
-import net.cobaltmc.cobaltage.util.interfaces.mixin.signalgetters.BlockStateBaseSignalGetterByType;
+import java.util.Iterator;
+import java.util.Queue;
+import net.cobaltmc.cobaltage.block.cobalt.CobaltRelayBlock;
+import net.cobaltmc.cobaltage.block.cobalt.CobaltWireBlock;
 import net.cobaltmc.cobaltage.block.signal.SignalType;
-import net.cobaltmc.cobaltage.block.signal.cobalt.Cobalt;
 import net.cobaltmc.cobaltage.block.signal.engine.legacy.InstantNeighborUpdater;
 import net.cobaltmc.cobaltage.block.signal.engine.legacy.NeighborUpdater;
-
+import net.cobaltmc.cobaltage.util.interfaces.mixin.signalgetters.BlockStateBaseSignalGetterByType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.redstone.Orientation;
-import net.minecraft.world.level.storage.LevelStorageSource.LevelStorageAccess;
+import net.minecraft.world.level.storage.LevelStorageSource;
 
-import static net.cobaltmc.cobaltage.block.signal.SignalType.COBALT;
-
-/**
- * This class handles power changes for cobalt wires. The algorithm uses legacy
- * parts made by SpaceWalker from Alternate Current. The non-legacy part are all
- * implementations that ensure the performance are the same as Alternate Current project
- * while extending the legacy wire flow from a 2D logic to a 3D logic, made by KanieOutis.
- * The algorithm is designed with the following goals in mind:
- * <br>
- * 1. Minimize the number of times a wire checks its surroundings to determine
- * its power level.
- * <br>
- * 2. Minimize the number of block and shape updates emitted.
- * <br>
- * 3. Emit block and shape updates in a deterministic, non-locational order,
- * fixing bug MC-11193.
- * 
- * <p>
- * In Vanilla redstone wire is laggy because it fails on points 1 and 2.
- * 
- * <p>
- * Redstone wire updates recursively and each wire calculates its power level in
- * isolation rather than in the context of the network it is a part of. This
- * means a wire in a grid can change its power level over half a dozen times
- * before settling on its final value. This problem used to be worse in 1.13 and
- * below, where a wire would only decrease its power level by 1 at a time.
- * 
- * <p>
- * In addition to this, a wire emits 42 block updates and up to 22 shape updates
- * each time it changes its power level.
- * 
- * <p>
- * Of those 42 block updates, 6 are to itself, which are thus not only
- * redundant, but a big source of lag, since those cause the wire to
- * unnecessarily re-calculate its power level. A block only has 24 neighbors
- * within a Manhattan distance of 2, meaning 12 of the remaining 36 block
- * updates are duplicates and thus also redundant.
- * 
- * <p>
- * Of the 22 shape updates, only 6 are strictly necessary. The other 16 are sent
- * to blocks diagonally above and below. These are necessary if a wire changes
- * its connections, but not when it changes its power level.
- * 
- * <p>
- * Redstone wire in Vanilla also fails on point 3, though this is more of a
- * quality-of-life issue than a lag issue. The recursive nature in which it
- * updates, combined with the location-dependent order in which each wire
- * updates its neighbors, makes the order in which neighbors of a wire network
- * are updated incredibly inconsistent and seemingly random.
- * 
- * <p>
- * Cobalt Age fixes each of these problems as follows. But you are free to
- * use the standard redstone wire update logic implementations if you want to.
- * In order to pursue that goal, you must toggle the entry in cobaltage.conf.
- * 
- * <p>
- * 1. To make sure a wire calculates its power level as little as possible, we
- * remove the recursive nature in which redstone wire updates in Vanilla.
- * Instead, we build a network of connected wires, find those wires that receive
- * power from "outside" the network, and spread the power from there.
- * This has a few advantages:
- * <br>
- * - Each wire checks for power from non-wire components at most once, and from
- * nearby wires just twice.
- * <br>
- * - Each wire only sets its power level in the world once. This is important,
- * because calls to Level.setBlock are even more expensive than calls to
- * Level.getBlockState.
- * 
- * <p>
- * 2. There are 2 obvious ways in which we can reduce the number of block and
- * shape updates.
- * <br>
- * - Get rid of the 18 redundant block updates and 16 redundant shape updates,
- * so each wire only emits 24 block updates and 6 shape updates whenever it
- * changes its power level.
- * <br>
- * - Only emit block updates and shape updates once a wire reaches its final
- * power level, rather than at each intermediary stage.
- * <br>
- * For an individual wire, these two optimizations are the best you can do, but
- * for an entire 3D grid, you can do better!
- * 
- * <p>
- * Since we calculate the power of the entire network, sending block and shape
- * updates to the wires in it is redundant. Removing those updates can reduce
- * the number of block and shape updates by up to 20%.
- * 
- * <p>
- * 3. To make the order of block updates to neighbors of a network
- * deterministic, the first thing we must do is to replace the location-
- * dependent order in which a wire updates its neighbors. Instead, we base it on
- * the direction of power flow. This part of the algorithm was heavily inspired
- * by theosib's 'RedstoneWireTurbo', which you can read more about in theosib's
- * comment on Mojira <a href="https://bugs.mojang.com/browse/MC-81098?focusedCommentId=420777&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-420777">here</a>
- * or by checking out its implementation in carpet mod <a href="https://github.com/gnembon/fabric-carpet/blob/master/src/main/java/carpet/helpers/RedstoneWireTurbo.java">here</a>.
- * 
- * <p>
- * The idea is to determine the direction of power flow through a wire based on
- * the power it receives from neighboring wires. For example, if the only power
- * a wire receives is from a neighboring wire to its west, it can be said that
- * the direction of power flow through the wire is east.
- * 
- * <p>
- * We make the order of block updates to neighbors of a wire depend on what is
- * determined to be the direction of power flow. This not only removes
- * locationality entirely, it even removes directionality in a large number of
- * cases. Unlike in 'RedstoneWireTurbo', however, I have decided to keep a
- * directional element in ambiguous cases, rather than to introduce randomness,
- * though this is trivial to change.
- * 
- * <p>
- * While this change fixes the block update order of individual wires, we must
- * still address the overall block update order of a network. This turns out to
- * be a simple fix, because of a change we made earlier: we search through the
- * network for wires that receive power from outside it, and spread the power
- * from there. If we make each wire transmit its power to neighboring wires in
- * an order dependent on the direction of power flow, we end up with a
- * non-locational and largely non-directional wire update order.
- *
- * @Author SpaceWalker (legacy parts), KanieOutis (3D implementations and refactoring)
- */
 public class WireHandler {
-
-	public static class Directions {
-
-		public static final Direction[] ALL        = { Direction.WEST, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.DOWN, Direction.UP };
-
-		// Indices for the arrays above.
-		// The cardinal directions are ordered clockwise. This allows
-		// for conversion between relative and absolute directions
-		// ('left' 'right' vs 'east' 'west') with simple arithmetic:
-		// If some Direction index 'iDir' is considered 'forward', then
-		// '(iDir + 1) & 0b11' is 'right', '(iDir + 2) & 0b11' is 'backward', etc.
-		public static final int WEST  = 0b000; // 0
-		public static final int NORTH = 0b001; // 1
-		public static final int EAST  = 0b010; // 2
-		public static final int SOUTH = 0b011; // 3
-		public static final int DOWN  = 0b100; // 4
-		public static final int UP    = 0b101; // 5
-
-		public static int iOpposite(int iDir) {
-			return iDir ^ (0b10 >>> (iDir >>> 2));
-		}
-
-		public static int index(Direction dir) {
-			for (int i = 0; i < ALL.length; i++) {
-				if (dir == ALL[i]) {
-					return i;
-				}
-			}
-
-			return -1;
-		}
-	}
-	/**
-	 * This dynamic conversion table takes in information about incoming flow, and outputs
-	 * the determined outgoing flow.
-	 *
-	 * <p>
-	 * The input is a 6 bit number that encodes the incoming flow. Each bit
-	 * represents a direction in 3D space (DOWN, UP, NORTH, SOUTH, WEST, EAST), and
-	 * and, when it is 'on', indicates the presence of a flow coming from that specific direction.
-	 *
-	 * <p>
-	 * The output is a single Direction index, or -1 for ambiguous cases.
-	 *
-	 * <p>
-	 * The outgoing flow is determined according to the following criteria:
-	 * * <p>
-	 * If there is just 1 direction of incoming flow, that direction will be the
-	 * will be the direction of outgoing flow.
-	 * * <p>
-	 * If there are couples of directions opposite each other along the same axis (NORTH/SOUTH,
-	 * WEST/EAST or DOWN/UP), they cancel each other out. If, after this cancellation,
-	 * there is a residual single isolated direction, it is chosen as the outgoing direction.
-	 * * <p>
-	 * If there are exactly 2 directions of flow in input that are not opposite each other on the horizontal plane,
-	 * the direction "more clockwise" (i.e. the direction that is exactly
-	 * a quarter turn clockwise from the other) is chosen.
-	 * * <p>
-	 * In all other cases (multi-axis interactions that cannot be resolved or unresolved conflicts),
-	 * the flow is considered completely ambiguous and returns -1.
-	 * * <p>
-	 * <b>Notes on the migration from 2D to 3D:</b>
-	 * The transition from 2D to 3D logic has introduced the following changes:
-	 * <ul>
-	 * <li>The bit mask (input) has been extended from 4 bits to 6 bits to natively map the vertical axes {@code DOWN} and {@code UP}.</li>
-	 * <li>The size of the flow lookup table (array) has been increased from 16 combinations (2^4) to 64 combinations (2^6).</li>
-	 * <li>The logic of cancelling opposites has been ported to three dimensions, extending mutual exclusivity to the Y axis (a simultaneous flow from above and below is zeroed, leaving priority to the non-compensated horizontal directions).</li>
-	 * </ul>
-	 *	This part of code, regarding FLOW_IN_TO_FLOW_OUT has changed and refactored to 3D implementations by KanieOutis.
-     */
-	static final int[] FLOW_IN_TO_FLOW_OUT = new int[64];
-
-	static {
-		for (int i = 0; i < 64; i++) {
-			FLOW_IN_TO_FLOW_OUT[i] = resolve3DFlow(i);
-		}
-	}
-	private static int resolve3DFlow(int mask) {
-		if (mask == 0) return -1;
-
-		int bits = Integer.bitCount(mask);
-
-		// 1 sola direzione in ingresso = stessa direzione in uscita
-		if (bits == 1) return Integer.numberOfTrailingZeros(mask);
-
-		// Cancella le direzioni opposte per stabilizzare i flussi incrociati 3D
-		int canceled = mask;
-		if ((canceled & 0b000101) == 0b000101) canceled &= ~0b000101; // Ovest(0) / Est(2)
-		if ((canceled & 0b001010) == 0b001010) canceled &= ~0b001010; // Nord(1) / Sud(3)
-		if ((canceled & 0b110000) == 0b110000) canceled &= ~0b110000; // Giù(4) / Su(5)
-
-		// Se dopo aver cancellato gli opposti rimane 1 sola direzione dominante, usa quella
-		if (Integer.bitCount(canceled) == 1) {
-			return Integer.numberOfTrailingZeros(canceled);
-		}
-
-		// Fallback storico per gestire in modo prevedibile le "curve" orizzontali a 2 vie
-		if (bits == 2 && (mask & 0b110000) == 0) {
-			if (mask == 0b0011) return Directions.NORTH; // Ovest/Nord
-			if (mask == 0b0110) return Directions.EAST;  // Nord/Est
-			if (mask == 0b1001) return Directions.WEST;  // Ovest/Sud
-			if (mask == 0b1100) return Directions.SOUTH; // Est/Sud
-		}
-
-		// In tutti gli altri casi (flussi complessi che arrivano da Y e orizzontale) il flusso è ambiguo
-		return -1;
-	}
-	/**
-	 * Update order of shape updates, matching that of Vanilla.
-	 */
-	static final int[] SHAPE_UPDATE_ORDER = { Directions.WEST, Directions.EAST, Directions.NORTH, Directions.SOUTH, Directions.DOWN, Directions.UP };
-
-	private static final int POWER_MIN = Cobalt.SIGNAL_MIN;
-	private static final int POWER_MAX = Cobalt.SIGNAL_MAX;
-	private static final int POWER_STEP = 1;
-
-	// If Vanilla will ever multi-thread the ticking of levels, there should
-	// be only one WireHandler per level, in case wire updates in multiple
-	// levels at the same time. There are already mods that add multi-threading
-	// as well.
-	private final ServerLevel level;
-	private final Config config;
-
-	/** Map of wires and neighboring blocks. */
-	private final Long2ObjectMap<Node> nodes;
-	/** Queue for the breadth-first search through the network. */
-	private final Queue<WireNode> search;
-	/** Queue of updates to wires and neighboring blocks. */
-	private final Queue<Node> updates;
-
-	private final NeighborUpdater neighborUpdater;
-
-	// Rather than creating new nodes every time a network is updated we keep
-	// a cache of nodes that can be re-used.
-	private Node[] nodeCache;
-	private int nodeCount;
-
-	/** Is this WireHandler currently working through the update queue? */
-	private boolean updating;
-
-	public WireHandler(ServerLevel level, LevelStorageAccess storage) {
-		this.level = level;
-		this.config = Config.forLevel(level, storage);
-
-		this.config.load();
-
-		this.nodes = new Long2ObjectOpenHashMap<>();
-		this.search = new SimpleQueue();
-		this.updates = new PriorityQueue();
-
-		this.neighborUpdater = new InstantNeighborUpdater(this.level);
-
-		this.nodeCache = new Node[16];
-		this.fillNodeCache(0, 16);
-	}
-
-	public Config getConfig() {
-		return config;
-	}
-
-	private Node getOrAddNode(BlockPos pos) {
-		// just pass in null, then the state will only be retrieved
-		// if there is no node as this position yet
-		return getOrAddNode(pos, null);
-	}
-
-	/**
-	 * Retrieve the {@link Node Node} that represents the
-	 * block at the given position in the level.
-	 */
-	private Node getOrAddNode(BlockPos pos, BlockState state) {
-		return nodes.compute(pos.asLong(), (key, node) -> {
-			if (node == null) {
-				// If there is not yet a node at this position, retrieve and
-				// update one from the cache.
-				return getNextNode(pos, state != null ? state : level.getBlockState(pos));
-			}
-			if (node.invalid) {
-				return revalidateNode(node);
-			}
-
-			return node;
-		});
-	}
-
-	/**
-	 * Remove and return the {@link Node Node} at the given
-	 * position.
-	 */
-	private Node removeNode(BlockPos pos) {
-		return nodes.remove(pos.asLong());
-	}
-
-	/**
-	 * Return a node that represents the given position and block state. If it is a
-	 * wire, then create a new {@link WireNode WireNode}.
-	 * Otherwise, grab the next {@link Node Node} from the
-	 * cache and update it.
-	 */
-	private Node getNextNode(BlockPos pos, BlockState state) {
-		return state.getBlock() instanceof CobaltWireBlock ? new WireNode(level, pos, state) : getNextNode().set(pos, state, true);
-	}
-
-	/**
-	 * Grab the first unused node from the cache. If all of the cache is already in
-	 * use, increase it in size first.
-	 */
-	private Node getNextNode() {
-		if (nodeCount == nodeCache.length) {
-			increaseNodeCache();
-		}
-
-		return nodeCache[nodeCount++];
-	}
-
-	private void increaseNodeCache() {
-		Node[] oldCache = nodeCache;
-		nodeCache = new Node[oldCache.length << 1];
-
-		for (int index = 0; index < oldCache.length; index++) {
-			nodeCache[index] = oldCache[index];
-		}
-
-		fillNodeCache(oldCache.length, nodeCache.length);
-	}
-
-	private void fillNodeCache(int start, int end) {
-		for (int index = start; index < end; index++) {
-			nodeCache[index] = new Node(level);
-		}
-	}
-
-	/**
-	 * Try to revalidate the given node by looking at the block state that is
-	 * occupying its position. If the given node is a wire but the block state is
-	 * not, or vice versa, a new node must be created/grabbed from the cache.
-	 * Otherwise, the node can be quickly revalidated with the new block state.
-	 */
-	private Node revalidateNode(Node node) {
-		if (!node.invalid) {
-			return node;
-		}
-
-		BlockPos pos = node.pos;
-		BlockState state = level.getBlockState(pos);
-
-		boolean wasWire = node.isWire();
-		boolean isWire = state.getBlock() instanceof CobaltWireBlock;
-
-		if (wasWire != isWire) {
-			return getNextNode(pos, state);
-		}
-
-		node.invalid = false;
-
-		if (isWire) {
-			// No need to update the block state of this wire - it will grab
-			// the current block state just before setting power anyway.
-			WireNode wire = node.asWire();
-
-			wire.root = false;
-			wire.discovered = false;
-			wire.searched = false;
-		} else {
-			node.set(pos, state, false);
-		}
-
-		return node;
-	}
-
-	/**
-	 * Retrieve the neighbor of a node in the given direction and create a link
-	 * between the two nodes if they are not yet linked. This link makes accessing
-	 * neighbors of a node signficantly faster.
-	 */
-	private Node getNeighbor(Node node, int iDir) {
-		Node neighbor = node.neighbors[iDir];
-
-		if (neighbor == null || neighbor.invalid) {
-			Direction dir = Directions.ALL[iDir];
-			BlockPos pos = node.pos.relative(dir);
-
-			Node oldNeighbor = neighbor;
-			neighbor = getOrAddNode(pos);
-
-			if (neighbor != oldNeighbor) {
-				int iOpp = Directions.iOpposite(iDir);
-
-				node.neighbors[iDir] = neighbor;
-				neighbor.neighbors[iOpp] = node;
-			}
-		}
-
-		return neighbor;
-	}
-
-	/**
-	 * This method should be called whenever a wire receives a block update.
-	 */
-	public boolean onWireUpdated(BlockPos pos, BlockState state, Orientation orientation) {
-		Node node = getOrAddNode(pos, state);
-
-		if (!node.isWire()) {
-			return false; // we should never get here
-		}
-
-		WireNode wire = node.asWire();
-
-		invalidate();
-		revalidateNode(wire);
-		findRoots(wire, orientation);
-		tryUpdate();
-
-		return true;
-	}
-
-	/**
-	 * This method should be called whenever a wire is placed.
-	 */
-	public void onWireAdded(BlockPos pos, BlockState state) {
-		Node node = getOrAddNode(pos, state);
-
-		if (!node.isWire()) {
-			return; // we should never get here
-		}
-
-		WireNode wire = node.asWire();
-		wire.added = true;
-
-		invalidate();
-		revalidateNode(wire);
-		findRoot(wire);
-		tryUpdate();
-	}
-
-	/**
-	 * This method should be called whenever a wire is removed.
-	 */
-	public void onWireRemoved(BlockPos pos, BlockState state) {
-		Node node = removeNode(pos);
-		WireNode wire;
-
-		if (node == null || !node.isWire()) {
-			wire = new WireNode(level, pos, state);
-		} else {
-			wire = node.asWire();
-		}
-
-		wire.invalid = true;
-		wire.removed = true;
-
-		// If these fields are set to 'true', the removal of this wire was part of
-		// already ongoing power changes, so we can exit early here.
-		if (updating && wire.shouldBreak) {
-			return;
-		}
-
-		invalidate();
-		revalidateNode(wire);
-		findRoot(wire);
-		tryUpdate();
-	}
-
-	/**
-	 * The nodes map is a snapshot of the state of the world. It becomes invalid
-	 * when power changes are carried out, since the block and shape updates can
-	 * lead to block changes. If these block changes cause the network to be updated
-	 * again every node must be invalidated, and revalidated before it is used
-	 * again. This ensures the power calculations of the network are accurate.
-	 */
-	private void invalidate() {
-		if (updating && !nodes.isEmpty()) {
-			Iterator<Entry<Node>> it = Long2ObjectMaps.fastIterator(nodes);
-
-			while (it.hasNext()) {
-				Entry<Node> entry = it.next();
-				Node node = entry.getValue();
-
-				node.invalid = true;
-			}
-		}
-	}
-
-	/**
-	 * Look for wires at and around the given position that are in an invalid state
-	 * and require power changes. These wires are called 'roots' because it is only
-	 * when these wires change power level that neighboring wires must adjust as
-	 * well.
-	 * 
-	 * <p>
-	 * While it is strictly only necessary to check the wire at the given position,
-	 * if that wire is part of a network, it is beneficial to check its surroundings
-	 * for other wires that require power changes. This is because a network can
-	 * receive power at multiple points. Consider the following setup:
-	 * 
-	 * <p>
-	 * (top-down view, W = wire, L = lever, _ = air/other)
-	 * <br> {@code _ _ W _ _ }
-	 * <br> {@code _ W W W _ }
-	 * <br> {@code W W L W W }
-	 * <br> {@code _ W W W _ }
-	 * <br> {@code _ _ W _ _ }
-	 * 
-	 * <p>
-	 * The lever powers four wires in the network at once. If this is identified
-	 * correctly, the entire network can (un)power at once. While it is not
-	 * practical to cover every possible situation where a network is (un)powered
-	 * from multiple points at once, checking for common cases like the one
-	 * described above is relatively straight-forward.
-	 */
-	private void findRoots(WireNode wire, Orientation orientation) {
-		// horizontal direction bias for update order purposes
-		int iDirBias = -1;
-
-		if (orientation != null) {
-			Direction dir = orientation.getFront().getAxis().isHorizontal()
-				? orientation.getFront()
-				: orientation.getUp();
-
-			iDirBias = Directions.index(dir);
-		}
-
-		findRoot(wire, iDirBias);
-
-		// If the wire at the given position is not in an invalid state
-		// we can exit early.
-		if (!wire.searched) {
-			return;
-		}
-
-		if (orientation == null) {
-			// no neighborChanged orientation present, look around in all sides
-			for (int iDir : config.getUpdateOrder().directNeighbors(wire.iFlowDir)) {
-				findRootsAround(wire, iDir);
-			}
-		} else {
-			// use the orientation from the neighborChanged update to look for roots only behind
-			findRootsAround(wire, Directions.index(orientation.getFront().getOpposite()));
-		}
-	}
-
-	/**
-	 * Look for wires around a neighbor of the given wire that require power changes.
-	 */
-	private void findRootsAround(WireNode wire, int iDir) {
-		Node node = getNeighbor(wire, iDir);
-
-		if (node.isConductor() || node.isSignalSource()) {
-			for (int iSide : config.getUpdateOrder().cardinalNeighbors(wire.iFlowDir)) {
-				Node neighbor = getNeighbor(node, iSide);
-
-				if (neighbor.isWire()) {
-					findRoot(neighbor.asWire(), iSide);
-				}
-			}
-		}
-	}
-
-	private void findRoot(WireNode wire) {
-		findRoot(wire, -1);
-	}
-
-	/**
-	 * Check if the given wire requires power changes. If it does, queue it for the
-	 * breadth-first search as a root.
-	 */
-	private void findRoot(WireNode wire, int iDiscoveryDir) {
-		// Each wire only needs to be checked once.
-		if (wire.discovered) {
-			return;
-		}
-
-		discover(wire);
-		findExternalPower(wire);
-		findPower(wire, false);
-
-		if (needsUpdate(wire)) {
-			searchRoot(wire, iDiscoveryDir);
-		}
-	}
-
-	/**
-	 * Prepare the given wire for the breadth-first search. This means:
-	 * <br>
-	 * - Check if the wire should break. Rather than breaking the wire right away,
-	 * its effects are integrated into the power calculations.
-	 * <br>
-	 * - Reset the virtual and external power.
-	 * <br>
-	 * - Find connections to neighboring wires.
-	 */
-	private void discover(WireNode wire) {
-		if (wire.discovered) {
-			return;
-		}
-
-		wire.discovered = true;
-		wire.searched = false;
-
-		if (!wire.removed && !wire.shouldBreak && !wire.state.canSurvive(level, wire.pos)) {
-			wire.shouldBreak = true;
-		}
-
-		wire.virtualPower = wire.currentPower;
-		wire.externalPower = POWER_MIN - 1;
-
-		wire.connections.set(this::getNeighbor, this);
-	}
-
-	/**
-	 * Determine the power level the given wire receives from the blocks around it.
-	 * Power from non-wire components only needs to be computed if power from
-	 * neighboring wires has decreased, so as to determine how low the power of the
-	 * wire can fall.
-	 */
-	private void findPower(WireNode wire, boolean ignoreSearched) {
-		// As wire power is (re-)computed, flow information must be reset.
-		wire.virtualPower = wire.externalPower;
-		wire.flowIn = 0;
-
-		// If the wire is removed or going to break, its power level should always be
-		// the minimum value. This is because it (effectively) no longer exists, so
-		// cannot provide any power to neighboring wires.
-		if (wire.removed || wire.shouldBreak) {
-			return;
-		}
-
-		// Power received from neighboring wires will never exceed POWER_MAX -
-		// POWER_STEP, so if the external power is already larger than or equal to
-		// that, there is no need to check for power from neighboring wires.
-		if (wire.externalPower < (POWER_MAX - POWER_STEP)) {
-			findWirePower(wire, ignoreSearched);
-		}
-	}
-
-	/**
-	 * Determine the power the given wire receives from connected neighboring wires
-	 * and update the virtual power accordingly.
-	 */
-	private void findWirePower(WireNode wire, boolean ignoreSearched) {
-		wire.connections.forEach(connection -> {
-			if (!connection.accept) {
-				return;
-			}
-
-			WireNode neighbor = connection.wire;
-
-			if (!ignoreSearched || !neighbor.searched) {
-				int power = Math.max(POWER_MIN, neighbor.virtualPower - POWER_STEP);
-				int iOpp = Directions.iOpposite(connection.iDir);
-
-				wire.offerPower(power, iOpp);
-			}
-		});
-	}
-
-	/**
-	 * Determine the signal the given wire receives from non-wire
-	 * components and update the virtual power accordingly.
-	 */
-	private void findExternalPower(WireNode wire) {
-		// If the wire is removed or going to break, its power level should always be
-		// the minimum value. Thus, external power need not be computed.
-		// In other cases external power need only be computed once.
-		if (wire.removed || wire.shouldBreak || wire.externalPower >= POWER_MIN) {
-			return;
-		}
-
-		wire.externalPower = getExternalPower(wire);
-
-		if (wire.externalPower > wire.virtualPower) {
-			wire.virtualPower = wire.externalPower;
-		}
-	}
-
-	/**
-	 * Determine the signal the given wire receives from non-wire
-	 * components.
-	 */
-	private int getExternalPower(WireNode wire) {
-		int power = POWER_MIN;
-
-		for (int iDir = 0; iDir < Directions.ALL.length; iDir++) {
-			Node neighbor = getNeighbor(wire, iDir);
-
-			// Power from wires is handled separately.
-			if (neighbor.isWire()) {
-				continue;
-			}
-
-			// Since 1.16 there is a block that is both a conductor and a signal
-			// source: the target block!
-			if (neighbor.isConductor()) {
-				power = Math.max(power, getDirectSignalToByType(COBALT, wire, neighbor));
-			}
-			if (neighbor.isSignalSource()) {
-				power = Math.max(power, ((BlockStateBaseSignalGetterByType)neighbor.state).cobaltage$getSignalByType(COBALT, level, neighbor.pos, Directions.ALL[iDir]));
-			}
-
-			if (power >= POWER_MAX) {
-				return POWER_MAX;
-			}
-		}
-
-		return power;
-	}
-
-	/**
-	 * Determine the direct signal the given wire receives from neighboring blocks
-	 * through the given conductor node.
-	 */
-	private int getDirectSignalToByType(SignalType signalType, WireNode wire, Node node) {
-		int power = POWER_MIN;
-
-		for (int iDir = 0; iDir < Directions.ALL.length; iDir++) {
-			Node neighbor = getNeighbor(node, iDir);
-
-			if (neighbor.isSignalSource()) {
-
-				power = Math.max(power, ((BlockStateBaseSignalGetterByType)neighbor.state).cobaltage$getDirectSignalByType(signalType, level, neighbor.pos, Directions.ALL[iDir]));
-
-				if (power >= POWER_MAX) {
-					return POWER_MAX;
-				}
-			}
-		}
-
-		return power;
-	}
-
-	/**
-	 * Check if the given wire needs to update its state in the world.
-	 */
-	private boolean needsUpdate(WireNode wire) {
-		return wire.removed || wire.shouldBreak || wire.virtualPower != wire.currentPower;
-	}
-
-	/**
-	 * Queue the given wire for the breadth-first search as a root.
-	 */
-	private void searchRoot(WireNode wire, int iBackupFlowDir) {
-		if (wire.connections.iFlowDir >= 0) {
-			// power flow direction takes precedent
-			iBackupFlowDir = wire.connections.iFlowDir;
-		} else if (iBackupFlowDir < 0) {
-			// use default value if none is given
-			iBackupFlowDir = 0;
-		}
-
-		search(wire, true, iBackupFlowDir);
-	}
-
-	/**
-	 * Queue the given wire for the breadth-first search and set a backup flow
-	 * direction.
-	 */
-	private void search(WireNode wire, boolean root, int iBackupFlowDir) {
-		search.offer(wire);
-
-		wire.root = root;
-		wire.searched = true;
-		// Normally the flow is not set until the power level is updated. However,
-		// in networks with multiple power sources the update order between them
-		// depends on which was discovered first. To make this less prone to
-		// directionality, each wire node is given a 'backup' flow. For roots, this
-		// is the determined flow of their connections. For non-roots this is the
-		// direction from which they were discovered.
-		wire.iFlowDir = iBackupFlowDir;
-	}
-
-	private void tryUpdate() {
-		if (!search.isEmpty()) {
-			update();
-		}
-		if (!updating) {
-			nodes.clear();
-			nodeCount = 0;
-		}
-	}
-
-	/**
-	 * Update the network and neighboring blocks. This is done in 3 steps.
-	 * 
-	 * <p>
-	 * <b>1. Search through the network</b>
-	 * <br>
-	 * Conduct a breadth-first search around the roots to find wires that are in an
-	 * invalid state and need power changes.
-	 * 
-	 * <p>
-	 * <b>2. Depower the network</b>
-	 * <br>
-	 * Depower all wires in the network. This allows power to be spread most
-	 * efficiently.
-	 * 
-	 * <p>
-	 * <b>3. Power the network</b>
-	 * <br>
-	 * Work through the update queue, setting the new power level of each wire and
-	 * updating neighboring blocks. After a wire has updated its power level, it
-	 * will emit shape updates and queue updates for neighboring wires and blocks.
-	 */
-	private void update() {
-		// The profiler keeps track of how long various parts of the algorithm take.
-		// It is only here for debugging purposes, and is commented out in production.
-//		Profiler profiler = CobaltAge.createProfiler();
-//		profiler.start();
-
-		// Search through the network for wires that need power changes. This includes
-		// the roots as well as any wires that will be affected by power changes to
-		// those roots.
-//		profiler.push("search network");
-		searchNetwork();
-
-		// Depower all the wires in the network.
-//		profiler.swap("depower network");
-		depowerNetwork();
-
-		// Bring each wire up to its new power level and update neighboring blocks.
-//		profiler.swap("power network");
-		try {
-			powerNetwork();
-		} catch (Throwable t) {
-			// If anything goes wrong while carrying out power changes, this field must
-			// be reset to 'false', or the wire handler will be locked out of carrying
-			// out power changes until the world is reloaded.
-			updating = false;
-
-			throw t;
-//		} finally {
-//			profiler.pop();
-//			profiler.end();
-		}
-	}
-
-	/**
-	 * Search through the network for wires that are in an invalid state and need
-	 * power changes. These wires are added to the end of the queue, so that their
-	 * neighbors can be searched next.
-	 */
-	private void searchNetwork() {
-		for (WireNode wire : search) {
-			// The order in which wires are searched will influence the order in
-			// which they update their power levels.
-			wire.connections.forEach(connection -> {
-				if (!connection.offer) {
-					return;
-				}
-
-				WireNode neighbor = connection.wire;
-
-				if (neighbor.searched) {
-					return;
-				}
-
-				discover(neighbor);
-				findPower(neighbor, false);
-
-				// If power from neighboring wires has decreased, check for power
-				// from non-wire components so as to determine how low power can
-				// fall.
-				if (neighbor.virtualPower < neighbor.currentPower) {
-					findExternalPower(neighbor);
-				}
-
-				if (needsUpdate(neighbor)) {
-					search(neighbor, false, connection.iDir);
-				}
-			}, config.getUpdateOrder(), wire.iFlowDir);
-		}
-	}
-
-	/**
-	 * Depower all wires in the network so that power can be spread from the power
-	 * sources.
-	 */
-	private void depowerNetwork() {
-		while (!search.isEmpty()) {
-			WireNode wire = search.poll();
-			findPower(wire, true);
-
-			if (wire.root || wire.removed || wire.shouldBreak || wire.virtualPower > POWER_MIN) {
-				queueWire(wire);
-			} else {
-				// Wires that do not receive any power do not queue power changes
-				// until they are offered power from a neighboring wire. To ensure
-				// that they accept any power from neighboring wires and thus queue
-				// their power changes, their virtual power is set to below the
-				// minimum.
-				wire.virtualPower--;
-			}
-		}
-	}
-
-	/**
-	 * Work through the update queue, setting the new power level of each wire, then
-	 * queueing updates to connected wires and neighboring blocks.
-	 */
-	private void powerNetwork() {
-		// If an instantaneous update chain causes updates to another network
-		// (or the same network in another place), new power changes will be
-		// integrated into the already ongoing power queue, so we can exit early
-		// here.
-		if (updating) {
-			return;
-		}
-
-		updating = true;
-
-		while (!updates.isEmpty()) {
-			Node node = updates.poll();
-
-			if (node.isWire()) {
-				WireNode wire = node.asWire();
-
-				if (!needsUpdate(wire)) {
-					continue;
-				}
-
-				findPowerFlow(wire);
-				transmitPower(wire);
-
-				if (wire.setPower()) {
-					queueNeighbors(wire);
-
-					// If the wire was newly placed or removed, shape updates have
-					// already been emitted. However, unlike before 1.19, neighbor
-					// updates are now queued, so to preserve behavior parity with
-					// previous versions, we emit extra shape updates here to
-					// notify neighboring observers.
-					updateNeighborShapes(wire);
-				}
-			} else {
-				WireNode neighborWire = node.neighborWire;
-
-				if (neighborWire != null) {
-					BlockPos neighborPos = neighborWire.pos;
-					Block neighborBlock = neighborWire.state.getBlock();
-
-					updateBlock(node, neighborPos, neighborBlock);
-				}
-			}
-		}
-
-		updating = false;
-	}
-
-	/**
-	 * Use the information of incoming power flow to determine the direction of
-	 * power flow through this wire. If that flow is ambiguous, try to use a flow
-	 * direction based on connections to neighboring wires. If that is also
-	 * ambiguous, use the backup value that was set when the wire was first added to
-	 * the network.
-	 */
-	private void findPowerFlow(WireNode wire) {
-		int flow = FLOW_IN_TO_FLOW_OUT[wire.flowIn];
-
-		if (flow >= 0) {
-			wire.iFlowDir = flow;
-		} else if (wire.connections.iFlowDir >= 0) {
-			wire.iFlowDir = wire.connections.iFlowDir;
-		}
-	}
-
-	/**
-	 * Transmit power from the given wire to neighboring wires and queue updates to
-	 * those wires.
-	 */
-	private void transmitPower(WireNode wire) {
-		wire.connections.forEach(connection -> {
-			if (!connection.offer) {
-				return;
-			}
-
-			WireNode neighbor = connection.wire;
-
-			int power = Math.max(POWER_MIN, wire.virtualPower - POWER_STEP);
-			int iDir = connection.iDir;
-
-			if (neighbor.offerPower(power, iDir)) {
-				queueWire(neighbor);
-			}
-		}, config.getUpdateOrder(), wire.iFlowDir);
-	}
-
-	/**
-	 * Emit shape updates around the given wire.
-	 */
-	private void updateNeighborShapes(WireNode wire) {
-		BlockPos wirePos = wire.pos;
-		BlockState wireState = wire.state;
-
-		for (int iDir : SHAPE_UPDATE_ORDER) {
-			Node neighbor = getNeighbor(wire, iDir);
-
-			// Shape updates to redstone wire are very expensive, and should never happen
-			// as a result of power changes anyway, while shape updates to air do nothing.
-			// The current block state at this position *could* be wrong, but if you somehow
-			// manage to place a block where air used to be during the execution of a shape
-			// update I am very impressed and you deserve to have some broken behavior.
-			if (!neighbor.isWire() && !neighbor.state.isAir()) {
-				int iOpp = Directions.iOpposite(iDir);
-				Direction opp = Directions.ALL[iOpp];
-
-				updateShape(neighbor, opp, wirePos, wireState);
-			}
-		}
-	}
-
-	private void updateShape(Node node, Direction dir, BlockPos neighborPos, BlockState neighborState) {
-		neighborUpdater.shapeUpdate(dir, neighborState, node.pos, neighborPos, Block.UPDATE_CLIENTS, 512);
-	}
-
-	/**
-	 * Queue block updates to nodes around the given wire.
-	 */
-	private void queueNeighbors(WireNode wire) {
-		config.getUpdateOrder().forEachNeighbor(this::getNeighbor, wire, wire.iFlowDir, neighbor -> queueNeighbor(neighbor, wire));
-	}
-
-	/**
-	 * Queue the given node for an update from the given neighboring wire.
-	 */
-	private void queueNeighbor(Node node, WireNode neighborWire) {
-		// Updates to wires are queued when power is transmitted.
-		// While this check makes sure wires in the network are not given block
-		// updates, it also prevents block updates to wires in neighboring networks.
-		// While this should not make a difference in theory, in practice, it is
-		// possible to force a network into an invalid state without updating it, even
-		// if it is relatively obscure.
-		// While I was willing to make this compromise in return for some significant
-		// performance gains in certain setups, if you are not, you can add all the
-		// positions of the network to a set and filter out block updates to wires in
-		// the network that way.
-		// Block updates to air do nothing, so those are skipped as well.
-		// The current block state at this position *could* be wrong, but if you somehow
-		// manage to place a block where air used to be during the execution of a block
-		// update I am very impressed and you deserve to have some broken behavior.
-		if (!node.isWire() && !node.state.isAir()) {
-			node.neighborWire = neighborWire;
-			updates.offer(node);
-		}
-	}
-
-	/**
-	 * Queue the given wire for a power change. If the wire does not need a power
-	 * change (perhaps because its power has already changed), transmit power to
-	 * neighboring wires.
-	 */
-	private void queueWire(WireNode wire) {
-		if (needsUpdate(wire)) {
-			updates.offer(wire);
-		} else {
-			findPowerFlow(wire);
-			transmitPower(wire);
-		}
-	}
-
-	/**
-	 * Emit a block update to the given node.
-	 */
-	private void updateBlock(Node node, BlockPos neighborPos, Block neighborBlock) {
-		// redstone wire is the only block that uses the neighborChanged orientation
-		// so leaving it as null should not be an issue
-		neighborUpdater.neighborChanged(node.pos, neighborBlock, null);
-	}
-
-	/**
-	 * It simulates the behaviour of the old 'checkAndLink' method, verifying if two WireNode
-	 * can exchange energy according to the rules of the Cobalt Relay.
-	 */
-	public boolean shouldCobaltWireNodesLink(WireNode nodeA, WireNode nodeB) {
-		BlockState stateA = nodeA.state;
-		BlockState stateB = nodeB.state;
-
-		boolean aIsRelay = stateA.getBlock() instanceof CobaltRelayBlock;
-		boolean bIsRelay = stateB.getBlock() instanceof CobaltRelayBlock;
-		boolean aIsDust = !aIsRelay;
-		boolean bIsDust = !bIsRelay;
-
-		boolean diffXZ = nodeA.pos.getX() != nodeB.pos.getX() || nodeA.pos.getZ() != nodeB.pos.getZ();
-		boolean diffY = nodeA.pos.getY() != nodeB.pos.getY();
-
-		// 1. Relay <-> Relay - Only Vertically allowed
-		if (aIsRelay && bIsRelay) {
-			if (diffXZ) return false;
-		}
-
-		// 2. Relay <-> Dust - Vertical shapes
-		if ((aIsRelay && bIsDust) || (aIsDust && bIsRelay)) {
-			// No diagonals allowed
-			if (diffY && diffXZ) return false;
-
-			// You can't take power from a below powered cobalt wire, however you can power a cobalt wire above relay block
-			if (!diffXZ && diffY) {
-				if (aIsRelay && nodeA.pos.getY() > nodeB.pos.getY()) return false;
-				if (bIsRelay && nodeB.pos.getY() > nodeA.pos.getY()) return false;
-			}
-		}
-
-		return true;
-	}
-
-	@FunctionalInterface
-	public interface NodeProvider {
-		Node getNeighbor(Node node, int iDir);
-	}
+    static final int[] FLOW_IN_TO_FLOW_OUT = new int[64];
+    static final int[] SHAPE_UPDATE_ORDER;
+    private static final int POWER_MIN = 0;
+    private static final int POWER_MAX = 15;
+    private static final int POWER_STEP = 1;
+    private final ServerLevel level;
+    private final Config config;
+    private final Long2ObjectMap<Node> nodes;
+    private final Queue<WireNode> search;
+    private final Queue<Node> updates;
+    private final NeighborUpdater neighborUpdater;
+    private Node[] nodeCache;
+    private int nodeCount;
+    private boolean updating;
+
+    private static int resolve3DFlow(int mask) {
+        if (mask == 0) {
+            return -1;
+        } else {
+            int bits = Integer.bitCount(mask);
+            if (bits == 1) {
+                return Integer.numberOfTrailingZeros(mask);
+            } else {
+                int canceled = mask;
+                if ((mask & 5) == 5) {
+                    canceled = mask & -6;
+                }
+
+                if ((canceled & 10) == 10) {
+                    canceled &= -11;
+                }
+
+                if ((canceled & 48) == 48) {
+                    canceled &= -49;
+                }
+
+                if (Integer.bitCount(canceled) == 1) {
+                    return Integer.numberOfTrailingZeros(canceled);
+                } else {
+                    if (bits == 2 && (mask & 48) == 0) {
+                        if (mask == 3) {
+                            return 1;
+                        }
+
+                        if (mask == 6) {
+                            return 2;
+                        }
+
+                        if (mask == 9) {
+                            return 0;
+                        }
+
+                        if (mask == 12) {
+                            return 3;
+                        }
+                    }
+
+                    return -1;
+                }
+            }
+        }
+    }
+
+    public WireHandler(ServerLevel level, LevelStorageSource.LevelStorageAccess storage) {
+        this.level = level;
+        this.config = Config.forLevel(level, storage);
+        this.config.load();
+        this.nodes = new Long2ObjectOpenHashMap();
+        this.search = new SimpleQueue();
+        this.updates = new PriorityQueue();
+        this.neighborUpdater = new InstantNeighborUpdater(this.level);
+        this.nodeCache = new Node[16];
+        this.fillNodeCache(0, 16);
+    }
+
+    public Config getConfig() {
+        return this.config;
+    }
+
+    private Node getOrAddNode(BlockPos pos) {
+        return this.getOrAddNode(pos, (BlockState)null);
+    }
+
+    private Node getOrAddNode(BlockPos pos, BlockState state) {
+        return (Node)this.nodes.compute(pos.asLong(), (key, node) -> {
+            if (node == null) {
+                return this.getNextNode(pos, state != null ? state : this.level.getBlockState(pos));
+            } else {
+                return node.invalid ? this.revalidateNode(node) : node;
+            }
+        });
+    }
+
+    private Node removeNode(BlockPos pos) {
+        return (Node)this.nodes.remove(pos.asLong());
+    }
+
+    private Node getNextNode(BlockPos pos, BlockState state) {
+        return (Node)(state.getBlock() instanceof CobaltWireBlock ? new WireNode(this.level, pos, state) : this.getNextNode().set(pos, state, true));
+    }
+
+    private Node getNextNode() {
+        if (this.nodeCount == this.nodeCache.length) {
+            this.increaseNodeCache();
+        }
+
+        return this.nodeCache[this.nodeCount++];
+    }
+
+    private void increaseNodeCache() {
+        Node[] oldCache = this.nodeCache;
+        this.nodeCache = new Node[oldCache.length << 1];
+
+        for(int index = 0; index < oldCache.length; ++index) {
+            this.nodeCache[index] = oldCache[index];
+        }
+
+        this.fillNodeCache(oldCache.length, this.nodeCache.length);
+    }
+
+    private void fillNodeCache(int start, int end) {
+        for(int index = start; index < end; ++index) {
+            this.nodeCache[index] = new Node(this.level);
+        }
+
+    }
+
+    private Node revalidateNode(Node node) {
+        if (!node.invalid) {
+            return node;
+        } else {
+            BlockPos pos = node.pos;
+            BlockState state = this.level.getBlockState(pos);
+            boolean wasWire = node.isWire();
+            boolean isWire = state.getBlock() instanceof CobaltWireBlock;
+            if (wasWire != isWire) {
+                return this.getNextNode(pos, state);
+            } else {
+                node.invalid = false;
+                if (isWire) {
+                    WireNode wire = node.asWire();
+                    wire.root = false;
+                    wire.discovered = false;
+                    wire.searched = false;
+                } else {
+                    node.set(pos, state, false);
+                }
+
+                return node;
+            }
+        }
+    }
+
+    private Node getNeighbor(Node node, int iDir) {
+        Node neighbor = node.neighbors[iDir];
+        if (neighbor == null || neighbor.invalid) {
+            Direction dir = WireHandler.Directions.ALL[iDir];
+            BlockPos pos = node.pos.relative(dir);
+            Node oldNeighbor = neighbor;
+            neighbor = this.getOrAddNode(pos);
+            if (neighbor != oldNeighbor) {
+                int iOpp = WireHandler.Directions.iOpposite(iDir);
+                node.neighbors[iDir] = neighbor;
+                neighbor.neighbors[iOpp] = node;
+            }
+        }
+
+        return neighbor;
+    }
+
+    public boolean onWireUpdated(BlockPos pos, BlockState state, Orientation orientation) {
+        Node node = this.getOrAddNode(pos, state);
+        if (!node.isWire()) {
+            return false;
+        } else {
+            WireNode wire = node.asWire();
+            this.invalidate();
+            this.revalidateNode(wire);
+            this.findRoots(wire, orientation);
+            this.tryUpdate();
+            return true;
+        }
+    }
+
+    public void onWireAdded(BlockPos pos, BlockState state) {
+        Node node = this.getOrAddNode(pos, state);
+        if (node.isWire()) {
+            WireNode wire = node.asWire();
+            wire.added = true;
+            this.invalidate();
+            this.revalidateNode(wire);
+            this.findRoot(wire);
+            this.tryUpdate();
+        }
+    }
+
+    public void onWireRemoved(BlockPos pos, BlockState state) {
+        Node node = this.removeNode(pos);
+        WireNode wire;
+        if (node != null && node.isWire()) {
+            wire = node.asWire();
+        } else {
+            wire = new WireNode(this.level, pos, state);
+        }
+
+        wire.invalid = true;
+        wire.removed = true;
+        if (!this.updating || !wire.shouldBreak) {
+            this.invalidate();
+            this.revalidateNode(wire);
+            this.findRoot(wire);
+            this.tryUpdate();
+        }
+    }
+
+    private void invalidate() {
+        Node node;
+        if (this.updating && !this.nodes.isEmpty()) {
+            for(Iterator<Long2ObjectMap.Entry<Node>> it = Long2ObjectMaps.fastIterator(this.nodes); it.hasNext(); node.invalid = true) {
+                Long2ObjectMap.Entry<Node> entry = (Long2ObjectMap.Entry)it.next();
+                node = (Node)entry.getValue();
+            }
+        }
+
+    }
+
+    private void findRoots(WireNode wire, Orientation orientation) {
+        int iDirBias = -1;
+        if (orientation != null) {
+            Direction dir = orientation.getFront().getAxis().isHorizontal() ? orientation.getFront() : orientation.getUp();
+            iDirBias = WireHandler.Directions.index(dir);
+        }
+
+        this.findRoot(wire, iDirBias);
+        if (wire.searched) {
+            if (orientation == null) {
+                for(int iDir : this.config.getUpdateOrder().directNeighbors(wire.iFlowDir)) {
+                    this.findRootsAround(wire, iDir);
+                }
+            } else {
+                this.findRootsAround(wire, WireHandler.Directions.index(orientation.getFront().getOpposite()));
+            }
+
+        }
+    }
+
+    private void findRootsAround(WireNode wire, int iDir) {
+        Node node = this.getNeighbor(wire, iDir);
+        if (node.isConductor() || node.isSignalSource()) {
+            for(int iSide : this.config.getUpdateOrder().cardinalNeighbors(wire.iFlowDir)) {
+                Node neighbor = this.getNeighbor(node, iSide);
+                if (neighbor.isWire()) {
+                    this.findRoot(neighbor.asWire(), iSide);
+                }
+            }
+        }
+
+    }
+
+    private void findRoot(WireNode wire) {
+        this.findRoot(wire, -1);
+    }
+
+    private void findRoot(WireNode wire, int iDiscoveryDir) {
+        if (!wire.discovered) {
+            this.discover(wire);
+            this.findExternalPower(wire);
+            this.findPower(wire, false);
+            if (this.needsUpdate(wire)) {
+                this.searchRoot(wire, iDiscoveryDir);
+            }
+
+        }
+    }
+
+    private void discover(WireNode wire) {
+        if (!wire.discovered) {
+            wire.discovered = true;
+            wire.searched = false;
+            if (!wire.removed && !wire.shouldBreak && !wire.state.canSurvive(this.level, wire.pos)) {
+                wire.shouldBreak = true;
+            }
+
+            wire.virtualPower = wire.currentPower;
+            wire.externalPower = -1;
+            wire.connections.set(this::getNeighbor, this);
+        }
+    }
+
+    private void findPower(WireNode wire, boolean ignoreSearched) {
+        wire.virtualPower = wire.externalPower;
+        wire.flowIn = 0;
+        if (!wire.removed && !wire.shouldBreak) {
+            if (wire.externalPower < 14) {
+                this.findWirePower(wire, ignoreSearched);
+            }
+
+        }
+    }
+
+    private void findWirePower(WireNode wire, boolean ignoreSearched) {
+        wire.connections.forEach((connection) -> {
+            if (connection.accept) {
+                WireNode neighbor = connection.wire;
+                if (!ignoreSearched || !neighbor.searched) {
+                    int power = Math.max(0, neighbor.virtualPower - 1);
+                    int iOpp = WireHandler.Directions.iOpposite(connection.iDir);
+                    wire.offerPower(power, iOpp);
+                }
+
+            }
+        });
+    }
+
+    private void findExternalPower(WireNode wire) {
+        if (!wire.removed && !wire.shouldBreak && wire.externalPower < 0) {
+            wire.externalPower = this.getExternalPower(wire);
+            if (wire.externalPower > wire.virtualPower) {
+                wire.virtualPower = wire.externalPower;
+            }
+
+        }
+    }
+
+    private int getExternalPower(WireNode wire) {
+        int power = 0;
+
+        for(int iDir = 0; iDir < WireHandler.Directions.ALL.length; ++iDir) {
+            Node neighbor = this.getNeighbor(wire, iDir);
+            if (!neighbor.isWire()) {
+                if (neighbor.isConductor()) {
+                    power = Math.max(power, this.getDirectSignalToByType(SignalType.COBALT, wire, neighbor));
+                }
+
+                if (neighbor.isSignalSource()) {
+                    power = Math.max(power, ((BlockStateBaseSignalGetterByType)neighbor.state).cobaltage$getSignalByType(SignalType.COBALT, this.level, neighbor.pos, WireHandler.Directions.ALL[iDir]));
+                }
+
+                if (power >= 15) {
+                    return 15;
+                }
+            }
+        }
+
+        return power;
+    }
+
+    private int getDirectSignalToByType(SignalType signalType, WireNode wire, Node node) {
+        int power = 0;
+
+        for(int iDir = 0; iDir < WireHandler.Directions.ALL.length; ++iDir) {
+            Node neighbor = this.getNeighbor(node, iDir);
+            if (neighbor.isSignalSource()) {
+                power = Math.max(power, ((BlockStateBaseSignalGetterByType)neighbor.state).cobaltage$getDirectSignalByType(signalType, this.level, neighbor.pos, WireHandler.Directions.ALL[iDir]));
+                if (power >= 15) {
+                    return 15;
+                }
+            }
+        }
+
+        return power;
+    }
+
+    private boolean needsUpdate(WireNode wire) {
+        return wire.removed || wire.shouldBreak || wire.virtualPower != wire.currentPower;
+    }
+
+    private void searchRoot(WireNode wire, int iBackupFlowDir) {
+        if (wire.connections.iFlowDir >= 0) {
+            iBackupFlowDir = wire.connections.iFlowDir;
+        } else if (iBackupFlowDir < 0) {
+            iBackupFlowDir = 0;
+        }
+
+        this.search(wire, true, iBackupFlowDir);
+    }
+
+    private void search(WireNode wire, boolean root, int iBackupFlowDir) {
+        this.search.offer(wire);
+        wire.root = root;
+        wire.searched = true;
+        wire.iFlowDir = iBackupFlowDir;
+    }
+
+    private void tryUpdate() {
+        if (!this.search.isEmpty()) {
+            this.update();
+        }
+
+        if (!this.updating) {
+            this.nodes.clear();
+            this.nodeCount = 0;
+        }
+
+    }
+
+    private void update() {
+        this.searchNetwork();
+        this.depowerNetwork();
+
+        try {
+            this.powerNetwork();
+        } catch (Throwable t) {
+            this.updating = false;
+            throw t;
+        }
+    }
+
+    private void searchNetwork() {
+        for(WireNode wire : this.search) {
+            wire.connections.forEach((connection) -> {
+                if (connection.offer) {
+                    WireNode neighbor = connection.wire;
+                    if (!neighbor.searched) {
+                        this.discover(neighbor);
+                        this.findPower(neighbor, false);
+                        if (neighbor.virtualPower < neighbor.currentPower) {
+                            this.findExternalPower(neighbor);
+                        }
+
+                        if (this.needsUpdate(neighbor)) {
+                            this.search(neighbor, false, connection.iDir);
+                        }
+
+                    }
+                }
+            }, this.config.getUpdateOrder(), wire.iFlowDir);
+        }
+
+    }
+
+    private void depowerNetwork() {
+        while(!this.search.isEmpty()) {
+            WireNode wire = (WireNode)this.search.poll();
+            this.findPower(wire, true);
+            if (!wire.root && !wire.removed && !wire.shouldBreak && wire.virtualPower <= 0) {
+                --wire.virtualPower;
+            } else {
+                this.queueWire(wire);
+            }
+        }
+
+    }
+
+    private void powerNetwork() {
+        if (!this.updating) {
+            this.updating = true;
+
+            while(!this.updates.isEmpty()) {
+                Node node = (Node)this.updates.poll();
+                if (node.isWire()) {
+                    WireNode wire = node.asWire();
+                    if (this.needsUpdate(wire)) {
+                        this.findPowerFlow(wire);
+                        this.transmitPower(wire);
+                        if (wire.setPower()) {
+                            this.queueNeighbors(wire);
+                            this.updateNeighborShapes(wire);
+                        }
+                    }
+                } else {
+                    WireNode neighborWire = node.neighborWire;
+                    if (neighborWire != null) {
+                        BlockPos neighborPos = neighborWire.pos;
+                        Block neighborBlock = neighborWire.state.getBlock();
+                        this.updateBlock(node, neighborPos, neighborBlock);
+                    }
+                }
+            }
+
+            this.updating = false;
+        }
+    }
+
+    private void findPowerFlow(WireNode wire) {
+        int flow = FLOW_IN_TO_FLOW_OUT[wire.flowIn];
+        if (flow >= 0) {
+            wire.iFlowDir = flow;
+        } else if (wire.connections.iFlowDir >= 0) {
+            wire.iFlowDir = wire.connections.iFlowDir;
+        }
+
+    }
+
+    private void transmitPower(WireNode wire) {
+        wire.connections.forEach((connection) -> {
+            if (connection.offer) {
+                WireNode neighbor = connection.wire;
+                int power = Math.max(0, wire.virtualPower - 1);
+                int iDir = connection.iDir;
+                if (neighbor.offerPower(power, iDir)) {
+                    this.queueWire(neighbor);
+                }
+
+            }
+        }, this.config.getUpdateOrder(), wire.iFlowDir);
+    }
+
+    private void updateNeighborShapes(WireNode wire) {
+        BlockPos wirePos = wire.pos;
+        BlockState wireState = wire.state;
+
+        for(int iDir : SHAPE_UPDATE_ORDER) {
+            Node neighbor = this.getNeighbor(wire, iDir);
+            if (!neighbor.isWire() && !neighbor.state.isAir()) {
+                int iOpp = WireHandler.Directions.iOpposite(iDir);
+                Direction opp = WireHandler.Directions.ALL[iOpp];
+                this.updateShape(neighbor, opp, wirePos, wireState);
+            }
+        }
+
+    }
+
+    private void updateShape(Node node, Direction dir, BlockPos neighborPos, BlockState neighborState) {
+        this.neighborUpdater.shapeUpdate(dir, neighborState, node.pos, neighborPos, 2, 512);
+    }
+
+    private void queueNeighbors(WireNode wire) {
+        this.config.getUpdateOrder().forEachNeighbor(this::getNeighbor, wire, wire.iFlowDir, (neighbor) -> this.queueNeighbor(neighbor, wire));
+    }
+
+    private void queueNeighbor(Node node, WireNode neighborWire) {
+        if (!node.isWire() && !node.state.isAir()) {
+            node.neighborWire = neighborWire;
+            this.updates.offer(node);
+        }
+
+    }
+
+    private void queueWire(WireNode wire) {
+        if (this.needsUpdate(wire)) {
+            this.updates.offer(wire);
+        } else {
+            this.findPowerFlow(wire);
+            this.transmitPower(wire);
+        }
+
+    }
+
+    private void updateBlock(Node node, BlockPos neighborPos, Block neighborBlock) {
+        this.neighborUpdater.neighborChanged(node.pos, neighborBlock, (Orientation)null);
+    }
+
+    public boolean shouldCobaltWireNodesLink(WireNode nodeA, WireNode nodeB) {
+        BlockState stateA = nodeA.state;
+        BlockState stateB = nodeB.state;
+        boolean aIsRelay = stateA.getBlock() instanceof CobaltRelayBlock;
+        boolean bIsRelay = stateB.getBlock() instanceof CobaltRelayBlock;
+        boolean aIsDust = !aIsRelay;
+        boolean bIsDust = !bIsRelay;
+        boolean diffXZ = nodeA.pos.getX() != nodeB.pos.getX() || nodeA.pos.getZ() != nodeB.pos.getZ();
+        boolean diffY = nodeA.pos.getY() != nodeB.pos.getY();
+        if (aIsRelay && bIsRelay && diffXZ) {
+            return false;
+        } else {
+            if (aIsRelay && bIsDust || aIsDust && bIsRelay) {
+                if (diffY && diffXZ) {
+                    return false;
+                }
+
+                if (!diffXZ && diffY) {
+                    if (aIsRelay && nodeA.pos.getY() > nodeB.pos.getY()) {
+                        return false;
+                    }
+
+                    if (bIsRelay && nodeB.pos.getY() > nodeA.pos.getY()) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
+
+    static {
+        for(int i = 0; i < 64; ++i) {
+            FLOW_IN_TO_FLOW_OUT[i] = resolve3DFlow(i);
+        }
+
+        SHAPE_UPDATE_ORDER = new int[]{0, 2, 1, 3, 4, 5};
+    }
+
+    public static class Directions {
+        public static final Direction[] ALL;
+        public static final int WEST = 0;
+        public static final int NORTH = 1;
+        public static final int EAST = 2;
+        public static final int SOUTH = 3;
+        public static final int DOWN = 4;
+        public static final int UP = 5;
+
+        public static int iOpposite(int iDir) {
+            return iDir ^ 2 >>> (iDir >>> 2);
+        }
+
+        public static int index(Direction dir) {
+            for(int i = 0; i < ALL.length; ++i) {
+                if (dir == ALL[i]) {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        static {
+            ALL = new Direction[]{Direction.WEST, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.DOWN, Direction.UP};
+        }
+    }
+
+    @FunctionalInterface
+    public interface NodeProvider {
+        Node getNeighbor(Node var1, int var2);
+    }
 }

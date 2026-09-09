@@ -1,7 +1,6 @@
 package net.cobaltmc.cobaltage.block.signal.engine.modern;
 
-import net.cobaltmc.cobaltage.block.CobaltWireBlock;
-import net.cobaltmc.cobaltage.block.signal.cobalt.Cobalt;
+import net.cobaltmc.cobaltage.block.abstracts.WireBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -9,114 +8,79 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * A WireNode is a Node that represents a wire in the world. It stores all the
- * information about the wire that the WireHandler needs to calculate power
- * changes. This part is the seme of Alternate Current, which i thank for the inspiration.
- *
- * @author Space Walker
- */
 public class WireNode extends Node {
+    final WireConnectionManager connections;
+    int currentPower;
+    int virtualPower;
+    int externalPower;
+    int flowIn;
+    int iFlowDir;
+    boolean added;
+    boolean removed;
+    boolean shouldBreak;
+    boolean root;
+    boolean discovered;
+    boolean searched;
+    WireNode next_wire;
 
-	final WireConnectionManager connections;
+    WireNode(ServerLevel level, BlockPos pos, BlockState state) {
+        super(level);
+        this.pos = pos.immutable();
+        this.state = state;
+        this.connections = new WireConnectionManager(this);
+        this.virtualPower = this.currentPower = (Integer)this.state.getValue(WireBlock.POWER);
+        this.priority = this.priority();
+    }
 
-	/** The power level this wire currently holds in the world. */
-	int currentPower;
-	/**
-	 * While calculating power changes for a network, this field is used to keep
-	 * track of the power level this wire should have.
-	 */
-	int virtualPower;
-	/** The power level received from non-wire components. */
-	int externalPower;
-	/**
-	 * A 4-bit number that keeps track of the power flow of the wires that give this
-	 * wire its power level.
-	 */
-	int flowIn;
-	/** The direction of power flow, based on the incoming flow. */
-	int iFlowDir;
-	boolean added;
-	boolean removed;
-	boolean shouldBreak;
-	boolean root;
-	boolean discovered;
-	boolean searched;
+    Node set(BlockPos pos, BlockState state, boolean clearNeighbors) {
+        throw new UnsupportedOperationException("Cannot update a WireNode!");
+    }
 
-	/** The next wire in the simple queue. */
-	WireNode next_wire;
+    int priority() {
+        return Mth.clamp(this.virtualPower, 0, 15);
+    }
 
-	WireNode(ServerLevel level, BlockPos pos, BlockState state) {
-		super(level);
+    public boolean isWire() {
+        return true;
+    }
 
-		this.pos = pos.immutable();
-		this.state = state;
+    public WireNode asWire() {
+        return this;
+    }
 
-		this.connections = new WireConnectionManager(this);
+    boolean offerPower(int power, int iDir) {
+        if (!this.removed && !this.shouldBreak) {
+            if (power == this.virtualPower) {
+                this.flowIn |= 1 << iDir;
+                return false;
+            } else if (power > this.virtualPower) {
+                this.virtualPower = power;
+                this.flowIn = 1 << iDir;
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 
-		this.virtualPower = this.currentPower = this.state.getValue(CobaltWireBlock.POWER);
-		this.priority = priority();
-	}
-
-	@Override
-	Node set(BlockPos pos, BlockState state, boolean clearNeighbors) {
-		throw new UnsupportedOperationException("Cannot update a WireNode!");
-	}
-
-	@Override
-	int priority() {
-		return Mth.clamp(virtualPower, Cobalt.SIGNAL_MIN, Cobalt.SIGNAL_MAX);
-	}
-
-	@Override
-	public boolean isWire() {
-		return true;
-	}
-
-	@Override
-	public WireNode asWire() {
-		return this;
-	}
-
-	boolean offerPower(int power, int iDir) {
-		if (removed || shouldBreak) {
-			return false;
-		}
-		if (power == virtualPower) {
-			flowIn |= (1 << iDir);
-			return false;
-		}
-		if (power > virtualPower) {
-			virtualPower = power;
-			flowIn = (1 << iDir);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	boolean setPower() {
-		if (removed) {
-			return true;
-		}
-
-		state = level.getBlockState(pos);
-
-		if (!(state.getBlock() instanceof CobaltWireBlock)) {
-			return false; // we should never get here
-		}
-
-		if (shouldBreak) {
-			Block.dropResources(state, level, pos);
-			level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
-
-			return true;
-		}
-
-		currentPower = Mth.clamp(virtualPower, Cobalt.SIGNAL_MIN, Cobalt.SIGNAL_MAX);
-		state = state.setValue(CobaltWireBlock.POWER, currentPower);
-
-		return LevelHelper.setWireState(level, pos, state, added);
-	}
+    boolean setPower() {
+        if (this.removed) {
+            return true;
+        } else {
+            this.state = this.level.getBlockState(this.pos);
+            if (!(this.state.getBlock() instanceof WireBlock)) {
+                return false;
+            } else if (this.shouldBreak) {
+                Block.dropResources(this.state, this.level, this.pos);
+                this.level.setBlock(this.pos, Blocks.AIR.defaultBlockState(), 2);
+                return true;
+            } else {
+                this.currentPower = Mth.clamp(this.virtualPower, 0, 15);
+                this.state = (BlockState)this.state.setValue(WireBlock.POWER, this.currentPower);
+                return LevelHelper.setWireState(this.level, this.pos, this.state, this.added);
+            }
+        }
+    }
 }

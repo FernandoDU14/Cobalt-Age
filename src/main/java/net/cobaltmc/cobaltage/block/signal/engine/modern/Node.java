@@ -1,109 +1,88 @@
 package net.cobaltmc.cobaltage.block.signal.engine.modern;
 
 import java.util.Arrays;
-
-import net.cobaltmc.cobaltage.block.CobaltWireBlock;
+import net.cobaltmc.cobaltage.block.abstracts.WireBlock;
+import net.cobaltmc.cobaltage.block.signal.engine.modern.WireHandler.Directions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * A Node represents a block in the world. It also holds a few other pieces of
- * information that speed up the calculations in the WireHandler class.
- *
- */
 public class Node {
+    private static final int CONDUCTOR = 1;
+    private static final int SOURCE = 2;
+    final ServerLevel level;
+    final Node[] neighbors;
+    BlockPos pos;
+    BlockState state;
+    boolean invalid;
+    private int flags;
+    Node prev_node;
+    Node next_node;
+    int priority;
+    WireNode neighborWire;
 
-	// flags that encode the Node type
-	private static final int CONDUCTOR = 0b01;
-	private static final int SOURCE    = 0b10;
+    Node(ServerLevel level) {
+        this.level = level;
+        this.neighbors = new Node[Directions.ALL.length];
+    }
 
-	final ServerLevel level;
-	final Node[] neighbors;
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (!(obj instanceof Node)) {
+            return false;
+        } else {
+            Node node = (Node)obj;
+            return this.level == node.level && this.pos.equals(node.pos);
+        }
+    }
 
-	BlockPos pos;
-	BlockState state;
-	boolean invalid;
+    public int hashCode() {
+        return this.pos.hashCode();
+    }
 
-	private int flags;
+    Node set(BlockPos pos, BlockState state, boolean clearNeighbors) {
+        if (state.getBlock() instanceof WireBlock) {
+            throw new IllegalStateException("Cannot update a regular Node to a CobaltWireNode!");
+        } else {
+            if (clearNeighbors) {
+                Arrays.fill(this.neighbors, (Object)null);
+            }
 
-	/** The previous node in the priority queue. */
-	Node prev_node;
-	/** The next node in the priority queue. */
-	Node next_node;
-	/** The priority with which this node was queued. */
-	int priority;
-	/** The wire that queued this node for an update. */
-	WireNode neighborWire;
+            this.pos = pos.immutable();
+            this.state = state;
+            this.invalid = false;
+            this.flags = 0;
+            if (this.state.isRedstoneConductor(this.level, this.pos) || this.state.is(Blocks.REDSTONE_WIRE)) {
+                this.flags |= 1;
+            }
 
-	Node(ServerLevel level) {
-		this.level = level;
-		this.neighbors = new Node[WireHandler.Directions.ALL.length];
-	}
+            if (this.state.isSignalSource()) {
+                this.flags |= 2;
+            }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (!(obj instanceof Node node)) {
-			return false;
-		}
+            return this;
+        }
+    }
 
-        return level == node.level && pos.equals(node.pos);
-	}
+    int priority() {
+        return this.neighborWire.priority;
+    }
 
-	@Override
-	public int hashCode() {
-		return pos.hashCode();
-	}
+    public boolean isWire() {
+        return false;
+    }
 
-	Node set(BlockPos pos, BlockState state, boolean clearNeighbors) {
-		if (state.getBlock() instanceof CobaltWireBlock) {
-			throw new IllegalStateException("Cannot update a regular Node to a CobaltWireNode!");
-		}
+    public boolean isConductor() {
+        return (this.flags & 1) != 0;
+    }
 
-		if (clearNeighbors) {
-			Arrays.fill(neighbors, null);
-		}
+    public boolean isSignalSource() {
+        return (this.flags & 2) != 0;
+    }
 
-		this.pos = pos.immutable();
-		this.state = state;
-		this.invalid = false;
-
-		this.flags = 0;
-
-		if (this.state.isRedstoneConductor(this.level, this.pos) || this.state.is(Blocks.REDSTONE_BLOCK)) {
-			this.flags |= CONDUCTOR;
-		}
-		if (this.state.isSignalSource()) {
-			this.flags |= SOURCE;
-		}
-
-		return this;
-	}
-
-	/**
-	 * Determine the priority with which this node should be queued.
-	 */
-	int priority() {
-		return neighborWire.priority;
-	}
-
-	public boolean isWire() {
-		return false;
-	}
-
-	public boolean isConductor() {
-		return (flags & CONDUCTOR) != 0;
-	}
-
-	public boolean isSignalSource() {
-		return (flags & SOURCE) != 0;
-	}
-
-	public WireNode asWire() {
-		throw new UnsupportedOperationException("Not a WireNode!");
-	}
+    public WireNode asWire() {
+        throw new UnsupportedOperationException("Not a WireNode!");
+    }
 }

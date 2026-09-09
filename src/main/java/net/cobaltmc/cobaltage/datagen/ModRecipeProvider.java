@@ -1,5 +1,6 @@
 package net.cobaltmc.cobaltage.datagen;
 
+import net.cobaltmc.cobaltage.CobaltAgeConstants;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.cobaltmc.cobaltage.CobaltAge;
@@ -144,7 +145,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .save(output);
 
                 trimSmithing(ModItems.DUST_SMITHING_TEMPLATE, ModTrimPatterns.DUST,
-                        ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "dust_trim")));
+                        ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "dust_trim")));
 
                 shaped(RecipeCategory.MISC, ModItems.DUST_SMITHING_TEMPLATE, 2)
                         .pattern("DTD")

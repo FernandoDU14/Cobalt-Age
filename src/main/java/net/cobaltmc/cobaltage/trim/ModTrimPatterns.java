@@ -1,6 +1,7 @@
 package net.cobaltmc.cobaltage.trim;
 
 import net.cobaltmc.cobaltage.CobaltAge;
+import net.cobaltmc.cobaltage.CobaltAgeConstants;
 import net.cobaltmc.cobaltage.item.ModItems;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
@@ -13,7 +14,7 @@ import net.minecraft.world.item.equipment.trim.TrimPattern;
 
 public class ModTrimPatterns {
     public static final ResourceKey<TrimPattern> DUST = ResourceKey.create(Registries.TRIM_PATTERN,
-            Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "dust"));
+            Identifier.fromNamespaceAndPath(CobaltAgeConstants.MOD_ID, "dust"));
 
     public static void bootstrap(BootstrapContext<TrimPattern> context) {
         register(context, ModItems.DUST_SMITHING_TEMPLATE, DUST);
