@@ -5,25 +5,33 @@
   "name": "Cobalt Age",
   "description": "The first redstone alternative, finally waterloggable and optimized, comes with a new mineral",
   "authors": [
-    "JaviDP14",
-    "KanieOutis"
+    "JaviDP14"
   ],
   "contact": {
     "homepage": "https://modrinth.com/mod/cobaltage",
-    "sources": "https://github.com/FernandoDU14/Cobalt-Age"
+    "sources": "https://github.com/FernandoDU14/Cobalt-Age",
+    "issues": "https://github.com/FernandoDU14/Cobalt-Age/issues"
   },
-  "license": "GPL-3.0",
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/txWQN8CtEV"
+      },
+      "update_checker": false
+    }
+  },
+  "license": "LGPL-3.0",
   "icon": "assets/cobaltage/cobalt_age.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fernando.cobaltage.CobaltAge"
+      "net.cobaltmc.cobaltage.CobaltAge"
     ],
     "fabric-datagen": [
-      "net.fernando.cobaltage.CobaltAgeDataGenerator"
+      "net.cobaltmc.cobaltage.CobaltAgeDataGenerator"
     ],
     "client": [
-      "net.fernando.cobaltage.CobaltAgeClient"
+      "net.cobaltmc.cobaltage.CobaltAgeClient"
     ]
   },
   "mixins": [

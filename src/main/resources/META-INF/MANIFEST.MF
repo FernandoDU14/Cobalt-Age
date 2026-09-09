@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Specification-Title: Cobalt Age
+Specification-Vendor: KanieOutis, JaviDP14
+Specification-Version: 1.2.1
+Implementation-Title: fabric
+Implementation-Version: 1.2.1
+Implementation-Vendor: KanieOutis, JaviDP14
+Built-On-Minecraft: 1.21.11
+Fabric-Jar-Type: classes
+Fabric-Loom-Mixin-Remap-Type: static
+Fabric-Gradle-Version: 9.4.1
+Fabric-Loom-Version: 1.16.3
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.11
+Fabric-Tiny-Remapper-Version: 0.13.0
+Fabric-Loader-Version: 0.18.5
+Fabric-Mixin-Version: 0.17.0+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+

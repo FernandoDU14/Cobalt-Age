@@ -1,37 +1,33 @@
 {
   "required": true,
-  "package": "net.fernando.cobaltage.mixin",
+  "package": "net.cobaltmc.cobaltage.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "minecarts.AbstractMinecartMixin",
-    "emitters.BlockPowerFilterMixin",
-    "emitters.CalibratedSculkSensorCallbackMixin",
-    "ExampleMixin",
-    "minecarts.MinecartBehaviorMixin",
-    "minecarts.NewMinecartBehaviorMixin",
-    "emitters.RedstoneIsolationMixin",
-    "consumers.BellBlockMixin",
-    "consumers.CopperBulbMixin",
-    "consumers.CrafterBlockMixin",
-    "consumers.DispenserBlockMixin",
-    "consumers.DoorBlockMixin",
-    "consumers.FenceGateBlockMixin",
-    "consumers.HopperBlockMixin",
-    "consumers.NoteBlockMixin",
-    "consumers.PistonBlockMixin",
-    "consumers.PoweredRailMixin",
-    "consumers.RedstoneLampMixin",
-    "consumers.ShelfBlockMixin",
-    "consumers.TntBlockMixin",
-    "consumers.TrapdoorBlockMixin",
-    "gui.BeaconScreenMixin",
-    "emitters.LeverBlockMixin",
-    "minecarts.OldMinecartBehaviorMixin"
+    "BlockBehaviourBlockStateBaseMixin",
+    "CommandMixin",
+    "LevelMixin",
+    "block.LeverBlockMixin",
+    "block.entity.CalibratedSculkSensorBlockEntityMixin",
+    "block.redstone.DiodeBlockMixin",
+    "block.redstone.RedstoneLampBlockMixin",
+    "block.redstone.RedstoneTorchBlockMixin",
+    "block.redstone.RedstoneWallTorchBlockMixin",
+    "client.gui.screens.inventory.BeaconScreenMixin",
+    "server.MinecraftServerMixin",
+    "server.ServerLevelMixin",
+    "world.entity.minecart.AbstractMinecartMixin",
+    "world.entity.minecart.MinecartBehaviorMixin",
+    "world.entity.minecart.MinecartBoatPushMixin",
+    "world.entity.minecart.NewMinecartBehaviorMixin",
+    "world.entity.minecart.OldMinecartBehaviorMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
-	}
+  },
+  "client": [
+    "MixinTitleScreen"
+  ]
 }
