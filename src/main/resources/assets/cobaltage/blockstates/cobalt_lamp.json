@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "lit=false,power=0": {
+      "model": "cobaltage:block/cobalt_lamp"
+    },
+    "lit=true,power=1": {
+      "model": "cobaltage:block/cobalt_lamp_power_1"
+    },
+    "lit=true,power=2": {
+      "model": "cobaltage:block/cobalt_lamp_power_2"
+    },
+    "lit=true,power=3": {
+      "model": "cobaltage:block/cobalt_lamp_power_3"
+    },
+    "lit=true,power=4": {
+      "model": "cobaltage:block/cobalt_lamp_power_4"
+    },
+    "lit=true,power=5": {
+      "model": "cobaltage:block/cobalt_lamp_power_5"
+    },
+    "lit=true,power=6": {
+      "model": "cobaltage:block/cobalt_lamp_power_6"
+    },
+    "lit=true,power=7": {
+      "model": "cobaltage:block/cobalt_lamp_power_7"
+    },
+    "lit=true,power=8": {
+      "model": "cobaltage:block/cobalt_lamp_power_8"
+    },
+    "lit=true,power=9": {
+      "model": "cobaltage:block/cobalt_lamp_power_9"
+    },
+    "lit=true,power=10": {
+      "model": "cobaltage:block/cobalt_lamp_power_10"
+    },
+    "lit=true,power=11": {
+      "model": "cobaltage:block/cobalt_lamp_power_11"
+    },
+    "lit=true,power=12": {
+      "model": "cobaltage:block/cobalt_lamp_power_12"
+    },
+    "lit=true,power=13": {
+      "model": "cobaltage:block/cobalt_lamp_power_13"
+    },
+    "lit=true,power=14": {
+      "model": "cobaltage:block/cobalt_lamp_power_14"
+    },
+    "lit=true,power=15": {
+      "model": "cobaltage:block/cobalt_lamp_power_15"
+    }
+  }
+}

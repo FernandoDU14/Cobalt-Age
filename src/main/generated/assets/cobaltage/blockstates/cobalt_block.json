@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "cobaltage:block/cobalt_block"
+    }
+  }
+}
