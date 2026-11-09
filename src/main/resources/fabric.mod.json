@@ -3,9 +3,9 @@
   "id": "cobaltage",
   "version": "${version}",
   "name": "CobaltAge",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "The first redstone alternative, finally waterloggable and optimized, comes with a new mineral",
   "authors": [
-    "Me!"
+    "JaviDP14"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",
