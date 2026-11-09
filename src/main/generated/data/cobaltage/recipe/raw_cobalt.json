@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "cobaltage:raw_cobalt_block"
+  ],
+  "result": {
+    "count": 9,
+    "id": "cobaltage:raw_cobalt"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "cobaltage:cobalt_torch",
+    "D": "cobaltage:cobalt_dust",
+    "S": "minecraft:stone"
+  },
+  "pattern": [
+    "CDC",
+    "SSS"
+  ],
+  "result": {
+    "id": "cobaltage:cobalt_repeater"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": "minecraft:breeze_rod",
+    "C": "cobaltage:cobalt_ingot",
+    "D": "cobaltage:cobalt_dust"
+  },
+  "pattern": [
+    "C C",
+    "CBC",
+    "CDC"
+  ],
+  "result": {
+    "count": 6,
+    "id": "cobaltage:cobalt_rail"
+  }
+}

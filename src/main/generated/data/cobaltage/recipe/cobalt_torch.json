@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "cobaltage:cobalt_dust",
+    "S": "minecraft:stick"
+  },
+  "pattern": [
+    "C",
+    "S"
+  ],
+  "result": {
+    "id": "cobaltage:cobalt_torch"
+  }
+}
