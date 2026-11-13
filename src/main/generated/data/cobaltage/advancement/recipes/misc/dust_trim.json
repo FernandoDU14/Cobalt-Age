@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "cobaltage:dust_trim"
+        "recipes": "cobaltage:dust_trim"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

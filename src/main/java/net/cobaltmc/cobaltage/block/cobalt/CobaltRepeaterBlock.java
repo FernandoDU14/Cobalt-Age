@@ -24,14 +24,15 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.NonNull;
 
+
+
 public class CobaltRepeaterBlock extends CobaltDiodeBlock implements SimpleWaterloggedBlock {
-    public static final MapCodec<CobaltRepeaterBlock> CODEC = simpleCodec(CobaltRepeaterBlock::new);
     public static final BooleanProperty LOCKED;
     public static final IntegerProperty DELAY;
     public static final BooleanProperty WATERLOGGED;
 
     public @NonNull MapCodec<CobaltRepeaterBlock> codec() {
-        return CODEC;
+        return null;
     }
 
     public CobaltRepeaterBlock(BlockBehaviour.Properties settings) {

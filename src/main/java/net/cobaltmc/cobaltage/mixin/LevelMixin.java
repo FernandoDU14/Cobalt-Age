@@ -11,7 +11,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DiodeBlock;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -79,7 +79,7 @@ public abstract class LevelMixin implements SignalGetterByType {
             } else if (blockState.is(Blocks.REDSTONE_BLOCK)) {
                 return 15;
             } else if (blockState.is(Blocks.REDSTONE_WIRE)) {
-                return blockState.getValue(RedStoneWireBlock.POWER);
+                return blockState.getValue(RedstoneWireBlock.POWER);
             } else {
                 return blockState.isSignalSource() ? this.cobaltage$getDirectSignalByType(type, blockPos, direction) : 0;
             }

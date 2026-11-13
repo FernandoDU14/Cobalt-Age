@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "cobaltage:raw_cobalt"
+        "recipes": "cobaltage:raw_cobalt"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

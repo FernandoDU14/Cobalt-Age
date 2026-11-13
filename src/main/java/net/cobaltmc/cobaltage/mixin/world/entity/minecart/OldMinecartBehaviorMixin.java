@@ -1,5 +1,6 @@
 package net.cobaltmc.cobaltage.mixin.world.entity.minecart;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -8,6 +9,7 @@ import net.cobaltmc.cobaltage.CobaltAge;
 import net.cobaltmc.cobaltage.block.cobalt.CobaltRailBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.MoverType;
@@ -17,7 +19,6 @@ import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.phys.Vec3;
@@ -56,12 +57,11 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
             return CobaltAgeConfig.MAX_RAIL_SPEED_NOT_EXPERIMENTAL_BPS;
         }
         GameRules gamerules = server.getGameRules();
-        int maxSpeed = getCobaltOrGoldMaxSpeedByRailType(block, gamerules);
-        return Integer.min(maxSpeed, CobaltAgeConfig.MAX_RAIL_SPEED_NOT_EXPERIMENTAL_BPS);
+        return getCobaltOrGoldMaxSpeedByRailType(block, gamerules);
     }
 
-    @Unique
-    public double getCustomMaxSpeed() {
+    @ModifyReturnValue(method = "getMaxSpeed", at = @At("RETURN"))
+    private double modifyGetMaxSpeed(double originalSpeed, ServerLevel serverLevel) {
         double speed = getMaxRailSpeed(this.minecart.getInBlockState()) / 20.0D;
         return (this.minecart.isInWater() ? speed / 2.0 : speed);
     }
@@ -92,7 +92,7 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
                 railShape == RailShape.SOUTH_EAST ||
                 railShape == RailShape.SOUTH_WEST;
 
-        double maxSpeed = isSlope ? CobaltAgeConfig.MAX_ASCENDING_SPEED : getCustomMaxSpeed();
+        double maxSpeed = isSlope ? CobaltAgeConfig.MAX_ASCENDING_SPEED : (getMaxRailSpeed(this.minecart.getInBlockState()) / 20.0F);
 
         double clampedX = velocity.x;
         double clampedZ = velocity.z;
@@ -125,7 +125,7 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
                     target = "Lnet/minecraft/world/entity/vehicle/minecart/OldMinecartBehavior;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
                     ordinal = 0))
     private void wrapAscendingEast(OldMinecartBehavior minecart, Vec3 velocityAdder, Operation<Void> original) {
-        double maxSpeed = getCustomMaxSpeed();
+        double maxSpeed = getMaxRailSpeed(this.minecart.getInBlockState()) / 20.0D;
         original.call(minecart, new Vec3(Math.min(velocityAdder.x, maxSpeed), velocityAdder.y, velocityAdder.z));
     }
 
@@ -136,7 +136,7 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
                     target = "Lnet/minecraft/world/entity/vehicle/minecart/OldMinecartBehavior;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
                     ordinal = 1))
     private void wrapAscendingWest(OldMinecartBehavior minecart, Vec3 velocityAdder, Operation<Void> original) {
-        double maxSpeed = getCustomMaxSpeed();
+        double maxSpeed = getMaxRailSpeed(this.minecart.getInBlockState()) / 20.0D;
         original.call(minecart, new Vec3(Math.max(velocityAdder.x, -maxSpeed), velocityAdder.y, velocityAdder.z));
     }
 
@@ -147,7 +147,7 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
                     target = "Lnet/minecraft/world/entity/vehicle/minecart/OldMinecartBehavior;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
                     ordinal = 2))
     private void wrapAscendingNorth(OldMinecartBehavior minecart, Vec3 velocityAdder, Operation<Void> original) {
-        double maxSpeed = getCustomMaxSpeed();
+        double maxSpeed = getMaxRailSpeed(this.minecart.getInBlockState()) / 20.0D;
         original.call(minecart, new Vec3(velocityAdder.x, velocityAdder.y, Math.max(velocityAdder.z, -maxSpeed)));
     }
 
@@ -158,43 +158,8 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehaviorMixin {
                     target = "Lnet/minecraft/world/entity/vehicle/minecart/OldMinecartBehavior;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V",
                     ordinal = 3))
     private void wrapAscendingSouth(OldMinecartBehavior minecart, Vec3 velocityAdder, Operation<Void> original) {
-        double maxSpeed = getCustomMaxSpeed();
+        double maxSpeed = getMaxRailSpeed(this.minecart.getInBlockState()) / 20.0D;
         original.call(minecart, new Vec3(velocityAdder.x, velocityAdder.y, Math.min(velocityAdder.z, maxSpeed)));
-    }
-
-    @Unique
-    public RailShape getRailShape(BlockState blockState, Property<RailShape> property, Operation<Comparable<?>> original) {
-        return (RailShape) original.call(blockState, property);
-    }
-
-    @WrapOperation(
-            method = "moveAlongTrack",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/block/state/BlockState;getValue(Lnet/minecraft/world/level/block/state/properties/Property;)Ljava/lang/Comparable;",
-                    ordinal = 1))
-    public <T extends Comparable<T>> T getMoveAlongTrackMixin(BlockState blockState, Property<RailShape> property, Operation<Comparable<?>> original) {
-        return (T) getRailShape(blockState, property, original);
-    }
-
-    @WrapOperation(
-            method = "getPosOffs",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/block/state/BlockState;getValue(Lnet/minecraft/world/level/block/state/properties/Property;)Ljava/lang/Comparable;",
-                    ordinal = 0))
-    public <T extends Comparable<T>> T getSnapPositionToRailWithOffsetMixin(BlockState blockState, Property<RailShape> property, Operation<Comparable<?>> original) {
-        return (T) getRailShape(blockState, property, original);
-    }
-
-    @WrapOperation(
-            method = "getPos",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/block/state/BlockState;getValue(Lnet/minecraft/world/level/block/state/properties/Property;)Ljava/lang/Comparable;",
-                    ordinal = 0))
-    public <T extends Comparable<T>> T getSnapPositionToRailMixin(BlockState blockState, Property<RailShape> property, Operation<Comparable<?>> original) {
-        return (T) getRailShape(blockState, property, original);
     }
 
     @WrapOperation(

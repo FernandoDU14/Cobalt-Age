@@ -61,7 +61,7 @@ public class ModBlocks {
             settings -> new CobaltRepeaterBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .sound(SoundType.STONE)
-                    .pushReaction(PushReaction.DESTROY)
+                    .pushReaction(PushReaction.POPPED)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
                             Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_repeater")))));
@@ -70,7 +70,7 @@ public class ModBlocks {
             settings -> new CobaltComparatorBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .sound(SoundType.STONE)
-                    .pushReaction(PushReaction.DESTROY)
+                    .pushReaction(PushReaction.POPPED)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
                             Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_comparator")))));
@@ -79,7 +79,7 @@ public class ModBlocks {
             settings -> new CobaltConverterBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .sound(SoundType.STONE)
-                    .pushReaction(PushReaction.DESTROY)
+                    .pushReaction(PushReaction.POPPED)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
                             Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "converter")))));
@@ -89,7 +89,7 @@ public class ModBlocks {
                     .noCollision()
                     .instabreak()
                     .noOcclusion()
-                    .pushReaction(PushReaction.DESTROY)
+                    .pushReaction(PushReaction.POPPED)
                     .sound(SoundType.STONE)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
@@ -106,7 +106,7 @@ public class ModBlocks {
                     .isValidSpawn(Blocks::never)
                     .isRedstoneConductor(Blocks::never)
                     .isSuffocating(Blocks::never)
-                    .isViewBlocking(Blocks::never)
+                    .isViewBlocking(BlockBehaviour.BlockStateBase::isViewBlocking)
                     .mapColor(MapColor.WARPED_STEM)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
@@ -142,7 +142,7 @@ public class ModBlocks {
                     .instabreak()
                     .lightLevel(state -> state.hasProperty(BlockStateProperties.LIT) && state.getValue(BlockStateProperties.LIT) ? 7 : 0)
                     .sound(SoundType.WOOD)
-                    .pushReaction(PushReaction.DESTROY)
+                    .pushReaction(PushReaction.POPPED)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
                             Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_torch")))));
@@ -153,7 +153,7 @@ public class ModBlocks {
                     .instabreak()
                     .lightLevel(state -> state.hasProperty(BlockStateProperties.LIT) && state.getValue(BlockStateProperties.LIT) ? 7 : 0)
                     .sound(SoundType.WOOD)
-                    .pushReaction(PushReaction.DESTROY)
+                    .pushReaction(PushReaction.POPPED)
                     .setId(ResourceKey.create(
                             Registries.BLOCK,
                             Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "cobalt_wall_torch")))));

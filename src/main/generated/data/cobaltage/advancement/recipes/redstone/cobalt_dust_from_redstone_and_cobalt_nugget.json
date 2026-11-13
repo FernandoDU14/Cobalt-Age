@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "cobaltage:cobalt_dust_from_redstone_and_cobalt_nugget"
+        "recipes": "cobaltage:cobalt_dust_from_redstone_and_cobalt_nugget"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

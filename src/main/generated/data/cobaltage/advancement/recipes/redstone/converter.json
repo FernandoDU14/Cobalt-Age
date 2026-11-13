@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "cobaltage:converter"
+        "recipes": "cobaltage:converter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

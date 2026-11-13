@@ -37,13 +37,12 @@ import java.util.List;
 
 public class CobaltComparatorBlock extends CobaltDiodeBlock implements EntityBlock, SimpleWaterloggedBlock{
 
-    public static final MapCodec<CobaltComparatorBlock> CODEC = simpleCodec(CobaltComparatorBlock::new);
     public static final EnumProperty<ComparatorMode> MODE;
     public static final BooleanProperty WATERLOGGED;
     private static final int UPDATE_DELAY = 2;
 
     public @NonNull MapCodec<CobaltComparatorBlock> codec() {
-        return CODEC;
+        return null;
     }
 
     public CobaltComparatorBlock(Properties properties) {

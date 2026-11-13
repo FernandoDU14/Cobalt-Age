@@ -18,13 +18,9 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class CobaltLampBlock extends Block {
-    public static final MapCodec<CobaltLampBlock> CODEC = simpleCodec(CobaltLampBlock::new);
     public static final BooleanProperty LIT;
     public static final IntegerProperty POWER;
 
-    public @NonNull MapCodec<CobaltLampBlock> codec() {
-        return CODEC;
-    }
 
     public CobaltLampBlock(Properties properties) {
         super(properties);

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "cobaltage:cobalt_relay"
+        "recipes": "cobaltage:cobalt_relay"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

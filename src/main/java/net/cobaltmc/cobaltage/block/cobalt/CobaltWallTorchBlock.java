@@ -29,7 +29,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class CobaltWallTorchBlock extends CobaltTorchBlock {
-    public static final MapCodec<CobaltWallTorchBlock> CODEC = simpleCodec(CobaltWallTorchBlock::new);
+
     public static final EnumProperty<Direction> FACING;
     public static final BooleanProperty LIT;
     public static final BooleanProperty WATERLOGGED;

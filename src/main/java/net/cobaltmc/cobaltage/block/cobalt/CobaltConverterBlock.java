@@ -1,6 +1,5 @@
 package net.cobaltmc.cobaltage.block.cobalt;
 
-import com.mojang.serialization.MapCodec;
 import net.cobaltmc.cobaltage.block.ModBlocks;
 import net.cobaltmc.cobaltage.block.signal.SignalType;
 import net.cobaltmc.cobaltage.block.signal.cobalt.CobaltSignalSource;
@@ -13,7 +12,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -33,7 +31,6 @@ import org.jspecify.annotations.NonNull;
 
 public class CobaltConverterBlock extends DiodeBlock implements SimpleWaterloggedBlock, CobaltSignalSource{
 
-    public static final MapCodec<CobaltConverterBlock> CODEC = simpleCodec(CobaltConverterBlock::new);
     public static final IntegerProperty POWER;
     public static final BooleanProperty WATERLOGGED;
     private static final VoxelShape SHAPE;
@@ -46,10 +43,6 @@ public class CobaltConverterBlock extends DiodeBlock implements SimpleWaterlogge
     public CobaltConverterBlock(Properties settings) {
         super(settings);
         this.registerDefaultState((BlockState)((BlockState)((BlockState)((BlockState)((BlockState)((BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.NORTH)).setValue(POWER, 0)).setValue(COBALT_LIT, false)).setValue(REDSTONE_LIT, false)).setValue(FLOWING_SIDE, FlowingSide.NONE)).setValue(WATERLOGGED, false));
-    }
-
-    public @NonNull MapCodec<CobaltConverterBlock> codec() {
-        return CODEC;
     }
 
     public void animateTick(BlockState state, @NonNull Level world, BlockPos pos, RandomSource random) {
@@ -144,7 +137,7 @@ public class CobaltConverterBlock extends DiodeBlock implements SimpleWaterlogge
             if (i >= 15) {
                 newExternalRed = i;
             } else {
-                newExternalRed = Math.max(i, redstoneSideState.is(Blocks.REDSTONE_WIRE) ? (Integer)redstoneSideState.getValue(RedStoneWireBlock.POWER) : 0);
+                newExternalRed = Math.max(i, redstoneSideState.is(Blocks.REDSTONE_WIRE) ? (Integer)redstoneSideState.getValue(RedstoneWireBlock.POWER) : 0);
             }
 
             i = ((SignalGetterByType)world).cobaltage$getSignalByType(SignalType.COBALT, cobaltSidePos, cobaltDirection);

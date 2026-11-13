@@ -11,7 +11,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
@@ -54,7 +54,7 @@ public abstract class BlockBehaviourBlockStateBaseMixin implements BlockStateBas
 
                 int cobaltSignal = 0;
                 if (level instanceof Level world) {
-                    if (state.isRedstoneConductor(world, pos) || block instanceof RedStoneWireBlock) {
+                    if (state.isRedstoneConductor(world, pos) || block instanceof RedstoneWireBlock) {
                         cobaltSignal = Math.max(cobaltSignal, ((SignalGetterByType) world).cobaltage$getDirectSignalToByType(type, pos, dir.getOpposite()));
                     }
 

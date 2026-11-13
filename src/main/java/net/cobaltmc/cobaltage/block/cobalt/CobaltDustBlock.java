@@ -11,11 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.NonNull;
 
 public class CobaltDustBlock extends Block implements CobaltSignalSource {
-    public static final MapCodec<CobaltDustBlock> CODEC = simpleCodec(CobaltDustBlock::new);
 
-    public @NonNull MapCodec<CobaltDustBlock> codec() {
-        return CODEC;
-    }
 
     public CobaltDustBlock(Properties settings) {
         super(settings);

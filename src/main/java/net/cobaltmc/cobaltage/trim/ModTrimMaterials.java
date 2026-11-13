@@ -13,7 +13,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Util;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.equipment.trim.MaterialAssetGroup;
 import net.minecraft.world.item.equipment.trim.TrimMaterial;
 
 public class ModTrimMaterials {
@@ -30,13 +29,14 @@ public class ModTrimMaterials {
 
         register(registerable, COBALT_DUST, BuiltInRegistries.ITEM.wrapAsHolder(ModItems.COBALT_DUST),
                 Style.EMPTY.withColor(TextColor.parseColor("#33c2e6").getOrThrow()), "cobalt_dust");
-
     }
 
     private static void register(BootstrapContext<TrimMaterial> registerable, ResourceKey<TrimMaterial> armorTrimKey,
                                  Holder<Item> item, Style style, String assetName) {
+        Identifier paletteId = Identifier.fromNamespaceAndPath(CobaltAge.MOD_ID, "trim/" + assetName);
+
         TrimMaterial trimMaterial = new TrimMaterial(
-                MaterialAssetGroup.create(assetName),
+                paletteId,
                 Component.translatable(Util.makeDescriptionId("trim_material", armorTrimKey.identifier())).withStyle(style));
 
         registerable.register(armorTrimKey, trimMaterial);

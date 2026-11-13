@@ -38,7 +38,6 @@ import java.util.WeakHashMap;
 
 public class CobaltTorchBlock extends BaseTorchBlock implements SimpleWaterloggedBlock, CobaltSignalSource{
 
-    public static final MapCodec<CobaltTorchBlock> CODEC = simpleCodec(CobaltTorchBlock::new);
     public static final BooleanProperty LIT;
     private static final Map<BlockGetter, List<Toggle>> RECENT_TOGGLES;
     public static final BooleanProperty WATERLOGGED;
@@ -47,9 +46,6 @@ public class CobaltTorchBlock extends BaseTorchBlock implements SimpleWaterlogge
     public static final int RESTART_DELAY = 160;
     private static final int UPDATE_DELAY = 2;
 
-    public @NonNull MapCodec<? extends CobaltTorchBlock> codec() {
-        return CODEC;
-    }
 
     public CobaltTorchBlock(Properties settings) {
         super(settings);

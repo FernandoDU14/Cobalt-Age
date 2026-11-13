@@ -45,7 +45,6 @@ import org.jspecify.annotations.NonNull;
 import java.util.Map;
 
 public class CobaltWireBlock extends WireBlock implements SimpleWaterloggedBlock, CobaltSignalSource {
-    public static final MapCodec<CobaltWireBlock> CODEC = simpleCodec(CobaltWireBlock::new);
     public static final BooleanProperty WATERLOGGED;
     public static final BooleanProperty RETRACTED;
     private final WireEvaluator evaluator = new DefaultWireEvaluator(this);
